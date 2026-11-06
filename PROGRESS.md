@@ -35,6 +35,12 @@ Build a dual **Web Scraper & Telegram Scraper** for:
 - **Deadline Extraction:** Scans text with regex `re.search(r"DEADLINE:\s*(.+)", text, re.IGNORECASE)`.
 - **Link Filtering:** Cleans out social media domains (`t.me`, `instagram.com`, `tiktok.com`, `linkedin.com`, `facebook.com`) to extract the genuine application URL (e.g. `https://opportunities.ohubet.com/...`).
 
+### Milestone 3: General Web Scraper Foundation
+- **Location:** `scrapers/web_scraper.py`
+- **Boilerplate Cleaning:** Strips `<script>`, `<style>`, `<nav>`, `<footer>` using BeautifulSoup's `.decompose()` method.
+- **Content & Action Extraction:** Extracts semantic titles, meta descriptions, body paragraphs, and resolves relative URLs into absolute Call-To-Action (CTA) application portal links with `urllib.parse.urljoin`.
+- **Test Target:** Verified on real-world scholarship articles (`opportunities.ohubet.com`), extracting direct UK university application links (`quantuminformatics-cdt.ac.uk/apply/`).
+
 ---
 
 ## 4. Immediate Next Steps (Pick Up Here)
