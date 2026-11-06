@@ -51,7 +51,12 @@ Build a dual **Web Scraper & Telegram Scraper** for:
 ## 5. How to Continue on Another PC
 
 When you clone this repo on your work PC:
-1. Open the folder in Antigravity.
-2. Run `uv sync` in the terminal to set up the environment.
-3. In the chat, simply say:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SamEthereal/scrapper.git
+   cd scrapper
+   ```
+2. Run `uv sync` to install dependencies into the virtual environment automatically.
+3. Open Antigravity in that folder and start a new chat with:
    > *"I've pulled the repo on my work PC. Read PROGRESS.md and let's continue where we left off."*
+
