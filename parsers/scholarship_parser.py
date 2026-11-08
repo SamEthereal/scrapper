@@ -29,6 +29,9 @@ SPAM_DOMAINS = [
     "twitter.com",
     "x.com",
     "youtube.com",
+    "youtu.be",
+    "google.com/maps",
+    "maps.google.com",
 ]
 
 OPPORTUNITY_KEYWORDS = [
@@ -55,10 +58,12 @@ def parse_post(post: RawTelegramPost) -> OpportunityItem:
     deadline_match = re.search(r"DEADLINE:\s*(.+)", text, re.IGNORECASE)
     deadline = deadline_match.group(1).strip() if deadline_match else None
 
-    # 3. Filter for real application links (ignoring social media)
+    # 3. Filter for real application links (ignoring social media and Telegram hashtag search queries)
     valid_links = [
         link for link in post.links
-        if not any(domain in link.lower() for domain in SPAM_DOMAINS)
+        if link.startswith(("http://", "https://"))
+        and not any(domain in link.lower() for domain in SPAM_DOMAINS)
+        and "?q=" not in link
     ]
     apply_url = valid_links[0] if valid_links else None
 

@@ -21,6 +21,7 @@ class ScrapedWebPage:
     meta_description: Optional[str] = None
     main_heading: str = ""
     summary_paragraphs: List[str] = field(default_factory=list)
+    key_highlights: List[str] = field(default_factory=list)
     apply_links: List[str] = field(default_factory=list)
 
 
@@ -145,6 +146,23 @@ class WebScraper:
 
         return unique_links
 
+    def extract_key_highlights(self, soup: BeautifulSoup, max_items: int = 8) -> List[str]:
+        """
+        Extracts key bullet points from <li> tags (programme details, eligibility, benefits).
+        Filters out boilerplate or overly long items.
+        """
+        container = soup.find("article") or soup.find("main") or soup
+        highlights = []
+
+        for li in container.find_all("li"):
+            text = li.get_text(strip=True)
+            if 5 < len(text) < 150:
+                highlights.append(text)
+                if len(highlights) >= max_items:
+                    break
+
+        return highlights
+
     def scrape(self, url: str) -> ScrapedWebPage:
         """Main method: fetches the page, cleans it, and extracts structured data."""
         raw_soup = self.fetch_soup(url)
@@ -158,6 +176,7 @@ class WebScraper:
         main_heading = h1.get_text(strip=True) if h1 else ""
 
         paragraphs = self.extract_main_paragraphs(cleaned_soup)
+        highlights = self.extract_key_highlights(cleaned_soup)
         apply_links = self.extract_apply_links(cleaned_soup, base_url=url)
 
         return ScrapedWebPage(
@@ -166,5 +185,6 @@ class WebScraper:
             meta_description=meta_desc,
             main_heading=main_heading,
             summary_paragraphs=paragraphs,
+            key_highlights=highlights,
             apply_links=apply_links,
         )
