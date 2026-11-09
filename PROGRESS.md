@@ -42,6 +42,14 @@ Build a dual **Web Scraper & Telegram Scraper** for:
 - **List & Highlights Extractor (Student Implementation):** Extracts structured bullets from `<li>` tags (e.g. Host institution, location, funding, tuition coverage).
 - **End-to-End Test:** Scrapes `@OHUB4AllET` Telegram channel, detects specific opportunity links (e.g. CRG Fellowships in Spain, Caltech SURF in the US), deep-scrapes the webpage, and extracts the direct official university portal (`crg.eu`, `caltech.edu`).
 
+### Milestone 4: SQLite Database Persistence & Search Engine
+- **Location:** `storage/db.py`
+- **Schema & Indexes:** `opportunities` table with columns for `channel_name`, `post_id`, `title`, `deadline`, `apply_url`, `official_portal`, `key_highlights` (JSON), and `is_opportunity`.
+- **Deduplication:** Enforces `UNIQUE(channel_name, post_id)` with `INSERT OR IGNORE`. Repeated scraper runs silently skip existing entries.
+- **Dictionary Access:** Uses `conn.row_factory = sqlite3.Row` for intuitive column-by-name access.
+- **Search Query (Student Implementation):** Parameterized `LIKE` query across both `title` and `key_highlights` (`f"%{keyword}%"`).
+- **CLI Search Commands:** Run `uv run main.py search <keyword>` (e.g. `uv run main.py search Spain`) or `uv run main.py list`.
+
 ---
 
 ## 4. Immediate Next Steps (Pick Up Here)

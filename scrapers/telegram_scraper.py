@@ -48,8 +48,13 @@ class TelegramScraper:
         channel_name = channel_identifier.strip("/").split("/")[-1].replace("@", "")
         preview_url = f"https://t.me/s/{channel_name}"
 
-        # 1. FETCH: Make an HTTP GET request
-        response = httpx.get(preview_url, headers=self.headers, follow_redirects=True)
+        # 1. FETCH: Make an HTTP GET request with a forgiving timeout
+        response = httpx.get(
+            preview_url,
+            headers=self.headers,
+            follow_redirects=True,
+            timeout=25.0,
+        )
         response.raise_for_status()
 
         # 2. PARSE: Convert the raw HTML into a searchable tree with BeautifulSoup
