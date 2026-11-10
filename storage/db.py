@@ -4,6 +4,7 @@ import json
 import sqlite3
 from typing import Any, Dict, List, Optional
 from parsers.scholarship_parser import OpportunityItem
+from parsers.job_parser import JobItem
 
 
 class OpportunityDB:
@@ -51,6 +52,27 @@ class OpportunityDB:
             # Indexes for fast search and sorting
             conn.execute("CREATE INDEX IF NOT EXISTS idx_opp_title ON opportunities(title);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_opp_deadline_date ON opportunities(deadline_date);")
+
+            # Create jobs table for Phase 2
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    company TEXT NOT NULL,
+                    location TEXT,
+                    is_remote INTEGER DEFAULT 1,
+                    salary TEXT,
+                    schedule TEXT,
+                    work_life_score INTEGER,
+                    url TEXT UNIQUE,
+                    source TEXT DEFAULT '4dayweek.io',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs(title);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);")
 
     def save_opportunity(
         self,
@@ -244,3 +266,134 @@ class OpportunityDB:
 
             return results
 
+    # ==========================================
+    # JOB BOARD PERSISTENCE & QUERIES (PHASE 2)
+    # ==========================================
+
+    def save_job(self, job: JobItem) -> bool:
+        """
+        Saves a job listing to the database with deduplication on URL.
+        Returns True if newly inserted, False if already exists.
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT OR IGNORE INTO jobs (
+                    title,
+                    company,
+                    location,
+                    is_remote,
+                    salary,
+                    schedule,
+                    work_life_score,
+                    url,
+                    source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    job.title,
+                    job.company,
+                    job.location,
+                    1 if job.is_remote else 0,
+                    job.salary,
+                    job.schedule,
+                    job.work_life_score,
+                    job.url,
+                    job.source,
+                ),
+            )
+            return cursor.rowcount > 0
+
+    def count_jobs(self) -> int:
+        """Returns the total number of saved job listings."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM jobs;")
+            return cursor.fetchone()[0]
+
+    def get_jobs(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Returns the most recently saved jobs."""
+        return self.filter_jobs(limit=limit)
+
+    def search_jobs(self, keyword: str) -> List[Dict[str, Any]]:
+        """Searches jobs by title, company, or location."""
+        return self.filter_jobs(keyword=keyword)
+
+    def filter_jobs(
+        self,
+        keyword: Optional[str] = None,
+        company: Optional[str] = None,
+        has_salary: bool = False,
+        remote_only: bool = False,
+        min_score: Optional[int] = None,
+        sort_by: str = "id",
+        order: str = "DESC",
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """
+        Dynamically filters and sorts job listings.
+        """
+        conditions = []
+        params: List[Any] = []
+
+        if keyword:
+            conditions.append("(title LIKE ? OR company LIKE ? OR location LIKE ?)")
+            params.extend([f"%{keyword}%", f"%{keyword}%", f"%{keyword}%"])
+
+        if company:
+            conditions.append("company LIKE ?")
+            params.append(f"%{company}%")
+
+        if has_salary:
+            conditions.append("salary IS NOT NULL AND salary != ''")
+
+        if remote_only:
+            conditions.append("is_remote = 1")
+
+        if min_score is not None:
+            conditions.append("work_life_score >= ?")
+            params.append(min_score)
+
+        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
+        sort_columns = {
+            "id": "id",
+            "title": "title",
+            "company": "company",
+            "score": "work_life_score",
+        }
+        sort_col = sort_columns.get(sort_by.lower(), "id")
+        sort_direction = "ASC" if order.upper() == "ASC" else "DESC"
+
+        # Push NULL work-life scores to bottom if sorting by score
+        if sort_col == "work_life_score":
+            order_clause = f"ORDER BY CASE WHEN work_life_score IS NULL THEN 1 ELSE 0 END, work_life_score {sort_direction}"
+        else:
+            order_clause = f"ORDER BY {sort_col} {sort_direction}"
+
+        sql = f"SELECT * FROM jobs {where_clause} {order_clause} LIMIT ?;"
+        params.append(limit)
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, tuple(params))
+            rows = cursor.fetchall()
+            return [dict(row) for row in rows]
+
+
+
+
+
+
+
+
+  
+
+            
+
+
+        
+
+
+    

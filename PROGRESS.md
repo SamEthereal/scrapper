@@ -54,6 +54,21 @@ Build a dual **Web Scraper & Telegram Scraper** for:
 - **Dynamic Query Builder:** `filter_opportunities()` in `storage/db.py` supports combining multiple filters: `--country`, `--level` (PhD, Master), `--has-deadline`, and `--open-only`.
 - **Chronological Sorting:** Safe column whitelisting supporting `--sort deadline --order asc` (closing soonest). Pushes `NULL` deadlines to the bottom with SQL `CASE WHEN`.
 - **Closing Soon Utility (Student Implementation):** `get_closing_soon(days=N)` query using SQLite date math `date('now', '+N days')`.
+
+### Milestone 6: Phase 2 — Remote & 4-Day Work Job Scraper
+- **Location:** `parsers/job_parser.py` & `scrapers/job_scraper.py`
+- **Data Model:** `JobItem` capturing `title`, `company`, `location`, `is_remote`, `salary`, `schedule`, `work_life_score`, `url`, and `source`.
+- **Job Card Extraction (Student Implementation):**
+  - Robust DOM targeting via `data-testid="job-card"`.
+  - `extract_salary()`: captures currencies (`$`, `€`, `£`) across card text tokens.
+  - `is_job_remote()`: dynamic remote work detector.
+  - `extract_schedule()` and `extract_work_life_score()`: extracts 4-day week terms and 0-100 balance ratings.
+- **SQLite Storage & Deduplication:** `jobs` table with `UNIQUE(url)` index.
+- **Job CLI Suite:**
+  - `uv run main.py jobs scrape` (pulls 50 live jobs from 4dayweek.io)
+  - `uv run main.py jobs search <role>` (e.g. `Design`, `Engineer`, `Buffer`)
+  - `uv run main.py jobs filter --salary` (only jobs with listed compensation)
+  - `uv run main.py jobs filter --min-score 90` (high work-life rating)
 - **Full CLI Suite:** Powered by `argparse` in `main.py` with commands: `scrape`, `list`, `search`, `filter`, and `closing-soon`.
 
 ---
