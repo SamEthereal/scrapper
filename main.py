@@ -263,6 +263,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Sort direction (default: desc)",
     )
 
+    # ==========================
+    # WEB DASHBOARD (PHASE 3)
+    # ==========================
+    ui_parser = subparsers.add_parser("ui", help="Launch interactive web dashboard")
+    ui_parser.add_argument("--port", type=int, default=8000, help="Port to run web dashboard (default: 8000)")
+    ui_parser.add_argument("--host", default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
+
     return parser
 
 
@@ -341,6 +348,13 @@ def main():
             console.print("  [cyan]uv run main.py jobs search <role>[/cyan]     - Search by role or company (e.g. 'Design')")
             console.print("  [cyan]uv run main.py jobs filter --salary[/cyan]    - Only jobs with salary listed\n")
 
+    # Handle web dashboard command
+    elif args.subcommand == "ui":
+        import uvicorn
+        console.print(f"[bold green]Starting Web Dashboard at:[/bold green] [bold cyan]http://{args.host}:{args.port}[/bold cyan]")
+        console.print("[dim]Press Ctrl+C to stop the server anytime.[/dim]\n")
+        uvicorn.run("ui.app:app", host=args.host, port=args.port, reload=False)
+
     else:
         # Default with no arguments: show usage and stats
         console.print(f"[bold cyan]Database Status:[/bold cyan] [green]{db.count()}[/green] scholarships | [green]{db.count_jobs()}[/green] jobs stored.\n")
@@ -354,7 +368,9 @@ def main():
         console.print("  [cyan]uv run main.py jobs list[/cyan]                   - List all stored jobs")
         console.print("  [cyan]uv run main.py jobs search Design[/cyan]          - Search by role or skill")
         console.print("  [cyan]uv run main.py jobs filter --salary[/cyan]        - Only jobs with salary listed")
-        console.print("  [cyan]uv run main.py jobs filter --min-score 90[/cyan]  - Only high work-life balance jobs\n")
+        console.print("  [cyan]uv run main.py jobs filter --min-score 90[/cyan]  - Only high work-life balance jobs")
+        console.print("\n[bold yellow]🌐 Interactive Web Dashboard:[/bold yellow]")
+        console.print("  [cyan]uv run main.py ui[/cyan]                          - Launch browser UI at http://127.0.0.1:8000\n")
 
 
 if __name__ == "__main__":

@@ -69,6 +69,21 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - `uv run main.py jobs search <role>` (e.g. `Design`, `Engineer`, `Buffer`)
   - `uv run main.py jobs filter --salary` (only jobs with listed compensation)
   - `uv run main.py jobs filter --min-score 90` (high work-life rating)
+
+### Milestone 7: Interactive Web Dashboard & REST API (FastAPI)
+- **Location:** `ui/app.py` & `ui/templates/index.html`
+- **Backend API:** Built with FastAPI and Uvicorn. Exposes REST endpoints:
+  - `GET /`: Serves the responsive SPA dashboard.
+  - `GET /api/stats`: Real-time counts of scholarships and jobs.
+  - `GET /api/opportunities`: Search, country/level filters, and closing-soon deadline queries.
+  - `GET /api/jobs`: Search, salary filter, and work-life balance ranking.
+  - `POST /api/scrape/scholarships` & `POST /api/scrape/jobs`: 1-click live sync from the web UI.
+- **Frontend UI:** Modern responsive dashboard styled with Tailwind CSS and FontAwesome icons:
+  - Tab switching between Scholarships and Jobs.
+  - Live instant debounced search bar.
+  - Quick filter pills (UK, Spain, USA, PhD, High Work-Life, Verified Salary).
+  - Clean card grids with color-coded badges, deadlines, and direct apply portal buttons.
+- **Launch Command:** `uv run main.py ui` &rarr; opens `http://127.0.0.1:8000`.
 - **Full CLI Suite:** Powered by `argparse` in `main.py` with commands: `scrape`, `list`, `search`, `filter`, and `closing-soon`.
 
 ---

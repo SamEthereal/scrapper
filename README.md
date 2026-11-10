@@ -40,13 +40,35 @@ Install `uv` (recommended):
 - **Windows (PowerShell):** `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - **macOS / Linux:** `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-### 2. Run the Scraper
+### 2. Run the Web Dashboard
 
-Clone the repo and run:
+Launch the interactive web UI:
 
 ```bash
-# Sync/install dependencies automatically and run
-uv run main.py
+uv run main.py ui
+```
+Then open your browser to **http://127.0.0.1:8000**!
+
+---
+
+### 3. CLI Commands (Terminal Mode)
+
+#### 🎓 Scholarships
+```bash
+uv run main.py scrape                      # Scrape Telegram & enrich with web portals
+uv run main.py list                        # List all saved scholarships
+uv run main.py search Spain                # Search by keyword or country
+uv run main.py closing-soon --days 60      # Scholarships closing in next 60 days
+uv run main.py filter --country UK --level PhD
+```
+
+#### 💼 Remote & 4-Day Jobs
+```bash
+uv run main.py jobs scrape                 # Scrape 50 live remote jobs from 4dayweek.io
+uv run main.py jobs list                   # List all stored jobs
+uv run main.py jobs search Security        # Search by role, skill, or company
+uv run main.py jobs filter --salary        # Filter for jobs with listed compensation
+uv run main.py jobs filter --min-score 90  # High work-life balance jobs
 ```
 
 ---
