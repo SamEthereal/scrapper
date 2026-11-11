@@ -118,6 +118,28 @@ Build a dual **Web Scraper & Telegram Scraper** for:
     - Live `History` log card parsing recent events from `scraper_activity.log`.
 - **Theming:** Dual warm ceramic cream (`#f2efe9`) and dark obsidian (`#0c1017`) modes with custom scrollbars, glassmorphism, and persistent theme detection.
 
+### Milestone 10: Application Pipeline (Kanban Tracker) & Calendar Sync Engine
+- **Location:** `storage/db.py`, `ui/app.py`, `ui/templates/index.html`
+- **Database Schema:** `applications` table in SQLite (`id`, `item_type`, `item_id`, `title`, `subtitle`, `deadline_or_salary`, `deadline_date`, `url`, `status`, `notes`, `created_at`, `updated_at`).
+- **REST Endpoints:**
+  - `GET /api/pipeline`: Returns all tracked applications.
+  - `POST /api/pipeline`: Adds an opportunity or job to the pipeline with automatic conflict handling.
+  - `PATCH /api/pipeline/{app_id}`: Updates stage status (`saved`, `applied`, `interview`, `offer`) or personal notes.
+  - `DELETE /api/pipeline/{app_id}`: Removes an application from the tracker.
+  - `GET /api/calendar/{opp_id}.ics`: Generates an RFC 5545 standard iCalendar `.ics` file with an embedded 3-day alarm reminder.
+- **Frontend Kanban Board:**
+  - Dedicated **Pipeline** tab in the top capsule navigation with a real-time badge count.
+  - 4-column Bento Kanban board:
+    1. 📌 **Saved & To Apply**
+    2. 📨 **Applied & In Review**
+    3. 🎯 **Interview & Test**
+    4. 🏆 **Offer & Acceptance**
+  - **Live Stage Counters:** Instant ribbon showing Total, Saved, Applied, Interview, and Offer counts.
+  - **Deadline Countdowns:** Dynamic badge highlighting remaining days (`⏳ in 14 days`, `⚠️ Today!`, or `Elapsed`) with color-coded urgency.
+  - **1-Click Calendar Sync:** Direct button to prefill Google Calendar or download `.ics` event files.
+  - **Inline Notes:** Editable personal notes per application saved to SQLite.
+  - **Spotlight Integration:** The central hero spotlight now features a dynamic **`[Track in Pipeline]`** status button and **`[📅 Calendar]`** dropdown.
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Using the Full Might of Scraping)

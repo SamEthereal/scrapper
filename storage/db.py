@@ -74,6 +74,28 @@ class OpportunityDB:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs(title);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);")
 
+            # Create applications table for Phase 4 (Application Tracker / Pipeline)
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS applications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    item_type TEXT NOT NULL,
+                    item_id INTEGER NOT NULL,
+                    title TEXT NOT NULL,
+                    subtitle TEXT,
+                    deadline_or_salary TEXT,
+                    deadline_date TEXT,
+                    url TEXT,
+                    status TEXT NOT NULL DEFAULT 'saved',
+                    notes TEXT DEFAULT '',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(item_type, item_id)
+                );
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_apps_status ON applications(status);")
+
     def save_opportunity(
         self,
         item: OpportunityItem,
@@ -380,6 +402,96 @@ class OpportunityDB:
             cursor.execute(sql, tuple(params))
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
+
+    def get_opportunity_by_id(self, opp_id: int) -> Optional[Dict[str, Any]]:
+        """Retrieves a single opportunity by its database ID."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM opportunities WHERE id = ?;", (opp_id,)).fetchone()
+            if not row:
+                return None
+            res = dict(row)
+            res["key_highlights"] = json.loads(res["key_highlights"] or "[]")
+            return res
+
+    def get_job_by_id(self, job_id: int) -> Optional[Dict[str, Any]]:
+        """Retrieves a single job listing by its database ID."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM jobs WHERE id = ?;", (job_id,)).fetchone()
+            return dict(row) if row else None
+
+    def add_to_pipeline(
+        self,
+        item_type: str,
+        item_id: int,
+        title: str,
+        subtitle: Optional[str] = None,
+        deadline_or_salary: Optional[str] = None,
+        deadline_date: Optional[str] = None,
+        url: Optional[str] = None,
+        status: str = "saved",
+        notes: str = "",
+    ) -> Dict[str, Any]:
+        """Adds or updates an application entry in the pipeline."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO applications (
+                    item_type, item_id, title, subtitle, deadline_or_salary,
+                    deadline_date, url, status, notes, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(item_type, item_id) DO UPDATE SET
+                    status = excluded.status,
+                    notes = CASE WHEN excluded.notes != '' THEN excluded.notes ELSE applications.notes END,
+                    updated_at = CURRENT_TIMESTAMP;
+                """,
+                (item_type, item_id, title, subtitle, deadline_or_salary, deadline_date, url, status, notes),
+            )
+            conn.commit()
+            row = conn.execute(
+                "SELECT * FROM applications WHERE item_type = ? AND item_id = ?;",
+                (item_type, item_id),
+            ).fetchone()
+            return dict(row)
+
+    def get_pipeline(self) -> List[Dict[str, Any]]:
+        """Returns all applications in the pipeline ordered by updated_at descending."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM applications ORDER BY updated_at DESC;").fetchall()
+            return [dict(r) for r in rows]
+
+    def update_pipeline_item(
+        self,
+        app_id: int,
+        status: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> bool:
+        """Updates the status and/or notes of an application in the pipeline."""
+        updates = ["updated_at = CURRENT_TIMESTAMP"]
+        params = []
+        if status is not None:
+            updates.append("status = ?")
+            params.append(status)
+        if notes is not None:
+            updates.append("notes = ?")
+            params.append(notes)
+        params.append(app_id)
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"UPDATE applications SET {', '.join(updates)} WHERE id = ?;",
+                tuple(params),
+            )
+            return cursor.rowcount > 0
+
+    def delete_pipeline_item(self, app_id: int) -> bool:
+        """Deletes an application from the pipeline."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM applications WHERE id = ?;", (app_id,))
+            return cursor.rowcount > 0
+
 
 
 

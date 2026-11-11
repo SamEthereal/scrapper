@@ -77,16 +77,18 @@
         <i class="fa-solid fa-house text-[11px]"></i>
         <span>Overview</span>
       </button>
-      <button onclick="switchView('scholarships')" id="nav-scholarships" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+      <button onclick="switchView('scholarships')" id="nav-scholarships" class="px-3.5 py-2 rounded-full hover:text-white transition-all text-neutral-400">
         Scholarships
       </button>
-      <button onclick="switchView('jobs')" id="nav-jobs" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+      <button onclick="switchView('jobs')" id="nav-jobs" class="px-3.5 py-2 rounded-full hover:text-white transition-all text-neutral-400">
         Jobs (4-Day)
       </button>
-      <button onclick="switchView('news')" id="nav-news" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
-        News & Tech
+      <button onclick="switchView('pipeline')" id="nav-pipeline" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+        <i class="fa-solid fa-list-check text-[11px]"></i>
+        <span>Pipeline</span>
+        <span id="pipeline-nav-count" class="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-400 text-black font-extrabold hidden">0</span>
       </button>
-      <button onclick="switchView('scrapers')" id="nav-scrapers" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+      <button onclick="switchView('scrapers')" id="nav-scrapers" class="px-3 py-2 rounded-full hover:text-white transition-all text-neutral-400">
         Scrapers
       </button>
       <button onclick="triggerSyncAll()" class="ml-1 px-3 py-1.5 rounded-full bg-neutral-800 dark:bg-neutral-700 hover:bg-neutral-700 text-amber-300 transition-all flex items-center space-x-1.5 border border-neutral-700">
@@ -136,7 +138,7 @@
   <!-- ========================================================================= -->
   <!-- 2. MAIN 3-COLUMN BENTO GRID                                               -->
   <!-- ========================================================================= -->
-  <main class="w-full max-w-[1580px] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
+  <main id="overview-container" class="w-full max-w-[1580px] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
 
     <!-- ======================================================================= -->
     <!-- COLUMN A (LEFT): Feeds, Streams & Saved Lists (Width: 3 cols)            -->
@@ -218,10 +220,30 @@
           </div>
 
           <!-- Action Buttons (Matches call/message buttons in mockup) -->
-          <div class="flex items-center space-x-2">
+          <div class="flex items-center space-x-1.5 relative">
+            <!-- Calendar Dropdown Menu -->
+            <div class="relative">
+              <button onclick="toggleCalendarDropdown()" id="calendar-btn" class="w-9 h-9 rounded-full bg-[#eeebe2] dark:bg-[#20293a] flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:scale-105 transition-transform" title="Add Deadline to Calendar">
+                <i class="fa-regular fa-calendar-plus text-xs"></i>
+              </button>
+              <div id="calendar-dropdown" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-[#1a2130] border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl p-2 z-50 text-xs">
+                <button onclick="addToGoogleCalendar()" class="w-full flex items-center space-x-2.5 p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 transition-colors text-left font-medium">
+                  <i class="fa-brands fa-google text-red-500 text-xs"></i>
+                  <span>Add to Google Calendar</span>
+                </button>
+                <button onclick="downloadCalendarIcs()" class="w-full flex items-center space-x-2.5 p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 transition-colors text-left font-medium">
+                  <i class="fa-solid fa-file-arrow-down text-emerald-500 text-xs"></i>
+                  <span>Download .ics File</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Star Favorite Button -->
             <button onclick="toggleStarSpotlight()" id="star-btn" class="w-9 h-9 rounded-full bg-[#eeebe2] dark:bg-[#20293a] flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:scale-105 transition-transform" title="Save to Favorites">
               <i class="fa-regular fa-star text-xs"></i>
             </button>
+
+            <!-- Copy Direct URL Button -->
             <button onclick="copySpotlightLink()" class="w-9 h-9 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center hover:scale-105 transition-transform" title="Copy Direct URL">
               <i class="fa-solid fa-link text-xs"></i>
             </button>
@@ -311,12 +333,17 @@
           </div>
 
           <!-- Bottom Action Buttons (Matches 'Confirm plan' & 'Clear all' in mockup) -->
-          <div class="flex items-center space-x-2.5 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+          <div class="flex items-center space-x-2 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <a id="spotlight-primary-btn" href="#" target="_blank" class="flex-1 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs text-center hover:opacity-90 transition-opacity shadow-sm flex items-center justify-center space-x-1.5">
               <span>Apply to Opportunity</span>
               <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
             </a>
-            <button onclick="viewRawDetails()" class="px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-semibold text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+            <!-- Pipeline Quick Tracker Button -->
+            <button onclick="toggleSpotlightPipelineStatus()" id="spotlight-track-btn" class="px-3.5 py-2.5 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800/60 font-bold text-xs hover:scale-105 transition-all flex items-center space-x-1.5 shadow-xs" title="Track in Application Pipeline">
+              <i class="fa-solid fa-plus text-[10px]" id="track-btn-icon"></i>
+              <span id="track-btn-label">Track</span>
+            </button>
+            <button onclick="viewRawDetails()" class="px-3 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-semibold text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
               Raw Feed
             </button>
           </div>
@@ -413,11 +440,111 @@
   </main>
 
   <!-- ========================================================================= -->
+  <!-- 2B. PIPELINE KANBAN BOARD VIEW (TOGGLED VIA 'PIPELINE' TAB)               -->
+  <!-- ========================================================================= -->
+  <section id="pipeline-view" class="w-full max-w-[1580px] mx-auto flex-1 flex flex-col space-y-4 hidden">
+    
+    <!-- Pipeline Header & Live Progress Ribbon -->
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[24px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-sm font-extrabold shadow-sm">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-black text-neutral-900 dark:text-white tracking-tight flex items-center space-x-2">
+            <span>Application Pipeline & Tracker</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-300">Live Stage Tracker</span>
+          </h2>
+          <p class="text-xs text-neutral-400">Track deadlines, interview progression, and offer milestones in real-time</p>
+        </div>
+      </div>
+
+      <!-- Live Counters Ribbon -->
+      <div class="flex items-center flex-wrap gap-2 text-xs">
+        <div class="px-3 py-1.5 rounded-xl bg-neutral-200/70 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-semibold">
+          Total: <span id="stat-total" class="font-extrabold text-black dark:text-white">0</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-xl bg-blue-100/70 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 font-semibold">
+          Saved: <span id="stat-saved" class="font-extrabold">0</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-xl bg-amber-100/70 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-semibold">
+          Applied: <span id="stat-applied" class="font-extrabold">0</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-xl bg-purple-100/70 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 font-semibold">
+          Interview: <span id="stat-interview" class="font-extrabold">0</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-semibold">
+          Offers: <span id="stat-offer" class="font-extrabold">0</span>
+        </div>
+        <button onclick="switchView('overview')" class="px-3 py-1.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-bold text-xs hover:opacity-85 transition-opacity ml-1 flex items-center space-x-1.5">
+          <i class="fa-solid fa-arrow-left text-[10px]"></i>
+          <span>Return to Stream</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4-Column Bento Kanban Board -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1 items-start">
+      
+      <!-- Column 1: Saved & To Apply -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex flex-col shadow-sm min-h-[500px]">
+        <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d] mb-3 px-1">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-neutral-800 dark:text-neutral-200">1. Saved & To Apply</h3>
+          </div>
+          <span id="col-count-saved" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800">0</span>
+        </div>
+        <div id="col-items-saved" class="space-y-3 flex-1 overflow-y-auto max-h-[560px] pr-1"></div>
+      </div>
+
+      <!-- Column 2: Applied & In Review -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex flex-col shadow-sm min-h-[500px]">
+        <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d] mb-3 px-1">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-neutral-800 dark:text-neutral-200">2. Applied & Review</h3>
+          </div>
+          <span id="col-count-applied" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800">0</span>
+        </div>
+        <div id="col-items-applied" class="space-y-3 flex-1 overflow-y-auto max-h-[560px] pr-1"></div>
+      </div>
+
+      <!-- Column 3: Interview & Test -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex flex-col shadow-sm min-h-[500px]">
+        <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d] mb-3 px-1">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-neutral-800 dark:text-neutral-200">3. Interview & Test</h3>
+          </div>
+          <span id="col-count-interview" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800">0</span>
+        </div>
+        <div id="col-items-interview" class="space-y-3 flex-1 overflow-y-auto max-h-[560px] pr-1"></div>
+      </div>
+
+      <!-- Column 4: Offer & Decision -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex flex-col shadow-sm min-h-[500px]">
+        <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d] mb-3 px-1">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-neutral-800 dark:text-neutral-200">4. Offer & Acceptance</h3>
+          </div>
+          <span id="col-count-offer" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800">0</span>
+        </div>
+        <div id="col-items-offer" class="space-y-3 flex-1 overflow-y-auto max-h-[560px] pr-1"></div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ========================================================================= -->
   <!-- 3. JAVASCRIPT LOGIC & REACTIVE STATE                                      -->
   <!-- ========================================================================= -->
   <script>
     let allOpportunities = [];
     let allJobs = [];
+    let pipelineItems = [];
     let activeStreamType = 'all'; // 'all', 'scholarships', 'jobs'
     let currentSpotlight = null;
     let favorites = JSON.parse(localStorage.getItem('sg_favorites') || '[]');
@@ -429,6 +556,15 @@
         document.getElementById('theme-icon').className = 'fa-regular fa-sun text-xs';
       }
 
+      // Close dropdowns on outside click
+      window.addEventListener('click', function(e) {
+        const calBtn = document.getElementById('calendar-btn');
+        const calDrop = document.getElementById('calendar-dropdown');
+        if (calDrop && !calDrop.contains(e.target) && !calBtn.contains(e.target)) {
+          calDrop.classList.add('hidden');
+        }
+      });
+
       await loadData();
       await loadHistory();
       renderFavorites();
@@ -436,15 +572,20 @@
 
     async function loadData() {
       try {
-        const [oppsRes, jobsRes] = await Promise.all([
+        const [oppsRes, jobsRes, pipeRes] = await Promise.all([
           fetch('/api/opportunities'),
-          fetch('/api/jobs')
+          fetch('/api/jobs'),
+          fetch('/api/pipeline')
         ]);
         allOpportunities = await oppsRes.json();
         allJobs = await jobsRes.json();
+        pipelineItems = await pipeRes.json();
 
         // Render stream
         renderStreamList();
+
+        // Render pipeline board
+        renderPipeline();
 
         // Pick first item as spotlight
         if (allOpportunities.length > 0) {
@@ -488,6 +629,7 @@
       items.forEach(item => {
         const isJob = item._kind === 'job';
         const isSelected = currentSpotlight && currentSpotlight.id === item.id && currentSpotlight._kind === item._kind;
+        const inPipeline = pipelineItems.some(p => p.item_type === (isJob ? 'job' : 'opportunity') && p.item_id === item.id);
 
         const row = document.createElement('div');
         row.className = `p-2.5 rounded-2xl cursor-pointer transition-all flex items-center justify-between border ${
@@ -503,8 +645,9 @@
 
         row.innerHTML = `
           <div class="flex items-center space-x-2.5 min-w-0 pr-2">
-            <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center text-xs shrink-0 font-bold">
+            <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center text-xs shrink-0 font-bold relative">
               <i class="fa-solid ${icon}"></i>
+              ${inPipeline ? '<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-400 border-2 border-white dark:border-[#161c28] rounded-full"></span>' : ''}
             </div>
             <div class="min-w-0">
               <h4 class="text-xs font-bold text-neutral-900 dark:text-neutral-100 truncate">${item.title}</h4>
@@ -582,8 +725,331 @@
       // Update Star Button
       updateStarBtn();
 
+      // Update Track Button in Spotlight
+      updateSpotlightTrackBtn();
+
       // Refresh left active row styling
       renderStreamList();
+    }
+
+    function updateSpotlightTrackBtn() {
+      if (!currentSpotlight) return;
+      const itemType = currentSpotlight._kind === 'job' ? 'job' : 'opportunity';
+      const tracked = pipelineItems.find(p => p.item_type === itemType && p.item_id === currentSpotlight.id);
+
+      const btn = document.getElementById('spotlight-track-btn');
+      const icon = document.getElementById('track-btn-icon');
+      const label = document.getElementById('track-btn-label');
+
+      if (tracked) {
+        const statusLabels = {
+          saved: 'Saved 📌',
+          applied: 'Applied 📨',
+          interview: 'Interview 🎯',
+          offer: 'Offer 🏆'
+        };
+        icon.className = 'fa-solid fa-check text-[10px]';
+        label.innerText = statusLabels[tracked.status] || 'Tracked';
+        btn.className = 'px-3.5 py-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800/60 font-bold text-xs hover:scale-105 transition-all flex items-center space-x-1.5 shadow-xs';
+      } else {
+        icon.className = 'fa-solid fa-plus text-[10px]';
+        label.innerText = 'Track';
+        btn.className = 'px-3.5 py-2.5 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800/60 font-bold text-xs hover:scale-105 transition-all flex items-center space-x-1.5 shadow-xs';
+      }
+    }
+
+    async function toggleSpotlightPipelineStatus() {
+      if (!currentSpotlight) return;
+      const isJob = currentSpotlight._kind === 'job';
+      const itemType = isJob ? 'job' : 'opportunity';
+      const existing = pipelineItems.find(p => p.item_type === itemType && p.item_id === currentSpotlight.id);
+
+      if (!existing) {
+        // Add as 'saved'
+        const payload = {
+          item_type: itemType,
+          item_id: currentSpotlight.id,
+          title: currentSpotlight.title,
+          subtitle: isJob ? currentSpotlight.company : (currentSpotlight.channel_name || 'Scholarship'),
+          deadline_or_salary: isJob ? currentSpotlight.salary : (currentSpotlight.deadline_date || currentSpotlight.deadline),
+          deadline_date: currentSpotlight.deadline_date || null,
+          url: currentSpotlight.url || currentSpotlight.official_portal || currentSpotlight.apply_url,
+          status: 'saved',
+          notes: ''
+        };
+        await fetch('/api/pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        // Cycle to next status: saved -> applied -> interview -> offer -> saved
+        const flow = ['saved', 'applied', 'interview', 'offer'];
+        const nextIdx = (flow.indexOf(existing.status) + 1) % flow.length;
+        const nextStatus = flow[nextIdx];
+        await fetch(`/api/pipeline/${existing.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+      }
+
+      // Refresh pipeline
+      const pipeRes = await fetch('/api/pipeline');
+      pipelineItems = await pipeRes.json();
+      renderPipeline();
+      updateSpotlightTrackBtn();
+      renderStreamList();
+    }
+
+    function toggleCalendarDropdown() {
+      const drop = document.getElementById('calendar-dropdown');
+      drop.classList.toggle('hidden');
+    }
+
+    function addToGoogleCalendar() {
+      if (!currentSpotlight) return;
+      const isJob = currentSpotlight._kind === 'job';
+      const title = encodeURIComponent(`Application Deadline: ${currentSpotlight.title}`);
+      const url = currentSpotlight.url || currentSpotlight.official_portal || currentSpotlight.apply_url || '';
+      const details = encodeURIComponent(`Deadline for ${currentSpotlight.title}.\n\nApply URL: ${url}\n\nTracked via ScraperGalore.`);
+
+      let dateClean = '';
+      let dateEnd = '';
+      if (currentSpotlight.deadline_date && currentSpotlight.deadline_date.length >= 10) {
+        const d = currentSpotlight.deadline_date.replace(/-/g, '');
+        dateClean = d;
+        // next day
+        const dt = new Date(currentSpotlight.deadline_date);
+        dt.setDate(dt.getDate() + 1);
+        dateEnd = dt.toISOString().slice(0, 10).replace(/-/g, '');
+      } else {
+        const now = new Date();
+        dateClean = now.toISOString().slice(0, 10).replace(/-/g, '');
+        now.setDate(now.getDate() + 1);
+        dateEnd = now.toISOString().slice(0, 10).replace(/-/g, '');
+      }
+
+      const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateClean}/${dateEnd}&details=${details}&location=${encodeURIComponent(currentSpotlight.company || 'Online')}`;
+      window.open(gcalUrl, '_blank');
+      document.getElementById('calendar-dropdown').classList.add('hidden');
+    }
+
+    function downloadCalendarIcs() {
+      if (!currentSpotlight) return;
+      if (currentSpotlight._kind === 'job') {
+        alert('Calendar event export is tailored for scholarship deadlines. Check back for interview dates!');
+        return;
+      }
+      window.location.href = `/api/calendar/${currentSpotlight.id}.ics`;
+      document.getElementById('calendar-dropdown').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // PIPELINE KANBAN BOARD RENDERING & ACTIONS
+    // =========================================================================
+    function renderPipeline() {
+      const stages = ['saved', 'applied', 'interview', 'offer'];
+      const counts = { saved: 0, applied: 0, interview: 0, offer: 0 };
+
+      // Clear all column containers
+      stages.forEach(st => {
+        const col = document.getElementById(`col-items-${st}`);
+        if (col) col.innerHTML = '';
+      });
+
+      pipelineItems.forEach(item => {
+        const st = item.status || 'saved';
+        if (counts[st] !== undefined) counts[st]++;
+
+        const col = document.getElementById(`col-items-${st}`);
+        if (!col) return;
+
+        const isJob = item.item_type === 'job';
+        const countdown = getDeadlineCountdown(item.deadline_date);
+
+        const card = document.createElement('div');
+        card.className = 'bg-white dark:bg-[#1a2130] rounded-2xl p-3.5 border border-neutral-200/80 dark:border-neutral-700/80 shadow-xs space-y-2.5 transition-all hover:shadow-md';
+
+        let countdownHtml = '';
+        if (countdown) {
+          const colorClass = countdown.urgent 
+            ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300' 
+            : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300';
+          countdownHtml = `
+            <div class="flex items-center space-x-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${colorClass}">
+              <i class="fa-regular fa-clock"></i>
+              <span>${countdown.text}</span>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <!-- Card Header -->
+          <div class="flex items-start justify-between gap-1">
+            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+              isJob ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
+            }">
+              ${isJob ? '4-Day Job' : 'Scholarship'}
+            </span>
+            <button onclick="deletePipelineItem(${item.id})" class="text-neutral-400 hover:text-rose-500 transition-colors text-xs p-0.5" title="Remove from Tracker">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </div>
+
+          <!-- Title & Subtitle -->
+          <div>
+            <a href="${item.url || '#'}" target="_blank" class="text-xs font-black text-neutral-900 dark:text-neutral-100 hover:underline leading-snug line-clamp-2">
+              ${item.title}
+            </a>
+            <p class="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">${item.subtitle || ''}</p>
+          </div>
+
+          <!-- Deadline / Salary / Calendar -->
+          <div class="flex items-center justify-between pt-1 border-t border-neutral-100 dark:border-neutral-800 text-[10px]">
+            <span class="font-bold text-neutral-700 dark:text-neutral-300 truncate mr-1">
+              ${item.deadline_or_salary || 'Open'}
+            </span>
+            <div class="flex items-center space-x-1.5 shrink-0">
+              ${countdownHtml}
+              ${item.deadline_date ? `
+                <button onclick="triggerQuickCalendar('${item.title}', '${item.deadline_date}', '${item.url}')" class="text-neutral-400 hover:text-black dark:hover:text-white" title="Add to Google Calendar">
+                  <i class="fa-regular fa-calendar-plus"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Inline Notes Field -->
+          <div class="pt-1">
+            <input 
+              type="text" 
+              value="${item.notes || ''}" 
+              placeholder="Add personal note..." 
+              onchange="updatePipelineNotes(${item.id}, this.value)"
+              class="w-full text-[11px] bg-neutral-100 dark:bg-neutral-800/80 rounded-lg px-2.5 py-1 text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-colors"
+            />
+          </div>
+
+          <!-- Stage Transfer Controls -->
+          <div class="flex items-center justify-between pt-1.5 text-[10px] font-bold">
+            ${st !== 'saved' ? `
+              <button onclick="movePipelineStage(${item.id}, '${getPrevStage(st)}')" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 flex items-center space-x-1">
+                <i class="fa-solid fa-arrow-left text-[9px]"></i>
+                <span>Back</span>
+              </button>
+            ` : '<span></span>'}
+
+            ${st !== 'offer' ? `
+              <button onclick="movePipelineStage(${item.id}, '${getNextStage(st)}')" class="px-2.5 py-1 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-black hover:opacity-85 transition-opacity flex items-center space-x-1">
+                <span>Advance</span>
+                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+              </button>
+            ` : '<span class="text-emerald-600 dark:text-emerald-400 font-extrabold">🏆 Accepted</span>'}
+          </div>
+        `;
+        col.appendChild(card);
+      });
+
+      // Update counters
+      const total = pipelineItems.length;
+      document.getElementById('stat-total').innerText = total;
+      document.getElementById('stat-saved').innerText = counts.saved;
+      document.getElementById('stat-applied').innerText = counts.applied;
+      document.getElementById('stat-interview').innerText = counts.interview;
+      document.getElementById('stat-offer').innerText = counts.offer;
+
+      document.getElementById('col-count-saved').innerText = counts.saved;
+      document.getElementById('col-count-applied').innerText = counts.applied;
+      document.getElementById('col-count-interview').innerText = counts.interview;
+      document.getElementById('col-count-offer').innerText = counts.offer;
+
+      // Update nav badge
+      const navBadge = document.getElementById('pipeline-nav-count');
+      if (total > 0) {
+        navBadge.innerText = total;
+        navBadge.classList.remove('hidden');
+      } else {
+        navBadge.classList.add('hidden');
+      }
+    }
+
+    function getNextStage(current) {
+      const order = ['saved', 'applied', 'interview', 'offer'];
+      const idx = order.indexOf(current);
+      return idx < order.length - 1 ? order[idx + 1] : current;
+    }
+
+    function getPrevStage(current) {
+      const order = ['saved', 'applied', 'interview', 'offer'];
+      const idx = order.indexOf(current);
+      return idx > 0 ? order[idx - 1] : current;
+    }
+
+    async function movePipelineStage(appId, newStage) {
+      try {
+        await fetch(`/api/pipeline/${appId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStage })
+        });
+        const pipeRes = await fetch('/api/pipeline');
+        pipelineItems = await pipeRes.json();
+        renderPipeline();
+        updateSpotlightTrackBtn();
+      } catch (e) {
+        console.error('Stage transition failed', e);
+      }
+    }
+
+    async function updatePipelineNotes(appId, notes) {
+      try {
+        await fetch(`/api/pipeline/${appId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes: notes })
+        });
+      } catch (e) {
+        console.error('Failed to update notes', e);
+      }
+    }
+
+    async function deletePipelineItem(appId) {
+      if (!confirm('Remove this item from your application pipeline?')) return;
+      try {
+        await fetch(`/api/pipeline/${appId}`, { method: 'DELETE' });
+        const pipeRes = await fetch('/api/pipeline');
+        pipelineItems = await pipeRes.json();
+        renderPipeline();
+        updateSpotlightTrackBtn();
+        renderStreamList();
+      } catch (e) {
+        console.error('Delete failed', e);
+      }
+    }
+
+    function triggerQuickCalendar(title, deadlineDate, url) {
+      if (!deadlineDate) return;
+      const d = deadlineDate.replace(/-/g, '');
+      const dt = new Date(deadlineDate);
+      dt.setDate(dt.getDate() + 1);
+      const dEnd = dt.toISOString().slice(0, 10).replace(/-/g, '');
+      const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('⏰ Deadline: ' + title)}&dates=${d}/${dEnd}&details=${encodeURIComponent('Apply: ' + url + '\n\nTracked in ScraperGalore.')}`;
+      window.open(gcal, '_blank');
+    }
+
+    function getDeadlineCountdown(dateStr) {
+      if (!dateStr || dateStr.length < 10) return null;
+      const target = new Date(dateStr);
+      if (isNaN(target.getTime())) return null;
+      const now = new Date();
+      const diffMs = target.setHours(0,0,0,0) - now.setHours(0,0,0,0);
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) return { text: `${Math.abs(diffDays)}d ago`, urgent: true };
+      if (diffDays === 0) return { text: 'Today!', urgent: true };
+      if (diffDays <= 7) return { text: `${diffDays}d left`, urgent: true };
+      return { text: `${diffDays}d left`, urgent: false };
     }
 
     function toggleStarSpotlight() {
@@ -754,20 +1220,33 @@
     }
 
     function switchView(tab) {
-      if (tab === 'scholarships') {
-        setStreamFilter('scholarships');
-      } else if (tab === 'jobs') {
-        setStreamFilter('jobs');
+      const overviewContainer = document.getElementById('overview-container');
+      const pipelineView = document.getElementById('pipeline-view');
+
+      if (tab === 'pipeline') {
+        overviewContainer.classList.add('hidden');
+        pipelineView.classList.remove('hidden');
+        renderPipeline();
       } else {
-        setStreamFilter('all');
+        overviewContainer.classList.remove('hidden');
+        pipelineView.classList.add('hidden');
+
+        if (tab === 'scholarships') {
+          setStreamFilter('scholarships');
+        } else if (tab === 'jobs') {
+          setStreamFilter('jobs');
+        } else {
+          setStreamFilter('all');
+        }
       }
-      ['overview', 'scholarships', 'jobs', 'news', 'scrapers'].forEach(t => {
+
+      ['overview', 'scholarships', 'jobs', 'pipeline', 'scrapers'].forEach(t => {
         const btn = document.getElementById(`nav-${t}`);
         if (!btn) return;
         if (t === tab) {
-          btn.className = 'flex items-center space-x-1.5 px-4 py-2 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm font-bold transition-all';
+          btn.className = 'flex items-center space-x-1.5 px-3.5 py-2 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm font-bold transition-all';
         } else {
-          btn.className = 'px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400';
+          btn.className = 'flex items-center space-x-1.5 px-3.5 py-2 rounded-full hover:text-white transition-all text-neutral-400';
         }
       });
     }
