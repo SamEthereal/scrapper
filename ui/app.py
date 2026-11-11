@@ -37,6 +37,16 @@ def get_stats():
     }
 
 
+@app.get("/api/history")
+def get_history():
+    """Returns recent scraper activity log entries for the history panel."""
+    log_file = Path("scraper_activity.log")
+    if not log_file.exists():
+        return []
+    lines = [line.strip() for line in log_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return lines[-12:]
+
+
 @app.get("/api/opportunities")
 def get_opportunities(
     search: Optional[str] = None,

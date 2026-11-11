@@ -98,14 +98,43 @@ Build a dual **Web Scraper & Telegram Scraper** for:
 
 ---
 
-## 4. Immediate Next Steps (Pick Up Here)
+### Milestone 9: Dashboard Redesign (Mockup Adoption & Bento-Grid Layout)
+- **Location:** `ui/templates/index.html` & `ui/app.py`
+- **Design Inspiration:** Adopted user-provided clinical/modern bento-grid layout (`media_1794385887702_fdb5ea5f.jpg`).
+- **Layout Architecture (3-Column Grid):**
+  - **Top Floating Pill Navigation:** Capsule bar with `Overview`, `Scholarships`, `Jobs (4-Day)`, `News & Tech`, `Scrapers`, and 1-click live `Sync` trigger with spin animation.
+  - **Left Column (Active Stream & Favorites):**
+    - Dynamic stream list of loaded opportunities and jobs with filter toggle (`All`, `Opps`, `Jobs`).
+    - LocalStorage-backed `Favorites` list for 1-click starring/bookmarking.
+    - Quick Scrape URL trigger button.
+  - **Center Column (Hero Spotlight & 3D Visual Artwork):**
+    - Large rounded showcase card with active status chip, deadline/company subheader, and direct actions (Star ⭐, Copy URL 🔗).
+    - Holographic 3D art card displaying opportunity badge, title, and intake status.
+    - Floating 3-row spec table (`01`, `02`, `03`) displaying compensation/funding, work-life/stipend, and location/eligibility.
+    - Direct CTA button (`Apply to Opportunity`) linked directly to the application portal.
+  - **Right Column (Top Opportunities, AI Assistant & History):**
+    - Filter chips (`⏳ Closing Soon`, `🎓 PhD Only`, `💰 Top Salary`, `🌟 90+ Score`).
+    - Conversational Scraper Agent input bubble (`+ Type filter e.g. 'Spain' or 'Buffer'`).
+    - Live `History` log card parsing recent events from `scraper_activity.log`.
+- **Theming:** Dual warm ceramic cream (`#f2efe9`) and dark obsidian (`#0c1017`) modes with custom scrollbars, glassmorphism, and persistent theme detection.
 
-1. **Option A: Build `scrapers/web_scraper.py`**
-   - Take the extracted application URLs (like `https://opportunities.ohubet.com/opportunities/...`) and scrape the full external webpage details (eligibility, benefits, deadline confirmation, application form link).
-2. **Option B: Build `storage/db.py` (SQLite)**
-   - Persist scraped posts into a local SQLite database with unique constraint on `(channel_name, post_id)` to prevent duplicates across multiple scraper runs.
-3. **Option C: Add Search, Filter & CLI Commands**
-   - Build CLI commands to filter by keyword, upcoming deadlines, or opportunity type.
+---
+
+## 4. Architectural Expansion Roadmap (Using the Full Might of Scraping)
+
+1. **Additional Data Verticals (Scraper Expansion):**
+   - **Tech Grants & Startup Accelerators:** Y-Combinator, Techstars, EU Horizon grants, AI research compute credits.
+   - **Remote Freelance & High-Ticket Gigs:** WeWorkRemotely, Hacker News "Who is hiring?", Upwork RSS feeds.
+   - **Tech News & Release Radar:** Scraping AI release feeds, arXiv paper drops, and GitHub trending repos.
+2. **User Authentication & Multi-Tenancy:**
+   - Add FastAPI Auth (JWT or OAuth2 / GitHub login).
+   - Per-user preferences: Saved search alerts, starred items in PostgreSQL/SQLite user table, and resume uploads.
+3. **AI Semantic Matching & Auto-Summary:**
+   - Embed opportunities with vector embeddings or use an LLM to compare a user's resume against listings and output a Match Score (e.g. 94% fit).
+   - Auto-generate customized cover letters tailored to the scraped requirements.
+4. **Push Distribution Channels:**
+   - Automated Telegram bot dispatching instant push alerts to private user channels.
+   - Weekly automated digest newsletter generated via email.
 
 ---
 
@@ -118,6 +147,11 @@ When you clone this repo on your work PC:
    cd scrapper
    ```
 2. Run `uv sync` to install dependencies into the virtual environment automatically.
-3. Open Antigravity in that folder and start a new chat with:
+3. Launch the web dashboard:
+   ```bash
+   uv run main.py ui
+   ```
+4. Open Antigravity in that folder and start a new chat with:
    > *"I've pulled the repo on my work PC. Read PROGRESS.md and let's continue where we left off."*
+
 

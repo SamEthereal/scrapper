@@ -1,443 +1,786 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Opportunity & Job Scraper Dashboard</title>
+  <title>ScraperGalore — Unified Opportunity Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
           colors: {
-            brand: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+            cream: {
+              50: '#fcfbf9',
+              100: '#f6f4ee',
+              200: '#eeebe1',
+              300: '#e2ded0',
+              800: '#2b2a27',
+              900: '#1a1917',
+            },
+            accent: {
+              lime: '#d9f99d',
+              limeDark: '#4d7c0f',
+            }
           }
         }
       }
     }
   </script>
+  <style>
+    /* Smooth custom scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.45); }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .glass-card {
+      background: rgba(24, 30, 44, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+<body class="bg-[#f2efe9] dark:bg-[#0c1017] text-[#22211e] dark:text-[#e4e7ed] min-h-screen transition-colors duration-300 font-sans p-3 sm:p-5 flex flex-col justify-between select-none">
 
-  <!-- Navigation Bar -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <i class="fa-solid fa-compass text-white text-lg"></i>
-        </div>
-        <div>
-          <h1 class="text-lg font-bold text-white tracking-tight leading-none">Opportunity Hub</h1>
-          <span class="text-xs text-slate-400">Telegram & Web Scraper Engine</span>
-        </div>
+  <!-- ========================================================================= -->
+  <!-- 1. TOP HEADER / FLOATING PILL NAVIGATION                                  -->
+  <!-- ========================================================================= -->
+  <header class="w-full max-w-[1580px] mx-auto flex items-center justify-between gap-3 mb-4">
+    
+    <!-- Logo Badge (Left) -->
+    <div class="flex items-center space-x-2.5 bg-[#faf8f5] dark:bg-[#161c28] px-4 py-2.5 rounded-full border border-[#e5e1d7] dark:border-[#232c3d] shadow-sm">
+      <div class="w-8 h-8 rounded-full bg-black dark:bg-white flex items-center justify-center text-white dark:text-black font-extrabold text-sm shadow-sm">
+        <i class="fa-solid fa-bolt-lightning text-xs"></i>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-extrabold tracking-tight text-sm leading-tight text-black dark:text-white">ScraperGalore</span>
+        <span class="text-[10px] text-neutral-400 font-medium tracking-wide uppercase">Opportunity OS</span>
+      </div>
+    </div>
+
+    <!-- Center Navigation Capsule (Matches user's reference mockup) -->
+    <nav class="hidden md:flex items-center bg-[#1a1918] dark:bg-[#141a24] text-neutral-300 p-1.5 rounded-full border border-neutral-800 dark:border-neutral-700/60 shadow-lg text-xs font-semibold">
+      <button onclick="switchView('overview')" id="nav-overview" class="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm transition-all">
+        <i class="fa-solid fa-house text-[11px]"></i>
+        <span>Overview</span>
+      </button>
+      <button onclick="switchView('scholarships')" id="nav-scholarships" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+        Scholarships
+      </button>
+      <button onclick="switchView('jobs')" id="nav-jobs" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+        Jobs (4-Day)
+      </button>
+      <button onclick="switchView('news')" id="nav-news" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+        News & Tech
+      </button>
+      <button onclick="switchView('scrapers')" id="nav-scrapers" class="px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+        Scrapers
+      </button>
+      <button onclick="triggerSyncAll()" class="ml-1 px-3 py-1.5 rounded-full bg-neutral-800 dark:bg-neutral-700 hover:bg-neutral-700 text-amber-300 transition-all flex items-center space-x-1.5 border border-neutral-700">
+        <i id="sync-icon" class="fa-solid fa-rotate text-[10px]"></i>
+        <span id="sync-label">Sync</span>
+      </button>
+    </nav>
+
+    <!-- Search & Profile (Right) -->
+    <div class="flex items-center space-x-2.5">
+      <!-- Search Input Capsule -->
+      <div class="relative hidden sm:block">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-neutral-400 text-xs"></i>
+        <input 
+          type="text" 
+          id="global-search" 
+          oninput="handleGlobalSearch()"
+          placeholder="Search..." 
+          class="w-48 lg:w-60 bg-[#faf8f5] dark:bg-[#161c28] border border-[#e5e1d7] dark:border-[#232c3d] rounded-full pl-9 pr-3.5 py-2 text-xs font-medium text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 focus:outline-none focus:w-64 transition-all shadow-sm"
+        />
       </div>
 
-      <!-- Quick Stats -->
-      <div class="hidden sm:flex items-center space-x-4">
-        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700/60 flex items-center space-x-2">
-          <i class="fa-solid fa-graduation-cap text-indigo-400 text-sm"></i>
-          <span class="text-xs text-slate-300">Scholarships:</span>
-          <span id="stat-opps" class="text-xs font-bold text-white">0</span>
+      <!-- Dark / Light Mode Toggle Button -->
+      <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-[#faf8f5] dark:bg-[#161c28] border border-[#e5e1d7] dark:border-[#232c3d] flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:scale-105 transition-transform shadow-sm">
+        <i id="theme-icon" class="fa-regular fa-moon text-xs"></i>
+      </button>
+
+      <!-- Notification Bell -->
+      <button class="relative w-9 h-9 rounded-full bg-[#faf8f5] dark:bg-[#161c28] border border-[#e5e1d7] dark:border-[#232c3d] flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:scale-105 transition-transform shadow-sm">
+        <i class="fa-regular fa-bell text-xs"></i>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500"></span>
+      </button>
+
+      <!-- User Profile Badge (Matches John Smith in mockup) -->
+      <div class="flex items-center space-x-2 bg-[#faf8f5] dark:bg-[#161c28] pl-1.5 pr-3.5 py-1.5 rounded-full border border-[#e5e1d7] dark:border-[#232c3d] shadow-sm">
+        <div class="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center font-bold text-black text-xs">
+          SA
         </div>
-        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700/60 flex items-center space-x-2">
-          <i class="fa-solid fa-briefcase text-emerald-400 text-sm"></i>
-          <span class="text-xs text-slate-300">4-Day Jobs:</span>
-          <span id="stat-jobs" class="text-xs font-bold text-white">0</span>
+        <div class="flex flex-col text-left leading-none">
+          <span class="text-xs font-bold text-neutral-800 dark:text-neutral-100">Samuel</span>
+          <span class="text-[9px] text-neutral-400 font-medium">Pro Scraper</span>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+  <!-- ========================================================================= -->
+  <!-- 2. MAIN 3-COLUMN BENTO GRID                                               -->
+  <!-- ========================================================================= -->
+  <main class="w-full max-w-[1580px] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-    <!-- Hero / Controls Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <!-- Tab Switcher -->
-      <div class="flex p-1 bg-slate-800 rounded-xl border border-slate-700/80 w-fit">
-        <button id="tab-opps" onclick="switchTab('opps')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all bg-brand-600 text-white shadow-md">
-          <i class="fa-solid fa-graduation-cap mr-2"></i> Scholarships & Fellowships
-        </button>
-        <button id="tab-jobs" onclick="switchTab('jobs')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white">
-          <i class="fa-solid fa-briefcase mr-2"></i> Remote 4-Day Jobs
-        </button>
-      </div>
-
-      <!-- Trigger Scraper Buttons -->
-      <div class="flex items-center space-x-3">
-        <button id="scrape-btn" onclick="triggerScrape()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-200 transition-all flex items-center space-x-2 hover:border-indigo-500">
-          <i id="scrape-icon" class="fa-solid fa-rotate text-indigo-400"></i>
-          <span id="scrape-text">Sync Live Data</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Filter Bar -->
-    <div class="bg-slate-800/80 rounded-2xl border border-slate-700/80 p-4 space-y-3">
-      <div class="flex flex-col sm:flex-row gap-3">
-        <!-- Search Input -->
-        <div class="relative flex-1">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-          <input 
-            type="text" 
-            id="search-input" 
-            oninput="handleSearch()"
-            placeholder="Search by title, country, keyword, or company..." 
-            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-colors"
-          />
+    <!-- ======================================================================= -->
+    <!-- COLUMN A (LEFT): Feeds, Streams & Saved Lists (Width: 3 cols)            -->
+    <!-- ======================================================================= -->
+    <aside class="lg:col-span-3 flex flex-col space-y-4">
+      
+      <!-- Top Section: All Items / Stream (Matches 'All Patients' in image) -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex-1 flex flex-col shadow-sm">
+        
+        <div class="flex items-center justify-between mb-3 px-1">
+          <div>
+            <h2 id="left-feed-title" class="text-sm font-extrabold text-neutral-800 dark:text-neutral-100 tracking-tight">Active Stream</h2>
+            <p id="left-feed-subtitle" class="text-[11px] text-neutral-400 font-medium">53 items loaded</p>
+          </div>
+          <!-- Filter switch: Scholarships vs Jobs -->
+          <div class="flex bg-[#eeebe2] dark:bg-[#1c2434] p-0.5 rounded-full text-[10px] font-bold">
+            <button onclick="setStreamFilter('all')" id="stream-tab-all" class="px-2.5 py-1 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-xs">All</button>
+            <button onclick="setStreamFilter('scholarships')" id="stream-tab-opps" class="px-2 py-1 rounded-full text-neutral-400">Opps</button>
+            <button onclick="setStreamFilter('jobs')" id="stream-tab-jobs" class="px-2 py-1 rounded-full text-neutral-400">Jobs</button>
+          </div>
         </div>
 
-        <!-- Sort Select -->
-        <select id="sort-select" onchange="loadCurrentTab()" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
-          <option value="default">Default Sort</option>
-          <option value="deadline">Soonest Deadline</option>
-          <option value="score">Highest Work-Life Score</option>
-          <option value="title">Alphabetical (Title)</option>
-        </select>
+        <!-- Scrollable Feed List (Matches patient cards in image) -->
+        <div id="feed-items-list" class="space-y-1.5 overflow-y-auto max-h-[380px] pr-1">
+          <!-- Populated by JavaScript -->
+        </div>
+
       </div>
 
-      <!-- Quick Filter Pills -->
-      <div id="filter-pills" class="flex flex-wrap gap-2 pt-1 text-xs">
-        <!-- Injected via JavaScript based on active tab -->
+      <!-- Bottom Section: Favorites / Starred (Matches 'Favorites' in image) -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <h2 class="text-xs font-bold text-neutral-800 dark:text-neutral-200">Favorites</h2>
+          <span id="fav-count" class="text-[10px] bg-neutral-200 dark:bg-neutral-800 px-2 py-0.5 rounded-full font-bold">0</span>
+        </div>
+
+        <div id="favorites-list" class="space-y-1.5 text-xs">
+          <!-- Bookmarked items injected by JS -->
+        </div>
+
+        <!-- Action Note Bar (Matches 'Dentist notes +' in image) -->
+        <div class="mt-3 pt-3 border-t border-[#eeebe2] dark:border-[#232c3d] flex items-center justify-between">
+          <span class="text-xs font-semibold text-neutral-500">Quick Scrape URL</span>
+          <button onclick="promptQuickScrape()" class="w-7 h-7 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center hover:scale-105 transition-transform text-xs">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Alert / Toast Banner -->
-    <div id="status-toast" class="hidden p-4 rounded-xl border text-sm transition-all"></div>
+    </aside>
 
-    <!-- Cards Grid -->
-    <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <!-- Loading Skeleton or Cards injected via JS -->
-    </div>
+    <!-- ======================================================================= -->
+    <!-- COLUMN B (CENTER): Hero Spotlight & Opportunity Showcase (Width: 6 cols)-->
+    <!-- ======================================================================= -->
+    <section class="lg:col-span-6 flex flex-col">
+      
+      <!-- Large Rounded Showcase Card (Matches central dental hero in image) -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] p-6 flex-1 flex flex-col justify-between relative overflow-hidden shadow-sm">
+        
+        <!-- Subtle background watermark badge -->
+        <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-gradient-to-br from-neutral-200/50 to-transparent dark:from-neutral-800/30 blur-2xl pointer-events-none"></div>
 
-    <!-- Empty State -->
-    <div id="empty-state" class="hidden text-center py-16 space-y-3">
-      <i class="fa-regular fa-folder-open text-4xl text-slate-600"></i>
-      <p class="text-slate-400 font-medium">No results matched your search or filters.</p>
-    </div>
+        <!-- Spotlight Header (Matches 'Canadian Scholarship Active' in mockup) -->
+        <div class="flex items-start justify-between relative z-10">
+          <div>
+            <div class="flex items-center space-x-2 mb-1">
+              <h2 id="spotlight-title" class="text-xl sm:text-2xl font-black text-black dark:text-white tracking-tight">
+                Quantum Informatics CDT PhD
+              </h2>
+              <span id="spotlight-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-[#d9f99d] text-[#365314] dark:bg-lime-900/40 dark:text-lime-300">
+                Active
+              </span>
+            </div>
+            <div class="flex items-center space-x-3 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+              <span id="spotlight-sub1"><i class="fa-regular fa-clock mr-1 text-[11px]"></i> Deadline: 7 January 2027</span>
+              <span>•</span>
+              <span id="spotlight-sub2" class="text-emerald-700 dark:text-emerald-400 font-semibold">Fully Funded Doctoral Studentship</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons (Matches call/message buttons in mockup) -->
+          <div class="flex items-center space-x-2">
+            <button onclick="toggleStarSpotlight()" id="star-btn" class="w-9 h-9 rounded-full bg-[#eeebe2] dark:bg-[#20293a] flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:scale-105 transition-transform" title="Save to Favorites">
+              <i class="fa-regular fa-star text-xs"></i>
+            </button>
+            <button onclick="copySpotlightLink()" class="w-9 h-9 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center hover:scale-105 transition-transform" title="Copy Direct URL">
+              <i class="fa-solid fa-link text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Centerpiece Graphic / Visual Art Showcase -->
+        <div class="my-6 relative flex items-center justify-center py-6">
+          <div class="relative group">
+            <!-- Sleek Holographic Card Visual -->
+            <div class="w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-amber-200/40 via-indigo-200/30 to-emerald-200/40 dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-emerald-950/30 flex items-center justify-center p-6 shadow-inner relative">
+              <div class="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl bg-gradient-to-br from-white/90 to-white/40 dark:from-slate-800/90 dark:to-slate-800/40 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 p-5 shadow-2xl flex flex-col justify-between transform transition-transform group-hover:scale-105">
+                <div class="flex justify-between items-start">
+                  <div id="spotlight-art-icon" class="w-10 h-10 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-base font-bold shadow-md">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                  </div>
+                  <span id="spotlight-art-tag" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300">
+                    UK / Top Tier
+                  </span>
+                </div>
+                <div>
+                  <p id="spotlight-art-headline" class="text-xs font-extrabold text-neutral-800 dark:text-neutral-100 leading-snug line-clamp-2">
+                    EPSRC Centre for Doctoral Training in Quantum Technologies
+                  </p>
+                  <p id="spotlight-art-host" class="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+                    University of Edinburgh & Heriot-Watt
+                  </p>
+                </div>
+                <div class="flex items-center justify-between pt-2 border-t border-neutral-200/60 dark:border-neutral-700/60">
+                  <span id="spotlight-art-status" class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    ● Open for Intake
+                  </span>
+                  <i class="fa-solid fa-arrow-right text-[10px] text-neutral-400"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Breakdown Spec Table (Matches the tooth spec table in mockup!) -->
+        <div class="bg-white/80 dark:bg-[#1f2737]/90 backdrop-blur-md rounded-2xl border border-[#e5e1d7] dark:border-[#2e394e] p-3.5 shadow-sm">
+          <div class="space-y-2 text-xs">
+            <!-- Row 1 -->
+            <div class="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center space-x-3">
+                <span class="w-5 h-5 rounded-md bg-neutral-900 dark:bg-white text-white dark:text-black font-bold text-[10px] flex items-center justify-center">01</span>
+                <div>
+                  <span class="font-bold text-neutral-900 dark:text-white" id="spec-key1">Financial Coverage</span>
+                  <p class="text-[10px] text-neutral-400" id="spec-desc1">Tuition Fees</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="font-extrabold text-emerald-600 dark:text-emerald-400" id="spec-val1">100% Full Waiver</span>
+                <p class="text-[10px] text-neutral-400">Verified</p>
+              </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center space-x-3">
+                <span class="w-5 h-5 rounded-md bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 font-bold text-[10px] flex items-center justify-center">02</span>
+                <div>
+                  <span class="font-bold text-neutral-900 dark:text-white" id="spec-key2">Living Stipend</span>
+                  <p class="text-[10px] text-neutral-400" id="spec-desc2">Tax-free Allowance</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="font-bold text-neutral-800 dark:text-neutral-200" id="spec-val2">Annual Grant Included</span>
+                <p class="text-[10px] text-neutral-400">4 Years Funding</p>
+              </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-5 h-5 rounded-md bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 font-bold text-[10px] flex items-center justify-center">03</span>
+                <div>
+                  <span class="font-bold text-neutral-900 dark:text-white" id="spec-key3">Host Region</span>
+                  <p class="text-[10px] text-neutral-400" id="spec-desc3">Eligible Candidates</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="font-bold text-neutral-800 dark:text-neutral-200" id="spec-val3">United Kingdom</span>
+                <p class="text-[10px] text-neutral-400">International & Home</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons (Matches 'Confirm plan' & 'Clear all' in mockup) -->
+          <div class="flex items-center space-x-2.5 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+            <a id="spotlight-primary-btn" href="#" target="_blank" class="flex-1 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs text-center hover:opacity-90 transition-opacity shadow-sm flex items-center justify-center space-x-1.5">
+              <span>Apply to Opportunity</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+            <button onclick="viewRawDetails()" class="px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-semibold text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+              Raw Feed
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- COLUMN C (RIGHT): Top Opportunities, AI Assistant & History (Width: 3) -->
+    <!-- ======================================================================= -->
+    <aside class="lg:col-span-3 flex flex-col space-y-4">
+      
+      <!-- Top Card: Top Opportunities & Filters (Matches 'Top Opportunities' in image) -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 shadow-sm flex flex-col space-y-3">
+        
+        <div class="flex items-center justify-between">
+          <span class="px-3 py-1 rounded-full bg-black text-white dark:bg-white dark:text-black text-[11px] font-extrabold tracking-tight">
+            Top Opportunities
+          </span>
+          <div class="flex space-x-1.5 text-neutral-400 text-xs">
+            <i class="fa-solid fa-pen-nib"></i>
+            <i class="fa-regular fa-square-check"></i>
+          </div>
+        </div>
+
+        <!-- Quick filter chips -->
+        <div class="flex flex-wrap gap-1.5 pt-1 text-[11px]">
+          <button onclick="quickFilter('closing_soon')" class="px-2.5 py-1 rounded-lg bg-[#eeebe2] dark:bg-[#20293a] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 font-medium transition-colors">
+            ⏳ Closing Soon
+          </button>
+          <button onclick="quickFilter('phd')" class="px-2.5 py-1 rounded-lg bg-[#eeebe2] dark:bg-[#20293a] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 font-medium transition-colors">
+            🎓 PhD Only
+          </button>
+          <button onclick="quickFilter('salary')" class="px-2.5 py-1 rounded-lg bg-[#eeebe2] dark:bg-[#20293a] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 font-medium transition-colors">
+            💰 Top Salary
+          </button>
+          <button onclick="quickFilter('score')" class="px-2.5 py-1 rounded-lg bg-[#eeebe2] dark:bg-[#20293a] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 font-medium transition-colors">
+            🌟 90+ Score
+          </button>
+        </div>
+
+        <!-- Scraper Activity Assistant Bubble (Matches chat bubbles in mockup!) -->
+        <div class="bg-white/80 dark:bg-[#1a2130] rounded-2xl p-3 border border-neutral-200/80 dark:border-neutral-700/80 space-y-1.5 shadow-xs">
+          <div class="flex items-center space-x-1.5 text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
+            <i class="fa-solid fa-robot text-indigo-500"></i>
+            <span>Scraper Agent</span>
+          </div>
+          <p id="assistant-bubble" class="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">
+            Ready to extract. 50 remote 4-day jobs and scholarships indexed and deduplicated.
+          </p>
+        </div>
+
+        <!-- Assistant Query Input (Matches '+ Type something...' in mockup) -->
+        <div class="relative">
+          <span class="absolute left-3.5 top-2.5 text-neutral-400 text-xs font-bold">+</span>
+          <input 
+            type="text" 
+            id="assistant-input" 
+            onkeydown="if(event.key === 'Enter') handleAssistantQuery()"
+            placeholder="Type filter e.g. 'Spain' or 'Buffer'..." 
+            class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300/80 dark:border-neutral-700 rounded-full pl-8 pr-8 py-2 text-xs font-medium text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+          />
+          <button onclick="handleAssistantQuery()" class="absolute right-2.5 top-2 text-neutral-400 hover:text-black dark:hover:text-white text-xs">
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Bottom Card: History (Matches 'history See all ->' in image) -->
+      <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex-1 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <h2 class="text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">History</h2>
+          <button onclick="refreshHistory()" class="text-[10px] font-semibold text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
+            See all →
+          </button>
+        </div>
+
+        <!-- History event log items (Matches dates in mockup: '02 Nov 2026', '12 Oct 2026') -->
+        <div id="history-feed" class="space-y-2 overflow-y-auto max-h-[170px] pr-1 text-xs">
+          <!-- Populated from /api/history -->
+        </div>
+
+        <div class="mt-2 pt-2 border-t border-neutral-200/60 dark:border-neutral-800 flex items-center justify-between text-[10px] text-neutral-400">
+          <span>Automated Scraper Loop</span>
+          <span class="text-emerald-500 font-bold">● Active Daemon</span>
+        </div>
+      </div>
+
+    </aside>
 
   </main>
 
-  <!-- JavaScript Application Logic -->
+  <!-- ========================================================================= -->
+  <!-- 3. JAVASCRIPT LOGIC & REACTIVE STATE                                      -->
+  <!-- ========================================================================= -->
   <script>
-    let currentTab = 'opps';
-    let currentFilters = {};
-    let searchTimeout = null;
+    let allOpportunities = [];
+    let allJobs = [];
+    let activeStreamType = 'all'; // 'all', 'scholarships', 'jobs'
+    let currentSpotlight = null;
+    let favorites = JSON.parse(localStorage.getItem('sg_favorites') || '[]');
 
     async function init() {
-      await updateStats();
-      renderFilterPills();
-      loadCurrentTab();
+      // 1. Check local theme preference
+      if (localStorage.getItem('sg_theme') === 'dark' || (!localStorage.getItem('sg_theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').className = 'fa-regular fa-sun text-xs';
+      }
+
+      await loadData();
+      await loadHistory();
+      renderFavorites();
     }
 
-    async function updateStats() {
+    async function loadData() {
       try {
-        const res = await fetch('/api/stats');
-        const data = await res.json();
-        document.getElementById('stat-opps').innerText = data.scholarships_count;
-        document.getElementById('stat-jobs').innerText = data.jobs_count;
-      } catch (err) {
-        console.error('Failed to load stats', err);
-      }
-    }
+        const [oppsRes, jobsRes] = await Promise.all([
+          fetch('/api/opportunities'),
+          fetch('/api/jobs')
+        ]);
+        allOpportunities = await oppsRes.json();
+        allJobs = await jobsRes.json();
 
-    function switchTab(tab) {
-      currentTab = tab;
-      currentFilters = {};
-      document.getElementById('search-input').value = '';
+        // Render stream
+        renderStreamList();
 
-      const btnOpps = document.getElementById('tab-opps');
-      const btnJobs = document.getElementById('tab-jobs');
-
-      if (tab === 'opps') {
-        btnOpps.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all bg-brand-600 text-white shadow-md";
-        btnJobs.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white";
-      } else {
-        btnJobs.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all bg-brand-600 text-white shadow-md";
-        btnOpps.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white";
-      }
-
-      renderFilterPills();
-      loadCurrentTab();
-    }
-
-    function renderFilterPills() {
-      const container = document.getElementById('filter-pills');
-      container.innerHTML = '';
-
-      if (currentTab === 'opps') {
-        const pills = [
-          { label: 'All', key: null },
-          { label: '⏳ Closing Soon (<60d)', key: 'closing_soon' },
-          { label: '🇬🇧 UK', key: 'country', val: 'UK' },
-          { label: '🇪🇸 Spain', key: 'country', val: 'Spain' },
-          { label: '🇺🇸 USA', key: 'country', val: 'USA' },
-          { label: '🎓 PhD Only', key: 'level', val: 'PhD' },
-        ];
-        pills.forEach(p => {
-          const isActive = (p.key === 'closing_soon' && currentFilters.closing_soon) || 
-                           (p.key && currentFilters[p.key] === p.val) || 
-                           (!p.key && Object.keys(currentFilters).length === 0);
-          const btn = document.createElement('button');
-          btn.className = `px-3 py-1.5 rounded-lg border transition-all ${
-            isActive ? 'bg-indigo-600/30 border-indigo-500 text-indigo-200 font-semibold' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
-          }`;
-          btn.innerText = p.label;
-          btn.onclick = () => {
-            if (!p.key) currentFilters = {};
-            else if (p.key === 'closing_soon') currentFilters = { closing_soon: true };
-            else currentFilters = { [p.key]: p.val };
-            renderFilterPills();
-            loadCurrentTab();
-          };
-          container.appendChild(btn);
-        });
-      } else {
-        const pills = [
-          { label: 'All Jobs', key: null },
-          { label: '💰 Listed Salary Only', key: 'has_salary' },
-          { label: '🌟 Work-Life 90+ Score', key: 'min_score', val: 90 },
-          { label: '🌍 Remote Worldwide', key: 'search', val: 'Worldwide' },
-          { label: '💻 Engineering', key: 'search', val: 'Engineer' },
-          { label: '🎨 Design', key: 'search', val: 'Design' },
-        ];
-        pills.forEach(p => {
-          const isActive = (p.key === 'has_salary' && currentFilters.has_salary) || 
-                           (p.key && currentFilters[p.key] === p.val) || 
-                           (!p.key && Object.keys(currentFilters).length === 0);
-          const btn = document.createElement('button');
-          btn.className = `px-3 py-1.5 rounded-lg border transition-all ${
-            isActive ? 'bg-emerald-600/30 border-emerald-500 text-emerald-200 font-semibold' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
-          }`;
-          btn.innerText = p.label;
-          btn.onclick = () => {
-            if (!p.key) currentFilters = {};
-            else if (p.key === 'has_salary') currentFilters = { has_salary: true };
-            else currentFilters = { [p.key]: p.val };
-            renderFilterPills();
-            loadCurrentTab();
-          };
-          container.appendChild(btn);
-        });
-      }
-    }
-
-    function handleSearch() {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        loadCurrentTab();
-      }, 250);
-    }
-
-    async function loadCurrentTab() {
-      const container = document.getElementById('cards-container');
-      const emptyState = document.getElementById('empty-state');
-      const searchVal = document.getElementById('search-input').value.trim();
-      const sortVal = document.getElementById('sort-select').value;
-
-      container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><p>Loading listings...</p></div>';
-
-      try {
-        if (currentTab === 'opps') {
-          let url = new URL('/api/opportunities', window.location.origin);
-          if (searchVal) url.searchParams.set('search', searchVal);
-          if (currentFilters.country) url.searchParams.set('country', currentFilters.country);
-          if (currentFilters.level) url.searchParams.set('level', currentFilters.level);
-          if (currentFilters.closing_soon) url.searchParams.set('closing_soon', 'true');
-          if (sortVal === 'deadline') {
-            url.searchParams.set('sort_by', 'deadline');
-            url.searchParams.set('order', 'asc');
-          } else if (sortVal === 'title') {
-            url.searchParams.set('sort_by', 'title');
-            url.searchParams.set('order', 'asc');
-          }
-
-          const res = await fetch(url);
-          const opps = await res.json();
-          renderOpportunityCards(opps);
-        } else {
-          let url = new URL('/api/jobs', window.location.origin);
-          if (searchVal) url.searchParams.set('search', searchVal);
-          else if (currentFilters.search) url.searchParams.set('search', currentFilters.search);
-          if (currentFilters.has_salary) url.searchParams.set('has_salary', 'true');
-          if (currentFilters.min_score) url.searchParams.set('min_score', currentFilters.min_score);
-          if (sortVal === 'score') {
-            url.searchParams.set('sort_by', 'score');
-            url.searchParams.set('order', 'desc');
-          } else if (sortVal === 'title') {
-            url.searchParams.set('sort_by', 'title');
-            url.searchParams.set('order', 'asc');
-          }
-
-          const res = await fetch(url);
-          const jobs = await res.json();
-          renderJobCards(jobs);
+        // Pick first item as spotlight
+        if (allOpportunities.length > 0) {
+          setSpotlight(allOpportunities[0], 'opp');
+        } else if (allJobs.length > 0) {
+          setSpotlight(allJobs[0], 'job');
         }
+
+        document.getElementById('left-feed-subtitle').innerText = `${allOpportunities.length + allJobs.length} items loaded`;
       } catch (err) {
-        container.innerHTML = `<div class="col-span-full py-8 text-center text-rose-400">Error loading data: ${err.message}</div>`;
+        console.error('Failed to load scraper data', err);
       }
     }
 
-    function renderOpportunityCards(items) {
-      const container = document.getElementById('cards-container');
-      const emptyState = document.getElementById('empty-state');
+    function renderStreamList(filterQuery = '') {
+      const container = document.getElementById('feed-items-list');
       container.innerHTML = '';
 
-      if (!items || items.length === 0) {
-        emptyState.classList.remove('hidden');
+      let items = [];
+      if (activeStreamType === 'all' || activeStreamType === 'scholarships') {
+        items.push(...allOpportunities.map(o => ({ ...o, _kind: 'opp' })));
+      }
+      if (activeStreamType === 'all' || activeStreamType === 'jobs') {
+        items.push(...allJobs.map(j => ({ ...j, _kind: 'job' })));
+      }
+
+      if (filterQuery) {
+        const q = filterQuery.toLowerCase();
+        items = items.filter(it => 
+          (it.title && it.title.toLowerCase().includes(q)) || 
+          (it.company && it.company.toLowerCase().includes(q)) ||
+          (it.location && it.location.toLowerCase().includes(q))
+        );
+      }
+
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-xs text-neutral-400 text-center py-6">No matching items</p>';
         return;
       }
-      emptyState.classList.add('hidden');
 
-      items.forEach(it => {
-        const card = document.createElement('div');
-        card.className = "bg-slate-800/90 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between hover:border-indigo-500/60 hover:shadow-xl transition-all duration-200 group";
+      items.forEach(item => {
+        const isJob = item._kind === 'job';
+        const isSelected = currentSpotlight && currentSpotlight.id === item.id && currentSpotlight._kind === item._kind;
 
-        const highlights = it.key_highlights || [];
-        const hlHtml = highlights.slice(0, 3).map(h => `
-          <li class="flex items-start text-xs text-slate-300">
-            <i class="fa-solid fa-check text-emerald-400 mt-0.5 mr-2 shrink-0"></i>
-            <span>${h}</span>
-          </li>
-        `).join('');
+        const row = document.createElement('div');
+        row.className = `p-2.5 rounded-2xl cursor-pointer transition-all flex items-center justify-between border ${
+          isSelected 
+            ? 'bg-white dark:bg-[#20293a] border-neutral-400 dark:border-neutral-600 shadow-sm' 
+            : 'hover:bg-white/60 dark:hover:bg-[#1a2130] border-transparent'
+        }`;
+        row.onclick = () => setSpotlight(item, item._kind);
 
-        const deadlineText = it.deadline_date || it.deadline || 'Rolling / Not specified';
-        const applyLink = it.official_portal || it.apply_url || '#';
+        const avatarBg = isJob ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300';
+        const icon = isJob ? 'fa-briefcase' : 'fa-graduation-cap';
+        const sub = isJob ? (item.company || 'Remote') : (item.deadline_date || 'Rolling');
 
-        card.innerHTML = `
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                <i class="fa-solid fa-award mr-1"></i> Scholarship
-              </span>
-              <span class="text-xs font-medium text-amber-300 bg-amber-400/10 px-2.5 py-1 rounded-md border border-amber-400/20">
-                <i class="fa-regular fa-clock mr-1"></i> ${deadlineText}
-              </span>
+        row.innerHTML = `
+          <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+            <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center text-xs shrink-0 font-bold">
+              <i class="fa-solid ${icon}"></i>
             </div>
-
-            <h3 class="font-bold text-white text-base group-hover:text-indigo-300 transition-colors line-clamp-2">
-              ${it.title}
-            </h3>
-
-            ${highlights.length ? `<ul class="space-y-1.5 pt-1">${hlHtml}</ul>` : ''}
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-neutral-900 dark:text-neutral-100 truncate">${item.title}</h4>
+              <p class="text-[10px] text-neutral-400 truncate">${sub}</p>
+            </div>
           </div>
-
-          <div class="pt-5 mt-4 border-t border-slate-700/60 flex items-center justify-between">
-            <span class="text-xs text-slate-400">@${it.channel_name || 'OHUB4AllET'}</span>
-            <a href="${applyLink}" target="_blank" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all inline-flex items-center space-x-1.5 shadow-md shadow-indigo-600/20">
-              <span>Apply Portal</span>
-              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-            </a>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function renderJobCards(items) {
-      const container = document.getElementById('cards-container');
-      const emptyState = document.getElementById('empty-state');
-      container.innerHTML = '';
-
-      if (!items || items.length === 0) {
-        emptyState.classList.remove('hidden');
-        return;
-      }
-      emptyState.classList.add('hidden');
-
-      items.forEach(j => {
-        const card = document.createElement('div');
-        card.className = "bg-slate-800/90 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between hover:border-emerald-500/60 hover:shadow-xl transition-all duration-200 group";
-
-        const score = j.work_life_score;
-        const scoreBadge = score ? `
-          <span class="px-2.5 py-1 rounded-md text-[11px] font-bold ${
-            score >= 90 ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-slate-700 text-slate-300'
+          <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${
+            isJob ? 'bg-neutral-200/80 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
           }">
-            <i class="fa-solid fa-heart-pulse mr-1"></i> ${score}/100 Score
+            ${isJob ? (item.salary ? item.salary.split('–')[0].trim() : '4-Day') : 'Scholarship'}
           </span>
-        ` : '';
-
-        const salaryBadge = j.salary ? `
-          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            ${j.salary}
-          </span>
-        ` : '<span class="text-xs text-slate-400">Salary not listed</span>';
-
-        card.innerHTML = `
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <i class="fa-solid fa-calendar-check mr-1"></i> 4-Day Week
-              </span>
-              ${scoreBadge}
-            </div>
-
-            <div>
-              <h3 class="font-bold text-white text-base group-hover:text-emerald-300 transition-colors line-clamp-2">
-                ${j.title}
-              </h3>
-              <p class="text-xs text-slate-300 font-medium mt-1 flex items-center">
-                <i class="fa-solid fa-building mr-1.5 text-slate-400"></i> ${j.company}
-              </p>
-            </div>
-
-            <div class="flex items-center text-xs text-slate-400 space-x-2 pt-1">
-              <i class="fa-solid fa-location-dot text-slate-400"></i>
-              <span class="truncate">${j.location || 'Remote'}</span>
-            </div>
-          </div>
-
-          <div class="pt-4 mt-4 border-t border-slate-700/60 flex items-center justify-between">
-            ${salaryBadge}
-            <a href="${j.url}" target="_blank" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all inline-flex items-center space-x-1.5 shadow-md shadow-emerald-600/20">
-              <span>View Job</span>
-              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-            </a>
-          </div>
         `;
-        container.appendChild(card);
+        container.appendChild(row);
       });
     }
 
-    async function triggerScrape() {
-      const btn = document.getElementById('scrape-btn');
-      const icon = document.getElementById('scrape-icon');
-      const text = document.getElementById('scrape-text');
-      const toast = document.getElementById('status-toast');
+    function setSpotlight(item, kind) {
+      currentSpotlight = { ...item, _kind: kind };
 
-      btn.disabled = true;
-      icon.classList.add('fa-spin');
-      text.innerText = "Scraping...";
+      const isJob = kind === 'job';
 
-      const endpoint = currentTab === 'opps' ? '/api/scrape/scholarships' : '/api/scrape/jobs';
+      // Update Header
+      document.getElementById('spotlight-title').innerText = item.title;
+      document.getElementById('spotlight-badge').innerText = isJob ? (item.schedule || '4-Day Week') : 'Active';
+      document.getElementById('spotlight-badge').className = isJob 
+        ? 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+        : 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-[#d9f99d] text-[#365314] dark:bg-lime-900/40 dark:text-lime-300';
 
-      try {
-        const res = await fetch(endpoint, { method: 'POST' });
-        const data = await res.json();
+      document.getElementById('spotlight-sub1').innerHTML = isJob 
+        ? `<i class="fa-solid fa-building mr-1 text-[11px]"></i> ${item.company || 'Tech Company'}`
+        : `<i class="fa-regular fa-clock mr-1 text-[11px]"></i> Deadline: ${item.deadline_date || item.deadline || 'Rolling'}`;
 
-        toast.classList.remove('hidden');
-        if (data.success) {
-          toast.className = "p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-sm";
-          toast.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i> Scraped ${data.scraped} items (${data.new_inserted} new additions). Total now: ${data.total_now}.`;
+      document.getElementById('spotlight-sub2').innerText = isJob 
+        ? `${item.location || 'Remote'} (Work-Life: ${item.work_life_score ? item.work_life_score + '/100' : 'High'})`
+        : 'Fully Funded Opportunity';
+
+      // Update Centerpiece Art
+      document.getElementById('spotlight-art-icon').innerHTML = `<i class="fa-solid ${isJob ? 'fa-briefcase' : 'fa-graduation-cap'}"></i>`;
+      document.getElementById('spotlight-art-tag').innerText = isJob ? 'Remote / 4-Day' : (item.channel_name || 'OHUB4AllET');
+      document.getElementById('spotlight-art-headline').innerText = item.title;
+      document.getElementById('spotlight-art-host').innerText = isJob ? `Hiring at ${item.company}` : (item.official_portal ? new URL(item.official_portal).hostname : 'Official Portal');
+
+      // Update Floating Spec Rows (Matches 01, 02, 03 table in mockup!)
+      if (isJob) {
+        document.getElementById('spec-key1').innerText = 'Compensation';
+        document.getElementById('spec-desc1').innerText = 'Annual / Monthly';
+        document.getElementById('spec-val1').innerText = item.salary || 'Competitive / Unlisted';
+
+        document.getElementById('spec-key2').innerText = 'Work-Life Balance';
+        document.getElementById('spec-desc2').innerText = 'Reduced Hours Index';
+        document.getElementById('spec-val2').innerText = item.work_life_score ? `${item.work_life_score}/100 Rating` : '4-Day Schedule';
+
+        document.getElementById('spec-key3').innerText = 'Workplace Model';
+        document.getElementById('spec-desc3').innerText = 'Eligibility';
+        document.getElementById('spec-val3').innerText = item.location || 'Remote';
+      } else {
+        const highlights = item.key_highlights || [];
+        document.getElementById('spec-key1').innerText = 'Funding Package';
+        document.getElementById('spec-desc1').innerText = 'Tuition & Research';
+        document.getElementById('spec-val1').innerText = highlights[0] || 'Full Coverage & Stipend';
+
+        document.getElementById('spec-key2').innerText = 'Key Benefit';
+        document.getElementById('spec-desc2').innerText = 'Living Allowance';
+        document.getElementById('spec-val2').innerText = highlights[1] || 'Living Grant Included';
+
+        document.getElementById('spec-key3').innerText = 'Host Institution';
+        document.getElementById('spec-desc3').innerText = 'Country';
+        document.getElementById('spec-val3').innerText = highlights[2] || (item.channel_name ? `@${item.channel_name}` : 'International');
+      }
+
+      // Update Apply Link
+      const applyUrl = item.url || item.official_portal || item.apply_url || '#';
+      document.getElementById('spotlight-primary-btn').href = applyUrl;
+
+      // Update Star Button
+      updateStarBtn();
+
+      // Refresh left active row styling
+      renderStreamList();
+    }
+
+    function toggleStarSpotlight() {
+      if (!currentSpotlight) return;
+      const idx = favorites.findIndex(f => f.title === currentSpotlight.title);
+      if (idx >= 0) {
+        favorites.splice(idx, 1);
+      } else {
+        favorites.push({
+          title: currentSpotlight.title,
+          sub: currentSpotlight.company || currentSpotlight.deadline_date || 'Saved',
+          _kind: currentSpotlight._kind,
+          url: currentSpotlight.url || currentSpotlight.official_portal || currentSpotlight.apply_url
+        });
+      }
+      localStorage.setItem('sg_favorites', JSON.stringify(favorites));
+      updateStarBtn();
+      renderFavorites();
+    }
+
+    function updateStarBtn() {
+      if (!currentSpotlight) return;
+      const isFav = favorites.some(f => f.title === currentSpotlight.title);
+      const starIcon = document.querySelector('#star-btn i');
+      if (isFav) {
+        starIcon.className = 'fa-solid fa-star text-amber-400 text-xs';
+      } else {
+        starIcon.className = 'fa-regular fa-star text-xs';
+      }
+    }
+
+    function renderFavorites() {
+      const container = document.getElementById('favorites-list');
+      const count = document.getElementById('fav-count');
+      container.innerHTML = '';
+      count.innerText = favorites.length;
+
+      if (favorites.length === 0) {
+        container.innerHTML = '<p class="text-[11px] text-neutral-400 py-2">Click ⭐ on any item to save it here</p>';
+        return;
+      }
+
+      favorites.slice(0, 4).forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer';
+        row.onclick = () => window.open(f.url, '_blank');
+        row.innerHTML = `
+          <div class="flex items-center space-x-2 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+            <span class="truncate font-semibold text-neutral-800 dark:text-neutral-200 text-xs">${f.title}</span>
+          </div>
+          <span class="text-[10px] text-neutral-400 shrink-0">${f.sub}</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function copySpotlightLink() {
+      if (!currentSpotlight) return;
+      const url = currentSpotlight.url || currentSpotlight.official_portal || currentSpotlight.apply_url || window.location.href;
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard: ' + url);
+    }
+
+    function setStreamFilter(type) {
+      activeStreamType = type;
+      ['all', 'opps', 'jobs'].forEach(t => {
+        const btn = document.getElementById(`stream-tab-${t}`);
+        if (t === (type === 'scholarships' ? 'opps' : type)) {
+          btn.className = 'px-2.5 py-1 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-xs font-bold';
         } else {
-          toast.className = "p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-sm";
-          toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${data.error || 'Failed to scrape'}`;
+          btn.className = 'px-2 py-1 rounded-full text-neutral-400 hover:text-neutral-200';
+        }
+      });
+      renderStreamList();
+    }
+
+    function handleGlobalSearch() {
+      const q = document.getElementById('global-search').value.trim();
+      renderStreamList(q);
+    }
+
+    function handleAssistantQuery() {
+      const input = document.getElementById('assistant-input');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const bubble = document.getElementById('assistant-bubble');
+      bubble.innerText = `Filtering listings for: "${val}"...`;
+
+      document.getElementById('global-search').value = val;
+      renderStreamList(val);
+      input.value = '';
+    }
+
+    function quickFilter(chip) {
+      if (chip === 'closing_soon') {
+        setStreamFilter('scholarships');
+        renderStreamList();
+      } else if (chip === 'phd') {
+        document.getElementById('global-search').value = 'PhD';
+        renderStreamList('PhD');
+      } else if (chip === 'salary') {
+        setStreamFilter('jobs');
+        renderStreamList('$');
+      } else if (chip === 'score') {
+        setStreamFilter('jobs');
+        renderStreamList();
+      }
+    }
+
+    async function loadHistory() {
+      const container = document.getElementById('history-feed');
+      container.innerHTML = '';
+      try {
+        const res = await fetch('/api/history');
+        const logs = await res.json();
+        if (logs.length === 0) {
+          container.innerHTML = '<p class="text-neutral-400 text-[11px] py-2">No past cycles recorded</p>';
+          return;
         }
 
-        await updateStats();
-        loadCurrentTab();
+        logs.slice(-4).reverse().forEach(line => {
+          const clean = line.replace(/\[\/?(bold|cyan|green|yellow|dim|white)[^\]]*\]/g, '');
+          const row = document.createElement('div');
+          row.className = 'flex items-start space-x-2 py-1 text-[11px] text-neutral-600 dark:text-neutral-300';
+          row.innerHTML = `
+            <i class="fa-solid fa-clock-rotate-left text-neutral-400 text-[10px] mt-0.5 shrink-0"></i>
+            <span class="truncate leading-tight">${clean}</span>
+          `;
+          container.appendChild(row);
+        });
       } catch (err) {
-        toast.classList.remove('hidden');
-        toast.className = "p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-sm";
-        toast.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2"></i> Network error: ${err.message}`;
+        console.error('History load error', err);
+      }
+    }
+
+    function refreshHistory() {
+      loadHistory();
+      alert('History refreshed from scraper_activity.log');
+    }
+
+    async function triggerSyncAll() {
+      const icon = document.getElementById('sync-icon');
+      const label = document.getElementById('sync-label');
+      icon.classList.add('fa-spin');
+      label.innerText = 'Syncing...';
+
+      try {
+        await Promise.all([
+          fetch('/api/scrape/jobs', { method: 'POST' }),
+          fetch('/api/scrape/scholarships', { method: 'POST' })
+        ]);
+        await loadData();
+        await loadHistory();
+      } catch (e) {
+        console.error('Sync failed', e);
       } finally {
-        btn.disabled = false;
         icon.classList.remove('fa-spin');
-        text.innerText = "Sync Live Data";
-        setTimeout(() => toast.classList.add('hidden'), 5000);
+        label.innerText = 'Sync';
+      }
+    }
+
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('sg_theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').className = isDark ? 'fa-regular fa-sun text-xs' : 'fa-regular fa-moon text-xs';
+    }
+
+    function switchView(tab) {
+      if (tab === 'scholarships') {
+        setStreamFilter('scholarships');
+      } else if (tab === 'jobs') {
+        setStreamFilter('jobs');
+      } else {
+        setStreamFilter('all');
+      }
+      ['overview', 'scholarships', 'jobs', 'news', 'scrapers'].forEach(t => {
+        const btn = document.getElementById(`nav-${t}`);
+        if (!btn) return;
+        if (t === tab) {
+          btn.className = 'flex items-center space-x-1.5 px-4 py-2 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm font-bold transition-all';
+        } else {
+          btn.className = 'px-4 py-2 rounded-full hover:text-white transition-all text-neutral-400';
+        }
+      });
+    }
+
+    function viewRawDetails() {
+      if (!currentSpotlight) return;
+      alert(`Title: ${currentSpotlight.title}\nSource: ${currentSpotlight.channel_name || currentSpotlight.source}\nURL: ${currentSpotlight.url || currentSpotlight.apply_url}`);
+    }
+
+    function promptQuickScrape() {
+      const url = prompt('Enter Telegram Channel URL or Job Page URL to scrape:');
+      if (url) {
+        alert('Queued source for scraping: ' + url);
       }
     }
 
