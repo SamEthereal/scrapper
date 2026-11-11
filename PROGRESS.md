@@ -84,6 +84,16 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - Quick filter pills (UK, Spain, USA, PhD, High Work-Life, Verified Salary).
   - Clean card grids with color-coded badges, deadlines, and direct apply portal buttons.
 - **Launch Command:** `uv run main.py ui` &rarr; opens `http://127.0.0.1:8000`.
+
+### Milestone 8: Automated Background Scheduler & Alert Engine
+- **Location:** `services/scheduler.py`
+- **Scheduler Engine:** Uses `schedule` to run recurring scrape cycles across all sources (Telegram scholarships + 4dayweek remote jobs).
+- **Deduplication Alert:** Detects only *newly discovered* opportunities and jobs (`is_new == True`).
+- **Activity Logging:** Records timestamped cycle events and new item listings to `scraper_activity.log`.
+- **Desktop Alerts:** Dispatches non-blocking notifications to the user whenever new posts or jobs are discovered.
+- **CLI Automation Commands:**
+  - `uv run main.py auto --interval 60` (runs standing background loop every N minutes)
+  - `uv run main.py auto --once` (executes a single automated cycle & exits, ideal for OS cron / Task Scheduler).
 - **Full CLI Suite:** Powered by `argparse` in `main.py` with commands: `scrape`, `list`, `search`, `filter`, and `closing-soon`.
 
 ---

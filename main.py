@@ -270,6 +270,13 @@ def build_parser() -> argparse.ArgumentParser:
     ui_parser.add_argument("--port", type=int, default=8000, help="Port to run web dashboard (default: 8000)")
     ui_parser.add_argument("--host", default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
 
+    # ==========================
+    # BACKGROUND SCHEDULER
+    # ==========================
+    auto_parser = subparsers.add_parser("auto", help="Run automated background scraping cycles")
+    auto_parser.add_argument("--interval", type=int, default=60, help="Minutes between scrape cycles (default: 60)")
+    auto_parser.add_argument("--once", action="store_true", help="Run a single cycle and exit (useful for cron/task schedulers)")
+
     return parser
 
 
@@ -355,6 +362,15 @@ def main():
         console.print("[dim]Press Ctrl+C to stop the server anytime.[/dim]\n")
         uvicorn.run("ui.app:app", host=args.host, port=args.port, reload=False)
 
+    # Handle background automation command
+    elif args.subcommand == "auto":
+        from services.scheduler import ScraperScheduler
+        scheduler = ScraperScheduler(db)
+        if args.once:
+            scheduler.run_cycle()
+        else:
+            scheduler.start(interval_minutes=args.interval)
+
     else:
         # Default with no arguments: show usage and stats
         console.print(f"[bold cyan]Database Status:[/bold cyan] [green]{db.count()}[/green] scholarships | [green]{db.count_jobs()}[/green] jobs stored.\n")
@@ -370,7 +386,10 @@ def main():
         console.print("  [cyan]uv run main.py jobs filter --salary[/cyan]        - Only jobs with salary listed")
         console.print("  [cyan]uv run main.py jobs filter --min-score 90[/cyan]  - Only high work-life balance jobs")
         console.print("\n[bold yellow]🌐 Interactive Web Dashboard:[/bold yellow]")
-        console.print("  [cyan]uv run main.py ui[/cyan]                          - Launch browser UI at http://127.0.0.1:8000\n")
+        console.print("  [cyan]uv run main.py ui[/cyan]                          - Launch browser UI at http://127.0.0.1:8000")
+        console.print("\n[bold yellow]⏰ Background Automation:[/bold yellow]")
+        console.print("  [cyan]uv run main.py auto --interval 60[/cyan]          - Auto-scrape & alert every 60 mins")
+        console.print("  [cyan]uv run main.py auto --once[/cyan]                 - Run 1 automated cycle & exit\n")
 
 
 if __name__ == "__main__":
