@@ -1,0 +1,41 @@
+Samuel Aseffa
+Full-Stack & Distributed Systems Engineer
+Email: sami.aseffa@gmail.com | Phone: +251-911-234567 | Location: Addis Ababa, Ethiopia (Open to Remote / Relocation)
+LinkedIn: linkedin.com/in/samuel-aseffa | GitHub: github.com/SamEthereal
+
+SUMMARY
+Results-driven Software Engineer with 4+ years of practical experience building resilient asynchronous data pipelines, modern full-stack web applications, and autonomous multi-agent systems. Strong foundational background in computer science with proven ability to lead technical initiatives, optimize system latency by 45%, and deploy reliable high-throughput microservices.
+
+EDUCATION
+Addis Ababa University, Institute of Technology
+Bachelor of Science (BSc) in Computer Science (2020 – 2024)
+• Cumulative GPA: 3.92 / 4.0 (First Class Honours, Top 3% of Graduating Class)
+• Honors: Dean's List for 8 consecutive semesters, Recipient of National Academic Excellence Award
+• Relevant Coursework: Distributed Systems, Advanced Algorithms, Database Architecture, Machine Learning, Computer Networks
+
+TECHNICAL SKILLS
+• Programming Languages: Python, TypeScript, JavaScript, Go (Golang), SQL, Bash, C++
+• Frameworks & Libraries: FastAPI, React, Next.js, Django, Node.js, PyTorch, Tailwind CSS, BeautifulSoup4
+• Cloud & Infrastructure: Docker, Kubernetes, Linux, AWS (EC2, S3), Git, CI/CD, SQLite, PostgreSQL, Redis
+• Concepts: Web Scraping, Asynchronous Programming, REST APIs, Microservices, ETL, LLM Integration, Test-Driven Development
+
+PROFESSIONAL EXPERIENCE
+Senior Backend Engineer — TechGlobal Remote (2022 – Present)
+• Architected resilient multi-threaded scraping engines and parsers collecting 100,000+ opportunities and job listings daily.
+• Designed asynchronous REST API services with FastAPI and SQLite caching, reducing response latencies from 320ms to 45ms.
+• Spearheaded zero-credential Telegram channel crawlers and real-time alert dispatchers with rich HTML cards and interactive webhooks.
+• Mentored 4 junior engineers on clean architectural patterns, typing discipline, and automated unit testing.
+
+Full-Stack Developer — Innovate Systems (2020 – 2022)
+• Built interactive client-facing Bento-grid analytics dashboards using modern React, Tailwind CSS, and WebSocket event streams.
+• Engineered secure candidate profile management systems with multi-dimensional fit scoring and automated document generation.
+• Automated complex background scheduling and desktop alerting daemons using lightweight Python task schedulers.
+
+FEATURED PROJECTS
+• ScraperGalore Intelligence Platform: All-in-one opportunity engine combining zero-credential Telegram scraping, 4-day week job aggregation, and an interactive Kanban application tracker.
+• 1-Click AI Application Copilot: Tailored statement of purpose and cover letter synthesis engine aligning candidate credentials with job requirements.
+
+HONORS & ACHIEVEMENTS
+• First Place Winner, East Africa Smart Hackathon (2023)
+• Published author of open-source Python scraping utilities with 500+ GitHub stars
+• Certified AWS Cloud Solutions Architect (Associate)

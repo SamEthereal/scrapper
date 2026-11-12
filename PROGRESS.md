@@ -255,13 +255,42 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - Modal with quick-add form (name, URL, source type, target category) and live management list.
   - 1-Click execution, pause/resume toggle, and delete actions with instant execution toasts.
 
+### Milestone 15: AI Resume Parser, Grade Extractor & Dynamic Recommendations Engine
+- **Location:** `services/ai_resume.py`, `services/matcher.py`, `services/copilot.py`, `ui/app.py`, `ui/templates/index.html`, `main.py`
+- **Architecture & Capabilities:**
+  - Dual-Engine AI Architecture:
+    1. **Free Cloud AI Tier**: Direct integration with Google Gemini Free Tier (`gemini-1.5-flash` / `gemini-2.0-flash`) via free API key for deep semantic parsing and cloud synthesis.
+    2. **Built-in Free Heuristic AI Engine**: 100% offline, zero-network, zero-cost semantic NLP engine that extracts candidate credentials, GPA/academic honors, degrees, skills, and experience years.
+  - Grade & Academic Merit Extractor:
+    - Scans and detects GPA formats (`3.92 / 4.0`), Latin honors (`Magna Cum Laude`, `Summa Cum Laude`), UK honors (`First Class Honours`), class rank, and percentage scores.
+    - Dynamically boosts fit scores for academic scholarships and prestigious fellowships based on verified academic standing.
+  - Dynamic AI Recommendation System:
+    - Evaluates candidate credentials against all active scholarships, 4-day remote jobs, and startup grants.
+    - Generates personalized strategic summaries and custom "Why You Match" justifications.
+  - Tailored Cover Letter & SOP Synthesis:
+    - Automatically incorporates candidate's verified GPA, degree, and unique resume achievements directly into generated application documents.
+- **REST Endpoints (`ui/app.py`):**
+  - `GET /api/resume/status`: Checks calibrated resume state and active AI engine.
+  - `POST /api/resume/upload`: Multi-part upload handler parsing `.pdf`, `.txt`, `.md` files.
+  - `POST /api/resume/parse-text`: Direct raw resume text parsing endpoint.
+  - `POST /api/resume/apply-to-profile`: Syncs extracted credentials into SQLite active user profile.
+  - `GET /api/resume/recommendations`: Returns dynamic AI recommendations across all verticals.
+  - `GET /api/settings/gemini-key` & `POST /api/settings/gemini-key`: Configure optional free Gemini API key.
+- **Frontend UI (`ui/templates/index.html`):**
+  - Dedicated **AI Resume Studio Modal** (`#resume-modal`) with drag-and-drop dropzone, text paste area, and dynamic recommendations tab.
+  - Header badge displaying real-time calibrated academic standing (e.g. `3.92 GPA`).
+  - Extracted credentials card review and 1-click sync to platform.
+- **CLI Suite (`main.py`):**
+  - `uv run main.py resume parse <file> [--save]`: Parse any resume and optionally sync to profile.
+  - `uv run main.py resume recs`: Display personalized dynamic AI recommendations from terminal.
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)
 
-1. **Milestone 15: AI-Powered Semantic Search & Hybrid Vector Ranking:**
-   - Integrate vector embeddings (e.g. miniLM or Gemini embeddings) for natural-language query matching.
-2. **Milestone 16: User Authentication & Multi-Tenancy:**
+1. **Milestone 16: AI-Powered Semantic Search & Hybrid Vector Ranking:**
+   - Integrate vector embeddings for natural-language query matching across listings.
+2. **Milestone 17: User Authentication & Multi-Tenancy:**
    - Add FastAPI Auth (JWT or OAuth2 / GitHub login).
    - Per-user preferences: Saved search alerts, starred items in SQLite user table, and resume uploads.
 
@@ -273,7 +302,7 @@ When you open Antigravity on your other PC, follow these quick steps:
 
 ### 1. Pull Latest Changes
 ```bash
-# Pull the latest commits including Milestones 13 & 14
+# Pull the latest commits including Milestones 13, 14 & 15
 git pull origin main
 
 # Ensure virtual environment and dependencies are up to date
@@ -295,6 +324,12 @@ uv run main.py wwr scrape
 # Ingest Tech Grants & Startup Accelerators:
 uv run main.py grants scrape
 
+# Parse your resume and calibrate AI profile:
+uv run main.py resume parse sample_resume.txt --save
+
+# View top dynamic recommendations:
+uv run main.py resume recs
+
 # Verify all sources:
 uv run main.py sources
 ```
@@ -310,9 +345,12 @@ Open **`http://127.0.0.1:8000`** in your browser!
 ## 6. Antigravity Agent Briefing
 
 > **Agent Context:**
-> - **Project:** All-in-One Opportunity & Job Intelligence Platform ("ScraperGalore") with Dual Telegram/Web Crawlers, Interactive Bento-Grid SPA, 4-Stage Kanban Application Pipeline, Candidate AI Profile Matcher, 1-Click Application Copilot, Free Telegram Bot Alerts, and Universal Feed Studio.
-> - **Active Tech Stack:** Python 3.10+, `uv`, `httpx`, `beautifulsoup4`, `fastapi`, `uvicorn`, `sqlite3`, `pydantic`, `schedule`, Tailwind CSS, FontAwesome.
+> - **Project:** All-in-One Opportunity & Job Intelligence Platform ("ScraperGalore") with Dual Telegram/Web Crawlers, Interactive Bento-Grid SPA, 4-Stage Kanban Application Pipeline, Candidate AI Profile Matcher, 1-Click Application Copilot, Free Telegram Bot Alerts, Universal Feed Studio, and AI Resume & Recommendation Engine.
+> - **Active Tech Stack:** Python 3.10+, `uv`, `httpx`, `beautifulsoup4`, `fastapi`, `uvicorn`, `sqlite3`, `pydantic`, `schedule`, `pypdf`, Tailwind CSS, FontAwesome.
 > - **Architecture & Key Files:**
+>   - [`services/ai_resume.py`](file:///services/ai_resume.py): Zero-cost AI resume parser (Gemini Free API + Offline Heuristic NLP), grade extractor, and dynamic recommendation engine.
+>   - [`services/matcher.py`](file:///services/matcher.py): Multi-dimensional profile matching engine computing fit scores and academic merit bonuses.
+>   - [`services/copilot.py`](file:///services/copilot.py): Tailored cover letter and statement of purpose generator with GPA and project weaving.
 >   - [`scrapers/telegram_scraper.py`](file:///scrapers/telegram_scraper.py): Scrapes Telegram public channel previews (`https://t.me/s/...`) with zero credentials.
 >   - [`scrapers/web_scraper.py`](file:///scrapers/web_scraper.py): Deep page scraper; cleans DOM, extracts key highlights (`<li>` bullets), and resolves CTA application URLs.
 >   - [`scrapers/job_scraper.py`](file:///scrapers/job_scraper.py): Scrapes 50+ remote listings from `4dayweek.io/remote-jobs`.
@@ -321,11 +359,10 @@ Open **`http://127.0.0.1:8000`** in your browser!
 >   - [`scrapers/universal_scraper.py`](file:///scrapers/universal_scraper.py): Universal Feed Studio engine for custom user-defined RSS feeds, Telegram channels, and webpages.
 >   - [`services/telegram_bot.py`](file:///services/telegram_bot.py): Telegram alert dispatcher linked to `@ScraperGaloreBot`.
 >   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `grants`, `applications`, `user_profiles`, `settings`, and `custom_sources`.
->   - [`services/matcher.py`](file:///services/matcher.py): Multi-dimensional profile matching engine computing 0–100% fit scores, grades, colors, and matched skills for jobs, opps, and grants.
->   - [`services/copilot.py`](file:///services/copilot.py): 1-click tailored Cover Letter, Statement of Purpose, and Grant Pitch Proposal generator.
 >   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server.
 >   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA.
-> - **Current Status:** Milestones 1 through 14 fully implemented, validated, and documented.
+> - **Current Status:** Milestones 1 through 15 fully implemented, validated, and documented.
+
 
 
 

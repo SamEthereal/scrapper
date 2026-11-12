@@ -126,6 +126,13 @@
         <span id="tg-header-dot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
       </button>
 
+      <!-- AI Resume & Recommendations Studio Button (Milestone 15) -->
+      <button onclick="openResumeModal()" id="resume-header-btn" class="flex items-center space-x-1.5 bg-gradient-to-r from-violet-600/10 to-fuchsia-600/10 border border-violet-300 dark:border-violet-700/50 px-3 py-1.5 rounded-full text-xs font-semibold hover:scale-105 transition-transform shadow-sm cursor-pointer" title="AI Resume & Dynamic Recommendations Studio">
+        <i class="fa-solid fa-wand-magic-sparkles text-violet-500 text-xs"></i>
+        <span class="hidden sm:inline text-[11px] font-bold text-neutral-800 dark:text-neutral-200">AI Resume</span>
+        <span id="header-gpa-badge" class="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300">GPA</span>
+      </button>
+
       <!-- User Profile Badge (Milestone 11 AI Profile Trigger) -->
       <button onclick="openProfileModal()" class="flex items-center space-x-2 bg-[#faf8f5] dark:bg-[#161c28] pl-1.5 pr-3 py-1.5 rounded-full border border-[#e5e1d7] dark:border-[#232c3d] shadow-sm hover:scale-105 transition-all cursor-pointer" title="Open AI Candidate Profile & Matching Preferences">
         <div id="user-avatar-badge" class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center font-extrabold text-black text-xs shadow-xs">
@@ -869,81 +876,156 @@
   <!-- ========================================================================= -->
   <!-- 2D. TELEGRAM ALERTS MODAL (MILESTONE 13)                                 -->
   <!-- ========================================================================= -->
-  <div id="telegram-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] shadow-2xl max-w-lg w-full p-6 space-y-5">
+  <!-- ========================================================================= -->
+  <!-- 2E. AI RESUME & RECOMMENDATIONS STUDIO MODAL (MILESTONE 15)               -->
+  <!-- ========================================================================= -->
+  <div id="resume-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] shadow-2xl max-w-2xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d]">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-xl font-extrabold shadow-sm">
-            <i class="fa-brands fa-telegram"></i>
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white flex items-center justify-center text-lg font-extrabold shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
           <div>
-            <h3 class="text-base font-black text-neutral-900 dark:text-white">Telegram Alert Radar</h3>
-            <p class="text-xs text-neutral-400">Push high-match jobs, grants & scholarships directly to your phone</p>
+            <h3 class="text-base font-black text-neutral-900 dark:text-white flex items-center space-x-2">
+              <span>AI Resume & Dynamic Matcher</span>
+              <span id="resume-modal-engine-badge" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300">Free AI Engine</span>
+            </h3>
+            <p class="text-xs text-neutral-400">Upload your CV to extract grades, skills & receive personalized matching recommendations</p>
           </div>
         </div>
-        <button onclick="closeTelegramModal()" class="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+        <button onclick="closeResumeModal()" class="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
           <i class="fa-solid fa-xmark text-xs"></i>
         </button>
       </div>
 
-      <!-- Bot Card Info -->
-      <div class="bg-white dark:bg-[#1f2737] p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 space-y-3 text-xs">
+      <!-- Free AI Engine Selector Capsule -->
+      <div class="bg-white dark:bg-[#1a2130] p-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 space-y-2.5 text-xs">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-robot text-sky-500"></i>
-            <span class="font-bold text-neutral-800 dark:text-neutral-200">Bot Username:</span>
+            <i class="fa-solid fa-microchip text-violet-500"></i>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200">Active AI Intelligence:</span>
+            <span id="active-engine-text" class="text-neutral-600 dark:text-neutral-300 font-semibold">Built-in Free Heuristic AI Engine</span>
           </div>
-          <a href="https://t.me/ScraperGaloreBot" target="_blank" class="font-extrabold text-sky-600 dark:text-sky-400 hover:underline flex items-center space-x-1">
-            <span>@ScraperGaloreBot</span>
-            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
-          </a>
+          <button onclick="toggleGeminiKeySection()" class="text-[11px] text-violet-600 dark:text-violet-400 font-bold hover:underline flex items-center space-x-1">
+            <i class="fa-solid fa-key text-[10px]"></i>
+            <span id="gemini-toggle-label">Configure Gemini Key</span>
+          </button>
         </div>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-tower-broadcast text-emerald-500"></i>
-            <span class="font-bold text-neutral-800 dark:text-neutral-200">Status:</span>
-          </div>
-          <span id="tg-modal-status" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-            Token Validated
-          </span>
-        </div>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-id-badge text-purple-500"></i>
-            <span class="font-bold text-neutral-800 dark:text-neutral-200">Connected Chat:</span>
-          </div>
-          <span id="tg-modal-chat" class="font-mono text-[11px] text-neutral-600 dark:text-neutral-300">
-            Awaiting Start...
-          </span>
-        </div>
-      </div>
 
-      <!-- Quick 2-Step Activation Guide -->
-      <div class="space-y-2 text-xs">
-        <h4 class="font-bold text-neutral-900 dark:text-white uppercase tracking-wider text-[10px]">Two-Click Activation:</h4>
-        <div class="space-y-1.5 text-neutral-600 dark:text-neutral-400">
-          <div class="flex items-start space-x-2">
-            <span class="w-4 h-4 rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
-            <p>Open <a href="https://t.me/ScraperGaloreBot" target="_blank" class="text-sky-600 dark:text-sky-400 font-bold hover:underline">@ScraperGaloreBot</a> on Telegram and press <b>Start</b> (or send <code>/start</code>).</p>
-          </div>
-          <div class="flex items-start space-x-2">
-            <span class="w-4 h-4 rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
-            <p>Click <b>"Auto-Detect My Chat ID"</b> below. The bot will pair your account and send a welcome test card.</p>
+        <!-- Optional Gemini API Key Drawer -->
+        <div id="gemini-key-drawer" class="hidden pt-2 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
+          <p class="text-[11px] text-neutral-500 dark:text-neutral-400">
+            You can use the <b>100% Free Built-in AI</b> with zero setup. To enable deep cloud synthesis, add a free Google Gemini API key:
+          </p>
+          <div class="flex items-center space-x-2">
+            <input type="password" id="gemini-api-key-input" placeholder="AIzaSy... (Gemini Free API Key)" class="flex-1 bg-[#faf8f5] dark:bg-[#161c28] border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-violet-500">
+            <button onclick="saveGeminiApiKey()" class="px-3 py-1.5 rounded-xl bg-violet-600 text-white font-bold text-xs hover:bg-violet-700 transition-colors">
+              Save Key
+            </button>
+            <button onclick="clearGeminiApiKey()" id="gemini-clear-btn" class="px-2.5 py-1.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 font-bold text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+              Reset
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="flex items-center space-x-2.5 pt-2">
-        <button onclick="detectTelegramChatId()" id="tg-detect-btn" class="flex-1 py-2.5 rounded-xl bg-sky-500 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-1.5 hover:bg-sky-600 transition-colors cursor-pointer">
-          <i class="fa-solid fa-link text-xs"></i>
-          <span>Auto-Detect My Chat ID</span>
-        </button>
-        <button onclick="sendTelegramTestNotification()" id="tg-test-btn" class="px-4 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center justify-center space-x-1.5 hover:opacity-90 transition-opacity cursor-pointer">
-          <i class="fa-solid fa-paper-plane text-xs"></i>
-          <span>Send Test</span>
+      <!-- Resume Import Tabs -->
+      <div class="space-y-3">
+        <div class="flex items-center space-x-2 border-b border-neutral-200 dark:border-neutral-700 pb-2">
+          <button onclick="switchResumeTab('upload')" id="tab-btn-upload" class="px-3 py-1 rounded-lg text-xs font-bold bg-neutral-900 text-white dark:bg-white dark:text-black">
+            <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Upload File (PDF/TXT)
+          </button>
+          <button onclick="switchResumeTab('paste')" id="tab-btn-paste" class="px-3 py-1 rounded-lg text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+            <i class="fa-solid fa-align-left mr-1"></i> Paste Text
+          </button>
+          <button onclick="switchResumeTab('recs')" id="tab-btn-recs" class="px-3 py-1 rounded-lg text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+            <i class="fa-solid fa-bullseye mr-1"></i> Top Recommendations
+          </button>
+        </div>
+
+        <!-- 1. File Upload Dropzone -->
+        <div id="resume-tab-upload" class="space-y-3">
+          <div id="dropzone" onclick="document.getElementById('resume-file-input').click()" class="border-2 border-dashed border-violet-300 dark:border-violet-800/60 rounded-3xl p-6 text-center bg-violet-50/50 dark:bg-violet-950/20 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-colors cursor-pointer space-y-2">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-file-pdf"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-neutral-800 dark:text-neutral-200">Click to upload or drag & drop your Resume</p>
+              <p class="text-[11px] text-neutral-400">Supports PDF, TXT, and Markdown files</p>
+            </div>
+            <span id="selected-file-label" class="inline-block text-[11px] font-bold text-violet-600 dark:text-violet-400"></span>
+            <input type="file" id="resume-file-input" accept=".pdf,.txt,.md" onchange="handleResumeFileSelected(this)" class="hidden">
+          </div>
+          <button onclick="uploadAndAnalyzeResume()" id="analyze-file-btn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+            <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+            <span>Analyze Resume with AI</span>
+          </button>
+        </div>
+
+        <!-- 2. Text Paste Area -->
+        <div id="resume-tab-paste" class="hidden space-y-3">
+          <textarea id="resume-paste-input" rows="8" placeholder="Paste your CV, LinkedIn profile, or resume summary text here..." class="w-full bg-white dark:bg-[#1a2130] border border-neutral-200 dark:border-neutral-700 rounded-2xl p-3 text-xs text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-violet-500 font-mono"></textarea>
+          <button onclick="parsePastedResume()" id="analyze-paste-btn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+            <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+            <span>Parse & Calibrate from Text</span>
+          </button>
+        </div>
+
+        <!-- 3. Dynamic Recommendations Tab -->
+        <div id="resume-tab-recs" class="hidden space-y-3">
+          <div id="recs-summary-box" class="p-3 bg-violet-50 dark:bg-violet-950/40 rounded-2xl border border-violet-200 dark:border-violet-800/50 text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed">
+            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Loading AI recommendations...
+          </div>
+          <div id="recs-list-container" class="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+            <!-- Dynamic recommendation cards injected here -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Extracted Candidate Profile Review (Revealed on parse) -->
+      <div id="extracted-preview-box" class="hidden space-y-3 p-4 bg-white dark:bg-[#1a2130] rounded-2xl border border-neutral-200 dark:border-neutral-700">
+        <div class="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-id-card-clip text-violet-500"></i>
+            <h4 class="text-xs font-bold text-neutral-900 dark:text-white">Extracted Candidate Credentials</h4>
+          </div>
+          <span id="preview-parser-badge" class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Calibrated</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div>
+            <span class="text-[10px] font-bold text-neutral-400 uppercase">Full Name</span>
+            <p id="prev-name" class="font-extrabold text-neutral-900 dark:text-white mt-0.5"></p>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-neutral-400 uppercase">Academic Standing & GPA</span>
+            <p id="prev-gpa" class="font-extrabold text-violet-600 dark:text-violet-400 mt-0.5"></p>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-neutral-400 uppercase">Degree & Field</span>
+            <p id="prev-degree" class="font-semibold text-neutral-800 dark:text-neutral-200 mt-0.5"></p>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-neutral-400 uppercase">Experience Standing</span>
+            <p id="prev-exp" class="font-semibold text-neutral-800 dark:text-neutral-200 mt-0.5"></p>
+          </div>
+          <div class="sm:col-span-2">
+            <span class="text-[10px] font-bold text-neutral-400 uppercase">Detected Competencies</span>
+            <div id="prev-skills" class="flex flex-wrap gap-1 mt-1"></div>
+          </div>
+          <div class="sm:col-span-2">
+            <span class="text-[10px] font-bold text-neutral-400 uppercase">AI Executive Bio</span>
+            <p id="prev-bio" class="text-[11px] text-neutral-600 dark:text-neutral-400 mt-0.5 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <button onclick="applyParsedResumeToProfile()" id="apply-profile-btn" class="w-full mt-2 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+          <i class="fa-solid fa-check text-xs"></i>
+          <span>Sync to Profile & Recalibrate Platform</span>
         </button>
       </div>
 
@@ -989,6 +1071,7 @@
       await loadData();
       await loadHistory();
       await loadTelegramStatus();
+      await loadResumeStatus();
       renderFavorites();
     }
 
@@ -2388,6 +2471,342 @@
         if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-[10px]"></i> <span>Sync All Custom</span>';
       }
     }
+  
+    // =========================================================================
+    // Milestone 15: AI Resume & Dynamic Recommendations Studio
+    // =========================================================================
+
+    let currentExtractedResume = null;
+
+    async function loadResumeStatus() {
+      try {
+        const res = await fetch('/api/resume/status');
+        const data = await res.json();
+        
+        // Update header badge
+        const badge = document.getElementById('header-gpa-badge');
+        if (badge) {
+          if (data.gpa_grades && data.gpa_grades !== 'Not Calibrated') {
+            const shortGpa = data.gpa_grades.split('(')[0].trim().replace('/ 4.0', '').replace('/4.0', '');
+            badge.innerText = shortGpa || 'Calibrated';
+          } else {
+            badge.innerText = 'Upload';
+          }
+        }
+
+        // Update modal engine status
+        const engineLabel = document.getElementById('active-engine-text');
+        if (engineLabel) engineLabel.innerText = data.active_engine;
+
+        const engineBadge = document.getElementById('resume-modal-engine-badge');
+        if (engineBadge) {
+          engineBadge.innerText = data.has_gemini_key ? 'Gemini Free API' : 'Free Offline Engine';
+          engineBadge.className = data.has_gemini_key 
+            ? 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+            : 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300';
+        }
+
+        const input = document.getElementById('gemini-api-key-input');
+        if (input && data.has_gemini_key) {
+          input.placeholder = `Configured (${data.masked_gemini_key})`;
+        }
+      } catch (err) {
+        console.error('Failed to load resume status:', err);
+      }
+    }
+
+    function openResumeModal() {
+      loadResumeStatus();
+      loadDynamicRecommendations();
+      document.getElementById('resume-modal').classList.remove('hidden');
+    }
+
+    function closeResumeModal() {
+      document.getElementById('resume-modal').classList.add('hidden');
+    }
+
+    function switchResumeTab(tab) {
+      const uploadTab = document.getElementById('resume-tab-upload');
+      const pasteTab = document.getElementById('resume-tab-paste');
+      const recsTab = document.getElementById('resume-tab-recs');
+
+      const btnUpload = document.getElementById('tab-btn-upload');
+      const btnPaste = document.getElementById('tab-btn-paste');
+      const btnRecs = document.getElementById('tab-btn-recs');
+
+      const activeClasses = 'px-3 py-1 rounded-lg text-xs font-bold bg-neutral-900 text-white dark:bg-white dark:text-black';
+      const inactiveClasses = 'px-3 py-1 rounded-lg text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white';
+
+      uploadTab.classList.toggle('hidden', tab !== 'upload');
+      pasteTab.classList.toggle('hidden', tab !== 'paste');
+      recsTab.classList.toggle('hidden', tab !== 'recs');
+
+      btnUpload.className = tab === 'upload' ? activeClasses : inactiveClasses;
+      btnPaste.className = tab === 'paste' ? activeClasses : inactiveClasses;
+      btnRecs.className = tab === 'recs' ? activeClasses : inactiveClasses;
+
+      if (tab === 'recs') {
+        loadDynamicRecommendations();
+      }
+    }
+
+    function toggleGeminiKeySection() {
+      const drawer = document.getElementById('gemini-key-drawer');
+      drawer.classList.toggle('hidden');
+    }
+
+    async function saveGeminiApiKey() {
+      const input = document.getElementById('gemini-api-key-input');
+      const key = input.value.trim();
+      if (!key) {
+        alert('Please paste a valid Gemini API key.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/settings/gemini-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🔑 Free Gemini API key linked!');
+          input.value = '';
+          await loadResumeStatus();
+          toggleGeminiKeySection();
+        } else {
+          alert(data.error || 'Failed to save key');
+        }
+      } catch (err) {
+        alert('Error saving key: ' + err);
+      }
+    }
+
+    async function clearGeminiApiKey() {
+      try {
+        await fetch('/api/settings/gemini-key', { method: 'DELETE' });
+        showToast('Reverted to Built-in Free Heuristic AI');
+        await loadResumeStatus();
+      } catch (err) {
+        alert('Error resetting key: ' + err);
+      }
+    }
+
+    function handleResumeFileSelected(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const sizeKb = Math.round(file.size / 1024);
+        document.getElementById('selected-file-label').innerText = `Selected: ${file.name} (${sizeKb} KB)`;
+      }
+    }
+
+    async function uploadAndAnalyzeResume() {
+      const fileInput = document.getElementById('resume-file-input');
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert('Please select a PDF or text file first.');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const btn = document.getElementById('analyze-file-btn');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Reading & Extracting Credentials...</span>';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/resume/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`✨ Extracted profile for ${data.extracted_profile.full_name}!`);
+          displayExtractedPreview(data.extracted_profile, data.raw_text);
+        } else {
+          alert(data.error || 'Failed to parse resume');
+        }
+      } catch (err) {
+        alert('Resume upload error: ' + err);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-xs"></i> <span>Analyze Resume with AI</span>';
+        btn.disabled = false;
+      }
+    }
+
+    async function parsePastedResume() {
+      const text = document.getElementById('resume-paste-input').value.trim();
+      if (!text) {
+        alert('Please paste some resume text first.');
+        return;
+      }
+
+      const btn = document.getElementById('analyze-paste-btn');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Analyzing text...</span>';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/resume/parse-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resume_text: text })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`✨ Extracted credentials for ${data.extracted_profile.full_name}!`);
+          displayExtractedPreview(data.extracted_profile, data.raw_text);
+        } else {
+          alert(data.error || 'Failed to parse text');
+        }
+      } catch (err) {
+        alert('Parsing error: ' + err);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-xs"></i> <span>Parse & Calibrate from Text</span>';
+        btn.disabled = false;
+      }
+    }
+
+    function displayExtractedPreview(parsed, rawText) {
+      currentExtractedResume = { parsed, rawText };
+      const box = document.getElementById('extracted-preview-box');
+      box.classList.remove('hidden');
+
+      document.getElementById('prev-name').innerText = parsed.full_name || 'Applicant';
+      document.getElementById('prev-gpa').innerText = parsed.gpa_grades || 'Good Academic Standing';
+      document.getElementById('prev-degree').innerText = parsed.degree || 'Degree Not Specified';
+      document.getElementById('prev-exp').innerText = `${parsed.experience_years || 0}+ Years (${parsed.title || 'Specialist'})`;
+      document.getElementById('prev-bio').innerText = parsed.bio || '';
+
+      const badge = document.getElementById('preview-parser-badge');
+      if (badge && parsed.parser_used) {
+        badge.innerText = parsed.parser_used;
+      }
+
+      const skillsContainer = document.getElementById('prev-skills');
+      const skillsList = (parsed.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+      skillsContainer.innerHTML = skillsList.map(s => `
+        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-violet-100 text-violet-800 dark:bg-violet-900/60 dark:text-violet-200">${s}</span>
+      `).join('');
+
+      box.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function applyParsedResumeToProfile() {
+      if (!currentExtractedResume || !currentExtractedResume.parsed) {
+        alert('No extracted resume data to apply.');
+        return;
+      }
+
+      const btn = document.getElementById('apply-profile-btn');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Recalibrating...</span>';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/resume/apply-to-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            extracted_data: currentExtractedResume.parsed,
+            resume_raw: currentExtractedResume.rawText
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🎉 Candidate profile calibrated! Recalculating fit scores...');
+          await loadData();
+          await loadResumeStatus();
+          switchResumeTab('recs');
+        } else {
+          alert(data.error || 'Failed to update profile');
+        }
+      } catch (err) {
+        alert('Update error: ' + err);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-check text-xs"></i> <span>Sync to Profile & Recalibrate Platform</span>';
+        btn.disabled = false;
+      }
+    }
+
+    async function loadDynamicRecommendations() {
+      const summaryBox = document.getElementById('recs-summary-box');
+      const container = document.getElementById('recs-list-container');
+      if (!container) return;
+
+      try {
+        const res = await fetch('/api/resume/recommendations');
+        const data = await res.json();
+
+        if (!data.success) {
+          summaryBox.innerText = 'Could not compute recommendations.';
+          return;
+        }
+
+        summaryBox.innerHTML = `
+          <div class="flex items-start space-x-2.5">
+            <i class="fa-solid fa-sparkles text-violet-500 mt-0.5 shrink-0"></i>
+            <div>
+              <p class="font-extrabold text-neutral-900 dark:text-white mb-1">Tailored AI Guidance</p>
+              <p class="text-neutral-600 dark:text-neutral-300 leading-relaxed">${data.summary}</p>
+            </div>
+          </div>
+        `;
+
+        const renderCard = (item, type, badgeColor, icon) => {
+          const match = item.match || { score: 85, reasons: [] };
+          const reason = match.reasons && match.reasons[0] ? match.reasons[0] : 'Matches your technical background.';
+          const subtitle = item.company || item.organization || item.channel_name || 'Opportunity';
+
+          return `
+            <div class="p-3.5 bg-white dark:bg-[#1a2130] rounded-2xl border border-neutral-200 dark:border-neutral-700 flex flex-col justify-between space-y-2.5 hover:shadow-sm transition-all">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-5 h-5 rounded-lg bg-${badgeColor}-100 dark:bg-${badgeColor}-950/80 text-${badgeColor}-600 dark:text-${badgeColor}-400 flex items-center justify-center text-[10px] shrink-0">
+                      <i class="fa-solid ${icon}"></i>
+                    </span>
+                    <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider truncate">${subtitle}</span>
+                  </div>
+                  <h4 class="text-xs font-black text-neutral-900 dark:text-white mt-1 line-clamp-1">${item.title}</h4>
+                </div>
+                <div class="px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  ${match.score}% Fit
+                </div>
+              </div>
+
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1 text-[9px]"></i> ${reason}
+              </p>
+
+              <div class="pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                <span class="text-[10px] font-bold text-neutral-400">${item.salary || item.funding_amount || item.deadline_date || 'Active'}</span>
+                <button onclick="quickGenerateFromRec('${type}', ${item.id});" class="px-3 py-1 rounded-lg bg-black dark:bg-white text-white dark:text-black font-extrabold text-[10px] hover:opacity-80 transition-opacity">
+                  <i class="fa-solid fa-pen-nib mr-1 text-[9px]"></i> 1-Click Tailor
+                </button>
+              </div>
+            </div>
+          `;
+        };
+
+        const allCards = [
+          ...(data.scholarships || []).map(o => renderCard(o, 'opportunity', 'indigo', 'fa-graduation-cap')),
+          ...(data.jobs || []).map(j => renderCard(j, 'job', 'emerald', 'fa-briefcase')),
+          ...(data.grants || []).map(g => renderCard(g, 'grant', 'amber', 'fa-rocket'))
+        ];
+
+        container.innerHTML = allCards.length ? allCards.join('') : '<div class="text-center text-xs text-neutral-400 py-6">No recommendations found yet.</div>';
+
+      } catch (err) {
+        container.innerHTML = `<div class="text-center text-xs text-rose-500 py-4">Error loading recommendations: ${err}</div>`;
+      }
+    }
+
+    function quickGenerateFromRec(type, id) {
+      closeResumeModal();
+      openCopilotModal(type, id);
+    }
+
   </script>
 
   <!-- ========================================================================= -->

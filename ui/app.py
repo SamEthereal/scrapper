@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi import FastAPI, HTTPException, Query, Response, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -18,6 +18,7 @@ from storage.db import OpportunityDB
 from services.matcher import ProfileMatcher
 from services.copilot import ApplicationCopilot
 from services.telegram_bot import TelegramAlertDispatcher
+from services.ai_resume import AIResumeService
 
 
 class PipelineItemCreate(BaseModel):
@@ -65,6 +66,20 @@ class CustomSourceCreate(BaseModel):
     url: str
     source_type: str  # 'rss', 'telegram', 'web'
     category: str     # 'jobs', 'scholarships', 'grants'
+
+
+class ResumeParseTextRequest(BaseModel):
+    resume_text: str
+    api_key: Optional[str] = None
+
+
+class ResumeApplyRequest(BaseModel):
+    extracted_data: dict
+    resume_raw: Optional[str] = None
+
+
+class GeminiKeyRequest(BaseModel):
+    api_key: str
 
 app = FastAPI(
     title="Opportunity & Job Scraper API",
@@ -590,3 +605,127 @@ def scrape_all_custom_sources():
     scraper = UniversalScraper(db)
     results = scraper.scrape_all_active()
     return {"success": True, "results": results}
+
+
+# =============================================================================
+# Milestone 15: AI Resume Matching, Grade Extractor & Dynamic Recommendations
+# =============================================================================
+
+@app.get("/api/resume/status")
+def get_resume_status():
+    """Returns candidate's current resume status, academic standing, and AI engine status."""
+    profile = db.get_user_profile()
+    settings = db.get_all_settings()
+    gemini_key = settings.get("gemini_api_key")
+    has_gemini = bool(gemini_key)
+
+    return {
+        "has_resume": bool(profile.get("resume_raw")),
+        "full_name": profile.get("full_name"),
+        "gpa_grades": profile.get("gpa_grades") or "Not Calibrated",
+        "degree": profile.get("degree"),
+        "experience_years": profile.get("experience_years"),
+        "skills_count": len(profile.get("skills_list") or []),
+        "has_gemini_key": has_gemini,
+        "masked_gemini_key": f"{gemini_key[:6]}...{gemini_key[-4:]}" if has_gemini and len(gemini_key) > 10 else None,
+        "active_engine": "Google Gemini Free Tier" if has_gemini else "Built-in Free Heuristic AI Engine",
+    }
+
+
+@app.post("/api/resume/upload")
+async def upload_resume(file: UploadFile = File(...)):
+    """Uploads a resume file (.pdf, .txt, .md), extracts text, and parses credentials via AI."""
+    try:
+        contents = await file.read()
+        text = AIResumeService.extract_text(contents, file.filename)
+        if not text.strip():
+            return JSONResponse(status_code=400, content={"success": False, "error": "Could not extract text from uploaded file."})
+
+        settings = db.get_all_settings()
+        gemini_key = settings.get("gemini_api_key")
+
+        parsed = AIResumeService.parse_resume(text, api_key=gemini_key)
+        return {
+            "success": True,
+            "filename": file.filename,
+            "extracted_profile": parsed,
+            "raw_text_preview": text[:500] + ("..." if len(text) > 500 else ""),
+            "raw_text": text,
+        }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.post("/api/resume/parse-text")
+def parse_resume_text(req: ResumeParseTextRequest):
+    """Parses raw pasted resume text and returns structured candidate credentials."""
+    try:
+        if not req.resume_text.strip():
+            return JSONResponse(status_code=400, content={"success": False, "error": "Resume text cannot be empty."})
+
+        settings = db.get_all_settings()
+        gemini_key = req.api_key or settings.get("gemini_api_key")
+
+        parsed = AIResumeService.parse_resume(req.resume_text, api_key=gemini_key)
+        return {
+            "success": True,
+            "extracted_profile": parsed,
+            "raw_text": req.resume_text,
+        }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.post("/api/resume/apply-to-profile")
+def apply_resume_to_profile(req: ResumeApplyRequest):
+    """Saves the extracted candidate data and raw resume text to the user's active profile."""
+    try:
+        updated = db.update_resume_data(
+            resume_raw=req.resume_raw or "",
+            extracted=req.extracted_data,
+        )
+        return {"success": True, "profile": updated}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.get("/api/resume/recommendations")
+def get_resume_recommendations():
+    """Generates dynamic AI recommendations across scholarships, jobs, and grants tailored to user's resume."""
+    try:
+        profile = db.get_user_profile()
+        recommendations = AIResumeService.get_dynamic_recommendations(profile, db)
+        return {"success": True, **recommendations}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.get("/api/settings/gemini-key")
+def get_gemini_key_setting():
+    """Returns whether the Google Gemini API key is configured."""
+    settings = db.get_all_settings()
+    key = settings.get("gemini_api_key")
+    return {
+        "configured": bool(key),
+        "masked_key": f"{key[:6]}...{key[-4:]}" if key and len(key) > 10 else None,
+    }
+
+
+@app.post("/api/settings/gemini-key")
+def save_gemini_key(req: GeminiKeyRequest):
+    """Saves or updates the Google Gemini API key in SQLite settings."""
+    try:
+        clean_key = req.api_key.strip()
+        db.save_setting("gemini_api_key", clean_key)
+        return {"success": True, "message": "Gemini API key saved successfully."}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.delete("/api/settings/gemini-key")
+def clear_gemini_key():
+    """Removes the stored Gemini API key to fallback to the offline AI engine."""
+    with db._get_connection() as conn:
+        conn.execute("DELETE FROM settings WHERE key = 'gemini_api_key';")
+        conn.commit()
+    return {"success": True, "message": "Gemini key removed. Reverted to built-in offline AI."}

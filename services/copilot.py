@@ -51,11 +51,14 @@ class ApplicationCopilot:
         salary = job.get("salary")
         schedule = job.get("schedule") or "4-Day Work Week"
         work_life = job.get("work_life_score")
+        candidate_grades = profile.get("gpa_grades") or ""
 
         # Compute skill overlap for deep tailoring
         match_info = ProfileMatcher.match_item(profile, job, item_type="job")
         matched_skills = match_info.get("matched_skills") or []
         primary_skills = ", ".join(matched_skills[:3]) if matched_skills else "distributed systems and modern application engineering"
+
+        academic_mention = f"Holding a {profile.get('degree') or 'technical degree'} with distinguished academic standing ({candidate_grades}), " if candidate_grades else ""
 
         today_str = datetime.now().strftime("%B %d, %Y")
 
@@ -71,7 +74,7 @@ class ApplicationCopilot:
             f"Dear Hiring Team at {company},\n",
             (
                 f"I am writing to express my strong interest in the **{job_title}** position at **{company}**. "
-                f"With {experience_years}+ years of focused experience in modern software engineering and technical architecture, "
+                f"{academic_mention}and with {experience_years}+ years of focused experience in modern software engineering and technical architecture, "
                 f"I have followed {company}'s commitment to thoughtful execution and high-performance culture. "
                 f"The combination of your mission and an environment that champions deliberate, high-impact focus "
                 f"makes this opportunity an exceptional fit for my background."
@@ -127,6 +130,7 @@ class ApplicationCopilot:
         candidate_name = profile.get("full_name") or "Applicant"
         candidate_email = profile.get("email") or "applicant@example.com"
         candidate_degree = profile.get("degree") or "Bachelor of Science"
+        candidate_grades = profile.get("gpa_grades") or ""
         candidate_bio = profile.get("bio") or ""
 
         opp_title = opp.get("title") or "the academic fellowship opportunity"
@@ -138,6 +142,12 @@ class ApplicationCopilot:
         matched_skills = match_info.get("matched_skills") or []
         skills_str = ", ".join(matched_skills[:3]) if matched_skills else "rigorous scientific methodology and modern computational tools"
 
+        academic_standing_phrase = (
+            f"Holding a background in {candidate_degree} with distinguished academic standing ({candidate_grades}), "
+            if candidate_grades
+            else f"Holding a background in {candidate_degree}, "
+        )
+
         hl_summary = f"specifically your focus on {highlights[0].lower()}" if highlights else "your world-class research environment"
 
         today_str = datetime.now().strftime("%B %d, %Y")
@@ -145,7 +155,7 @@ class ApplicationCopilot:
         md_lines = [
             f"**{candidate_name}**",
             f"Candidate for Academic & Research Opportunities",
-            f"{candidate_email} | Current Credential: {candidate_degree}",
+            f"{candidate_email} | {candidate_degree}" + (f" ({candidate_grades})" if candidate_grades else ""),
             f"{today_str}\n",
             f"**Admissions Directorate & Academic Selection Committee**",
             f"Regarding: {opp_title}\n",
@@ -153,7 +163,7 @@ class ApplicationCopilot:
             f"Dear Members of the Selection Committee,\n",
             (
                 f"I am writing to formally submit my application for the prestigious **{opp_title}**. "
-                f"Holding a background in {candidate_degree}, I have long dedicated my academic trajectory "
+                f"{academic_standing_phrase}I have long dedicated my academic trajectory "
                 f"toward addressing critical problems through structured inquiry, continuous learning, and rigorous technical execution. "
                 f"This opportunity represents the ideal environment to further my academic development and contribute meaningfully to the program's vision."
             ),

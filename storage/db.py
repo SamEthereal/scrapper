@@ -138,6 +138,15 @@ class OpportunityDB:
                     """
                 )
 
+            # Ensure user_profiles has columns for Milestone 15 (AI Resume Parsing)
+            user_cols = [r["name"] for r in conn.execute("PRAGMA table_info(user_profiles);").fetchall()]
+            if "gpa_grades" not in user_cols:
+                conn.execute("ALTER TABLE user_profiles ADD COLUMN gpa_grades TEXT;")
+            if "resume_raw" not in user_cols:
+                conn.execute("ALTER TABLE user_profiles ADD COLUMN resume_raw TEXT;")
+            if "extracted_data" not in user_cols:
+                conn.execute("ALTER TABLE user_profiles ADD COLUMN extracted_data TEXT;")
+
             # Create grants table for Milestone 12 (Tech Grants & Accelerators)
             conn.execute(
                 """
@@ -612,6 +621,9 @@ class OpportunityDB:
                         "Software Engineer", "Full-Stack Developer", "AI Backend Engineer", "Research Fellow"
                     ],
                     "bio": "Passionate engineer specialized in scalable scrapers, intelligent automated pipelines, and modern web applications with 4+ years of hands-on experience.",
+                    "gpa_grades": "3.85 / 4.0 (First Class Honours)",
+                    "resume_raw": None,
+                    "extracted_data": None,
                     "updated_at": None,
                 }
             data = dict(row)
@@ -619,6 +631,8 @@ class OpportunityDB:
             data["skills_list"] = [s.strip() for s in skills_raw.split(",") if s.strip()]
             roles_raw = data.get("target_roles") or ""
             data["target_roles_list"] = [r.strip() for r in roles_raw.split(",") if r.strip()]
+            if not data.get("gpa_grades"):
+                data["gpa_grades"] = "3.85 / 4.0 (First Class Honours)"
             return data
 
     def save_user_profile(
@@ -632,6 +646,9 @@ class OpportunityDB:
         preferred_locations: Optional[str] = None,
         target_roles: Optional[str] = None,
         bio: Optional[str] = None,
+        gpa_grades: Optional[str] = None,
+        resume_raw: Optional[str] = None,
+        extracted_data: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Upserts the active user profile (id=1) in the database."""
         with self._get_connection() as conn:
@@ -639,8 +656,8 @@ class OpportunityDB:
                 """
                 INSERT INTO user_profiles (
                     id, full_name, email, title, skills, degree, experience_years,
-                    preferred_locations, target_roles, bio, updated_at
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    preferred_locations, target_roles, bio, gpa_grades, resume_raw, extracted_data, updated_at
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 ON CONFLICT(id) DO UPDATE SET
                     full_name = excluded.full_name,
                     email = excluded.email,
@@ -651,6 +668,9 @@ class OpportunityDB:
                     preferred_locations = excluded.preferred_locations,
                     target_roles = excluded.target_roles,
                     bio = excluded.bio,
+                    gpa_grades = COALESCE(excluded.gpa_grades, user_profiles.gpa_grades),
+                    resume_raw = COALESCE(excluded.resume_raw, user_profiles.resume_raw),
+                    extracted_data = COALESCE(excluded.extracted_data, user_profiles.extracted_data),
                     updated_at = CURRENT_TIMESTAMP;
                 """,
                 (
@@ -663,10 +683,46 @@ class OpportunityDB:
                     preferred_locations or "",
                     target_roles or "",
                     bio or "",
+                    gpa_grades,
+                    resume_raw,
+                    extracted_data,
                 ),
             )
             conn.commit()
             return self.get_user_profile()
+
+    def update_resume_data(
+        self,
+        resume_raw: str,
+        extracted: Dict[str, Any],
+        gpa_grades: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Updates user profile directly from parsed resume data."""
+        import json
+        full_name = extracted.get("full_name") or "Samuel Aseffa"
+        email = extracted.get("email")
+        title = extracted.get("title")
+        skills = extracted.get("skills") or ""
+        degree = extracted.get("degree")
+        experience_years = int(extracted.get("experience_years") or 0)
+        target_roles = extracted.get("target_roles")
+        bio = extracted.get("bio")
+        gpa = gpa_grades or extracted.get("gpa_grades")
+
+        extracted_str = json.dumps(extracted, ensure_ascii=False)
+        return self.save_user_profile(
+            full_name=full_name,
+            email=email,
+            title=title,
+            skills=skills,
+            degree=degree,
+            experience_years=experience_years,
+            target_roles=target_roles,
+            bio=bio,
+            gpa_grades=gpa,
+            resume_raw=resume_raw,
+            extracted_data=extracted_str,
+        )
 
     # =========================================================================
     # Milestone 12: Tech Grants & Accelerators Storage

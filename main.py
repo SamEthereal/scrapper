@@ -491,6 +491,16 @@ def build_parser() -> argparse.ArgumentParser:
     notify_parser.add_argument("--type", choices=["job", "opp", "grant"], help="Type of item to send")
     notify_parser.add_argument("--id", type=int, help="Database ID of item to send")
 
+    # ==========================
+    # MILESTONE 15: AI RESUME & DYNAMIC RECOMMENDATIONS
+    # ==========================
+    resume_parser = subparsers.add_parser("resume", help="AI Resume parsing, grade extraction & dynamic recommendations")
+    resume_sub = resume_parser.add_subparsers(dest="resume_action", help="Resume operations")
+    r_parse = resume_sub.add_parser("parse", help="Parse resume file (.pdf, .txt, .md) and extract credentials/grades")
+    r_parse.add_argument("file", help="Path to resume file (.pdf, .txt, .md)")
+    r_parse.add_argument("--save", action="store_true", help="Sync extracted credentials directly into active user profile")
+    resume_sub.add_parser("recs", help="Generate dynamic recommendations based on candidate's calibrated resume profile")
+
     return parser
 
 
@@ -728,6 +738,72 @@ def main():
         else:
             info = bot.get_bot_info()
             console.print(f"[bold cyan]Telegram Bot Status:[/bold cyan] {info}")
+
+    # Handle AI Resume & Recommendations (Milestone 15)
+    elif args.subcommand == "resume":
+        from services.ai_resume import AIResumeService
+        if args.resume_action == "parse":
+            from pathlib import Path
+            p = Path(args.file)
+            if not p.exists():
+                console.print(f"[bold red]File not found: {args.file}[/bold red]")
+                return
+            file_bytes = p.read_bytes()
+            text = AIResumeService.extract_text(file_bytes, p.name)
+            parsed = AIResumeService.parse_resume(text)
+
+            console.print(f"\n[bold green]✨ AI Resume Parsed Successfully ({parsed.get('parser_used', 'Free AI')}):[/bold green]\n")
+            table = Table(title="Extracted Candidate Credentials", show_lines=True)
+            table.add_column("Field", style="bold cyan", width=24)
+            table.add_column("Extracted Value", style="white", width=55)
+            table.add_row("Full Name", parsed.get("full_name") or "Applicant")
+            table.add_row("Academic Standing / GPA", f"[bold yellow]{parsed.get('gpa_grades') or 'N/A'}[/bold yellow]")
+            table.add_row("Degree & Field", parsed.get("degree") or "N/A")
+            table.add_row("Experience Standing", f"{parsed.get('experience_years', 0)}+ Years ({parsed.get('title') or 'Specialist'})")
+            table.add_row("Core Competencies", parsed.get("skills") or "N/A")
+            table.add_row("Target Roles", parsed.get("target_roles") or "N/A")
+            table.add_row("Executive Bio", parsed.get("bio") or "N/A")
+            console.print(table)
+
+            if args.save:
+                db.update_resume_data(resume_raw=text, extracted=parsed)
+                console.print("\n[bold green]✓ Synced extracted credentials to user profile & recalibrated platform![/bold green]\n")
+            else:
+                console.print("\n[dim]To sync to your profile: add --save[/dim]\n")
+
+        elif args.resume_action == "recs":
+            from services.ai_resume import AIResumeService
+            profile = db.get_user_profile()
+            recs = AIResumeService.get_dynamic_recommendations(profile, db)
+            console.print(f"\n[bold green]🎯 Tailored Dynamic AI Recommendations:[/bold green]\n")
+            console.print(Panel(recs["summary"], title="[bold cyan]AI Strategic Guidance[/bold cyan]", border_style="cyan"))
+
+            if recs.get("scholarships"):
+                console.print("\n[bold yellow]🎓 Top Matching Scholarships (Academic Merit Focus):[/bold yellow]")
+                for o in recs["scholarships"]:
+                    m = o.get("match", {})
+                    reason = m.get("reasons", [""])[0]
+                    console.print(f"  • [bold white]{o['title']}[/bold white] — [bold green]{m.get('score')}% Match[/bold green]")
+                    console.print(f"    [dim]{reason}[/dim]")
+
+            if recs.get("jobs"):
+                console.print("\n[bold yellow]💼 Top Matching 4-Day Remote Jobs:[/bold yellow]")
+                for j in recs["jobs"]:
+                    m = j.get("match", {})
+                    reason = m.get("reasons", [""])[0]
+                    console.print(f"  • [bold white]{j['title']}[/bold white] at [cyan]{j['company']}[/cyan] — [bold green]{m.get('score')}% Match[/bold green] ({j.get('salary') or '4-Day Week'})")
+                    console.print(f"    [dim]{reason}[/dim]")
+
+            if recs.get("grants"):
+                console.print("\n[bold yellow]🚀 Top Matching Startup Grants & Capital:[/bold yellow]")
+                for g in recs["grants"]:
+                    m = g.get("match", {})
+                    reason = m.get("reasons", [""])[0]
+                    console.print(f"  • [bold white]{g['title']}[/bold white] ([magenta]{g['organization']}[/magenta]) — [bold green]{m.get('score')}% Match[/bold green] ({g.get('funding_amount') or 'Capital'})")
+                    console.print(f"    [dim]{reason}[/dim]")
+            console.print()
+        else:
+            console.print("[yellow]Usage: uv run main.py resume parse <file.pdf> [--save] or uv run main.py resume recs[/yellow]")
 
 
     else:
