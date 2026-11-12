@@ -138,6 +138,28 @@ class OpportunityDB:
                     """
                 )
 
+            # Create grants table for Milestone 12 (Tech Grants & Accelerators)
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS grants (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    organization TEXT NOT NULL,
+                    funding_amount TEXT,
+                    deadline TEXT,
+                    deadline_date TEXT,
+                    location TEXT DEFAULT 'Global / Remote',
+                    stage TEXT DEFAULT 'Pre-Seed / Seed',
+                    url TEXT UNIQUE,
+                    key_highlights TEXT,
+                    source TEXT DEFAULT 'Tech Grants & Accelerators',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_grants_title ON grants(title);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_grants_org ON grants(organization);")
+
     def save_opportunity(
         self,
         item: OpportunityItem,
@@ -616,6 +638,110 @@ class OpportunityDB:
             )
             conn.commit()
             return self.get_user_profile()
+
+    # =========================================================================
+    # Milestone 12: Tech Grants & Accelerators Storage
+    # =========================================================================
+
+    def save_grant(self, grant: Any) -> bool:
+        """
+        Saves a Tech Grant or Accelerator item into SQLite with URL deduplication.
+        Returns True if a new record was inserted, False if skipped.
+        """
+        if hasattr(grant, "title"):
+            title = grant.title
+            org = grant.organization
+            funding = grant.funding_amount
+            deadline = grant.deadline
+            deadline_date = grant.deadline_date
+            location = grant.location
+            stage = grant.stage
+            url = grant.url
+            highlights = getattr(grant, "key_highlights", [])
+            source = getattr(grant, "source", "Tech Grants & Accelerators")
+        else:
+            title = grant.get("title")
+            org = grant.get("organization")
+            funding = grant.get("funding_amount")
+            deadline = grant.get("deadline")
+            deadline_date = grant.get("deadline_date")
+            location = grant.get("location", "Global / Remote")
+            stage = grant.get("stage", "Pre-Seed / Seed")
+            url = grant.get("url")
+            highlights = grant.get("key_highlights", [])
+            source = grant.get("source", "Tech Grants & Accelerators")
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT OR IGNORE INTO grants (
+                    title, organization, funding_amount, deadline, deadline_date,
+                    location, stage, url, key_highlights, source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    title,
+                    org,
+                    funding,
+                    deadline,
+                    deadline_date,
+                    location,
+                    stage,
+                    url,
+                    json.dumps(highlights),
+                    source,
+                ),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def get_grants(self, limit: int = 50, keyword: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Retrieves tech grants and accelerators with optional keyword search."""
+        query = "SELECT * FROM grants"
+        params = []
+        if keyword:
+            query += " WHERE title LIKE ? OR organization LIKE ? OR stage LIKE ?"
+            param = f"%{keyword}%"
+            params.extend([param, param, param])
+        query += " ORDER BY id DESC LIMIT ?;"
+        params.append(limit)
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            results = []
+            for r in rows:
+                item = dict(r)
+                if item.get("key_highlights"):
+                    try:
+                        item["key_highlights"] = json.loads(item["key_highlights"])
+                    except Exception:
+                        item["key_highlights"] = []
+                else:
+                    item["key_highlights"] = []
+                results.append(item)
+            return results
+
+    def get_grant_by_id(self, grant_id: int) -> Optional[Dict[str, Any]]:
+        """Retrieves a single grant by its database ID."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM grants WHERE id = ?;", (grant_id,)).fetchone()
+            if not row:
+                return None
+            item = dict(row)
+            if item.get("key_highlights"):
+                try:
+                    item["key_highlights"] = json.loads(item["key_highlights"])
+                except Exception:
+                    item["key_highlights"] = []
+            return item
+
+    def count_grants(self) -> int:
+        """Returns total number of stored grants & accelerators."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT COUNT(*) FROM grants;").fetchone()
+            return row[0] if row else 0
+
 
 
 

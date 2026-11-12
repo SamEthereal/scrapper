@@ -81,7 +81,10 @@
         Scholarships
       </button>
       <button onclick="switchView('jobs')" id="nav-jobs" class="px-3.5 py-2 rounded-full hover:text-white transition-all text-neutral-400">
-        Jobs (4-Day)
+        Jobs & Gigs
+      </button>
+      <button onclick="switchView('grants')" id="nav-grants" class="px-3.5 py-2 rounded-full hover:text-white transition-all text-neutral-400">
+        Grants & Capital
       </button>
       <button onclick="switchView('pipeline')" id="nav-pipeline" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-full hover:text-white transition-all text-neutral-400">
         <i class="fa-solid fa-list-check text-[11px]"></i>
@@ -155,11 +158,12 @@
             <h2 id="left-feed-title" class="text-sm font-extrabold text-neutral-800 dark:text-neutral-100 tracking-tight">Active Stream</h2>
             <p id="left-feed-subtitle" class="text-[11px] text-neutral-400 font-medium">53 items loaded</p>
           </div>
-          <!-- Filter switch: Scholarships vs Jobs -->
+          <!-- Filter switch: Scholarships vs Jobs vs Grants -->
           <div class="flex bg-[#eeebe2] dark:bg-[#1c2434] p-0.5 rounded-full text-[10px] font-bold">
-            <button onclick="setStreamFilter('all')" id="stream-tab-all" class="px-2.5 py-1 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-xs">All</button>
+            <button onclick="setStreamFilter('all')" id="stream-tab-all" class="px-2 py-1 rounded-full bg-white dark:bg-neutral-800 text-black dark:text-white shadow-xs">All</button>
             <button onclick="setStreamFilter('scholarships')" id="stream-tab-opps" class="px-2 py-1 rounded-full text-neutral-400">Opps</button>
             <button onclick="setStreamFilter('jobs')" id="stream-tab-jobs" class="px-2 py-1 rounded-full text-neutral-400">Jobs</button>
+            <button onclick="setStreamFilter('grants')" id="stream-tab-grants" class="px-2 py-1 rounded-full text-neutral-400">Grants</button>
           </div>
         </div>
 
@@ -564,6 +568,33 @@
   </section>
 
   <!-- ========================================================================= -->
+  <!-- 2B-2. SCRAPERS CONTROL HUB VIEW (TOGGLED VIA 'SCRAPERS' TAB)              -->
+  <!-- ========================================================================= -->
+  <section id="scrapers-view" class="w-full max-w-[1580px] mx-auto flex-1 flex flex-col space-y-4 hidden">
+    <!-- Scrapers Hub Header -->
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[24px] border border-[#e5e1d7] dark:border-[#232c3d] p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-sm font-extrabold shadow-sm">
+          <i class="fa-solid fa-network-wired"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-black text-neutral-900 dark:text-white">Multi-Vertical Scraping Engines</h2>
+          <p class="text-xs text-neutral-400">Manage, trigger, and inspect all active opportunity crawlers, public feeds & grant directories</p>
+        </div>
+      </div>
+      <button onclick="triggerSyncAll()" class="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+        <i class="fa-solid fa-rotate text-xs"></i>
+        <span>Sync All Engines</span>
+      </button>
+    </div>
+
+    <!-- Scraper Cards Grid -->
+    <div id="scrapers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Injected by renderScrapersHub() -->
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
   <!-- 2C. CANDIDATE AI PROFILE MODAL (MILESTONE 11)                             -->
   <!-- ========================================================================= -->
   <div id="profile-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -720,10 +751,11 @@
   <script>
     let allOpportunities = [];
     let allJobs = [];
+    let allGrants = [];
     let pipelineItems = [];
     let userProfile = null;
     let currentCopilotDoc = null;
-    let activeStreamType = 'all'; // 'all', 'scholarships', 'jobs'
+    let activeStreamType = 'all'; // 'all', 'scholarships', 'jobs', 'grants'
     let currentSpotlight = null;
     let favorites = JSON.parse(localStorage.getItem('sg_favorites') || '[]');
 
@@ -750,14 +782,16 @@
 
     async function loadData() {
       try {
-        const [oppsRes, jobsRes, pipeRes, profRes] = await Promise.all([
+        const [oppsRes, jobsRes, grantsRes, pipeRes, profRes] = await Promise.all([
           fetch('/api/opportunities'),
           fetch('/api/jobs'),
+          fetch('/api/grants'),
           fetch('/api/pipeline'),
           fetch('/api/profile')
         ]);
         allOpportunities = await oppsRes.json();
         allJobs = await jobsRes.json();
+        allGrants = await grantsRes.json();
         pipelineItems = await pipeRes.json();
         userProfile = await profRes.json();
 
@@ -780,9 +814,11 @@
           setSpotlight(allOpportunities[0], 'opp');
         } else if (allJobs.length > 0) {
           setSpotlight(allJobs[0], 'job');
+        } else if (allGrants.length > 0) {
+          setSpotlight(allGrants[0], 'grant');
         }
 
-        document.getElementById('left-feed-subtitle').innerText = `${allOpportunities.length + allJobs.length} items loaded`;
+        document.getElementById('left-feed-subtitle').innerText = `${allOpportunities.length + allJobs.length + allGrants.length} items loaded`;
       } catch (err) {
         console.error('Failed to load scraper data', err);
       }
@@ -799,12 +835,16 @@
       if (activeStreamType === 'all' || activeStreamType === 'jobs') {
         items.push(...allJobs.map(j => ({ ...j, _kind: 'job' })));
       }
+      if (activeStreamType === 'all' || activeStreamType === 'grants') {
+        items.push(...allGrants.map(g => ({ ...g, _kind: 'grant' })));
+      }
 
       if (filterQuery) {
         const q = filterQuery.toLowerCase();
         items = items.filter(it => 
           (it.title && it.title.toLowerCase().includes(q)) || 
           (it.company && it.company.toLowerCase().includes(q)) ||
+          (it.organization && it.organization.toLowerCase().includes(q)) ||
           (it.location && it.location.toLowerCase().includes(q))
         );
       }
@@ -816,8 +856,10 @@
 
       items.forEach(item => {
         const isJob = item._kind === 'job';
+        const isGrant = item._kind === 'grant';
         const isSelected = currentSpotlight && currentSpotlight.id === item.id && currentSpotlight._kind === item._kind;
-        const inPipeline = pipelineItems.some(p => p.item_type === (isJob ? 'job' : 'opportunity') && p.item_id === item.id);
+        const itemType = isGrant ? 'grant' : (isJob ? 'job' : 'opportunity');
+        const inPipeline = pipelineItems.some(p => p.item_type === itemType && p.item_id === item.id);
 
         const row = document.createElement('div');
         row.className = `p-2.5 rounded-2xl cursor-pointer transition-all flex items-center justify-between border ${
@@ -827,9 +869,9 @@
         }`;
         row.onclick = () => setSpotlight(item, item._kind);
 
-        const avatarBg = isJob ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300';
-        const icon = isJob ? 'fa-briefcase' : 'fa-graduation-cap';
-        const sub = isJob ? (item.company || 'Remote') : (item.deadline_date || 'Rolling');
+        const avatarBg = isGrant ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' : (isJob ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300');
+        const icon = isGrant ? 'fa-rocket' : (isJob ? 'fa-briefcase' : 'fa-graduation-cap');
+        const sub = isGrant ? (item.organization || 'Venture Grant') : (isJob ? (item.company || 'Remote') : (item.deadline_date || 'Rolling'));
 
         row.innerHTML = `
           <div class="flex items-center space-x-2.5 min-w-0 pr-2">
@@ -854,9 +896,9 @@
               </span>
             ` : ''}
             <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${
-              isJob ? 'bg-neutral-200/80 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+              isGrant ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300' : (isJob ? 'bg-neutral-200/80 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300')
             }">
-              ${isJob ? (item.salary ? item.salary.split('–')[0].trim() : '4-Day') : 'Scholarship'}
+              ${isGrant ? (item.funding_amount ? item.funding_amount.split('–')[0].split('(')[0].trim() : 'Grant') : (isJob ? (item.salary ? item.salary.split('–')[0].trim() : (item.source === 'WeWorkRemotely' ? 'WWR Gig' : '4-Day')) : 'Scholarship')}
             </span>
           </div>
         `;
@@ -868,30 +910,48 @@
       currentSpotlight = { ...item, _kind: kind };
 
       const isJob = kind === 'job';
+      const isGrant = kind === 'grant';
 
       // Update Header
       document.getElementById('spotlight-title').innerText = item.title;
-      document.getElementById('spotlight-badge').innerText = isJob ? (item.schedule || '4-Day Week') : 'Active';
-      document.getElementById('spotlight-badge').className = isJob 
-        ? 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-        : 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-[#d9f99d] text-[#365314] dark:bg-lime-900/40 dark:text-lime-300';
-
-      document.getElementById('spotlight-sub1').innerHTML = isJob 
-        ? `<i class="fa-solid fa-building mr-1 text-[11px]"></i> ${item.company || 'Tech Company'}`
-        : `<i class="fa-regular fa-clock mr-1 text-[11px]"></i> Deadline: ${item.deadline_date || item.deadline || 'Rolling'}`;
-
-      document.getElementById('spotlight-sub2').innerText = isJob 
-        ? `${item.location || 'Remote'} (Work-Life: ${item.work_life_score ? item.work_life_score + '/100' : 'High'})`
-        : 'Fully Funded Opportunity';
+      if (isGrant) {
+        document.getElementById('spotlight-badge').innerText = item.funding_amount ? item.funding_amount.split('(')[0].trim() : 'Grant';
+        document.getElementById('spotlight-badge').className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300';
+        document.getElementById('spotlight-sub1').innerHTML = `<i class="fa-solid fa-building-columns mr-1 text-[11px]"></i> ${item.organization || 'Venture & Grant Body'}`;
+        document.getElementById('spotlight-sub2').innerText = `${item.stage || 'Pre-Seed'} (${item.location || 'Global / Remote'})`;
+      } else if (isJob) {
+        document.getElementById('spotlight-badge').innerText = item.schedule || '4-Day Week';
+        document.getElementById('spotlight-badge').className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300';
+        document.getElementById('spotlight-sub1').innerHTML = `<i class="fa-solid fa-building mr-1 text-[11px]"></i> ${item.company || 'Tech Company'}`;
+        document.getElementById('spotlight-sub2').innerText = `${item.location || 'Remote'} (Work-Life: ${item.work_life_score ? item.work_life_score + '/100' : 'High'})`;
+      } else {
+        document.getElementById('spotlight-badge').innerText = 'Active';
+        document.getElementById('spotlight-badge').className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-[#d9f99d] text-[#365314] dark:bg-lime-900/40 dark:text-lime-300';
+        document.getElementById('spotlight-sub1').innerHTML = `<i class="fa-regular fa-clock mr-1 text-[11px]"></i> Deadline: ${item.deadline_date || item.deadline || 'Rolling'}`;
+        document.getElementById('spotlight-sub2').innerText = 'Fully Funded Opportunity';
+      }
 
       // Update Centerpiece Art
-      document.getElementById('spotlight-art-icon').innerHTML = `<i class="fa-solid ${isJob ? 'fa-briefcase' : 'fa-graduation-cap'}"></i>`;
-      document.getElementById('spotlight-art-tag').innerText = isJob ? 'Remote / 4-Day' : (item.channel_name || 'OHUB4AllET');
+      document.getElementById('spotlight-art-icon').innerHTML = `<i class="fa-solid ${isGrant ? 'fa-rocket' : (isJob ? 'fa-briefcase' : 'fa-graduation-cap')}"></i>`;
+      document.getElementById('spotlight-art-tag').innerText = isGrant ? 'Grant / Accelerator' : (isJob ? (item.source || 'Remote Job') : (item.channel_name || 'OHUB4AllET'));
       document.getElementById('spotlight-art-headline').innerText = item.title;
-      document.getElementById('spotlight-art-host').innerText = isJob ? `Hiring at ${item.company}` : (item.official_portal ? new URL(item.official_portal).hostname : 'Official Portal');
+      document.getElementById('spotlight-art-host').innerText = isGrant ? item.organization : (isJob ? `Hiring at ${item.company}` : (item.official_portal ? new URL(item.official_portal).hostname : 'Official Portal'));
 
-      // Update Floating Spec Rows (Matches 01, 02, 03 table in mockup!)
-      if (isJob) {
+      // Update Floating Spec Rows
+      if (isGrant) {
+        const highlights = item.key_highlights || [];
+        document.getElementById('spec-key1').innerText = 'Capital Allocation';
+        document.getElementById('spec-desc1').innerText = 'Grant / Investment';
+        document.getElementById('spec-val1').innerText = item.funding_amount || 'Non-Dilutive Capital';
+
+        document.getElementById('spec-key2').innerText = 'Venture Stage';
+        document.getElementById('spec-desc2').innerText = 'Target Stage';
+        document.getElementById('spec-val2').innerText = item.stage || 'Pre-Seed / Seed';
+
+        document.getElementById('spec-key3').innerText = 'Program Model';
+        document.getElementById('spec-desc3').innerText = 'Cohort / Location';
+        document.getElementById('spec-val3').innerText = item.location || 'Global / Remote';
+      } else if (isJob) {
         document.getElementById('spec-key1').innerText = 'Compensation';
         document.getElementById('spec-desc1').innerText = 'Annual / Monthly';
         document.getElementById('spec-val1').innerText = item.salary || 'Competitive / Unlisted';

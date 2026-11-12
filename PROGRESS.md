@@ -172,74 +172,126 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - `uv run main.py match opps`
   - `uv run main.py copilot --type job --id <id> [--save]`
 
+### Milestone 12: Multi-Vertical Scraper Expansion (Pillar 2 - WWR Gigs, Tech Grants & Accelerators)
+- **Status:** **Core Architecture Complete & Tested** (UI polish for Scrapers Hub in progress).
+- **Location:** `scrapers/wwr_scraper.py`, `scrapers/grant_scraper.py`, `storage/db.py`, `services/matcher.py`, `services/copilot.py`, `ui/app.py`, `main.py`, `ui/templates/index.html`
+- **WeWorkRemotely RSS Scraper (`scrapers/wwr_scraper.py`):**
+  - Parses live RSS XML feeds from `weworkremotely.com/categories/remote-programming-jobs.rss` and `remote-devops-sysadmin-jobs.rss`.
+  - Uses Python's native `xml.etree.ElementTree` with zero third-party C/C++ compilation dependencies (bypassing BeautifulSoup `lxml` requirements).
+  - Extracts clean company names, job titles, category tags, regions, descriptions, and direct apply links.
+  - Ingests seamlessly into the `jobs` database table.
+- **Tech Grants & Startup Accelerators Scraper (`scrapers/grant_scraper.py`):**
+  - Scrapes and indexes non-dilutive capital, startup accelerators, research stipends, and cloud compute grants.
+  - Built-in live indexer covering **Y-Combinator (YC Batch)**, **Mozilla Technology Fund**, **Techstars Accelerator**, **EU Horizon Europe (EIC Accelerator)**, **Emergent Ventures (Mercatus)**, **Microsoft for Startups ($150k OpenAI credits)**, and **Google for Startups Cloud AI Grant**.
+  - Extracts funding amounts ($50k to $2.5M), deadlines, stage targets (Pre-seed, Seed, R&D), categories, eligibility rules, and official application URLs.
+- **Grants Storage Layer (`storage/db.py`):**
+  - Added `grants` table with unique constraint on `url` (`id`, `title`, `organization`, `amount`, `deadline`, `target_stage`, `category`, `description`, `url`, `eligibility`, `is_grant`, `created_at`).
+  - Added helper methods: `save_grant()`, `get_grants()`, `get_grant_by_id()`, `count_grants()`.
+- **Grant Fit Matcher & Pitch Proposal Copilot:**
+  - `services/matcher.py`: Added `item_type == "grant"` support. Computes 0–100% fit scores comparing candidate skills, target roles, and background against grant focus areas.
+  - `services/copilot.py`: Added `generate_grant_proposal()` to automatically synthesize comprehensive Executive Pitch & Grant Applications:
+    1. **Executive Summary & Problem Statement**
+    2. **Proposed Technical Architecture & Innovation**
+    3. **Capital Allocation & Milestones**
+    4. **Team & Founder Qualifications**
+- **REST Endpoints (`ui/app.py`):**
+  - `GET /api/grants`: Search and category filtering for startup funding and grants.
+  - `GET /api/sources`: Scraper Health & Registry endpoint returning all active scraper modules, target URLs, health status, and item counts.
+  - `POST /api/scrape/wwr`: 1-click live sync for WeWorkRemotely.
+  - `POST /api/scrape/grants`: 1-click sync for Tech Grants & Startup Accelerators.
+  - `POST /api/copilot/generate`: Expanded to generate grant proposals when `item_type == "grant"`.
+  - `GET /api/stats`: Expanded with total grants and registered scraper counts.
+- **CLI Commands (`main.py`):**
+  - `uv run main.py wwr scrape`
+  - `uv run main.py grants scrape`
+  - `uv run main.py grants list`
+  - `uv run main.py grants search <keyword>`
+  - `uv run main.py sources` (displays rich tabular health registry of all 4 scrapers)
+  - `uv run main.py copilot --type grant --id <id> [--save]`
+- **Bento Dashboard UI (`ui/templates/index.html`):**
+  - Added `Grants & Capital` tab in the top pill navigation.
+  - Added `Grants` stream toggle pill (`All`, `Opps`, `Jobs`, `Grants`).
+  - Grants in hero spotlight display funding amount, target venture stage, eligibility, and a glowing `1-Click Pitch Proposal` button.
+  - Placeholder `#scrapers-view` container ready for interactive Scrapers Hub grid.
+
 ---
 
-## 4. Architectural Expansion Roadmap (Using the Full Might of Scraping)
+## 4. Architectural Expansion Roadmap (Next Steps)
 
-1. **Additional Data Verticals (Scraper Expansion):**
-   - **Tech Grants & Startup Accelerators:** Y-Combinator, Techstars, EU Horizon grants, AI research compute credits.
-   - **Remote Freelance & High-Ticket Gigs:** WeWorkRemotely, Hacker News "Who is hiring?", Upwork RSS feeds.
-   - **Tech News & Release Radar:** Scraping AI release feeds, arXiv paper drops, and GitHub trending repos.
-2. **User Authentication & Multi-Tenancy:**
+1. **Finish Milestone 12 UI Polish (Scrapers Hub):**
+   - In `ui/templates/index.html`, connect `renderScrapersHub()` to fetch `/api/sources` and display a visual grid of scrapers with live "Run Scraper" buttons and latency stats.
+2. **Milestone 13: Push Distribution Channels & Notification Dispatcher:**
+   - Automated Telegram bot dispatching instant push alerts to private user channels.
+   - Weekly automated digest newsletter generated via email or desktop notification queue.
+3. **Milestone 14: User Authentication & Multi-Tenancy:**
    - Add FastAPI Auth (JWT or OAuth2 / GitHub login).
    - Per-user preferences: Saved search alerts, starred items in PostgreSQL/SQLite user table, and resume uploads.
-3. **AI Semantic Matching & Auto-Summary:**
-   - Embed opportunities with vector embeddings or use an LLM to compare a user's resume against listings and output a Match Score (e.g. 94% fit).
-   - Auto-generate customized cover letters tailored to the scraped requirements.
-4. **Push Distribution Channels:**
-   - Automated Telegram bot dispatching instant push alerts to private user channels.
-   - Weekly automated digest newsletter generated via email.
 
 ---
 
-## 5. How to Continue on Your Work PC
+## 5. How to Continue on Your Home PC
 
-When you open Antigravity on your work PC, follow these quick steps:
+When you open Antigravity on your home PC, follow these quick steps:
 
-### 1. Clone & Set Up Environment
+### 1. Pull Latest Changes
 ```bash
-# 1. Clone the repository
-git clone https://github.com/SamEthereal/scrapper.git
-cd scrapper
+# Pull the latest commits including Milestone 11 & Milestone 12
+git pull origin main
 
-# 2. Sync virtual environment and dependencies via uv
+# Ensure virtual environment and dependencies are up to date
 uv sync
 ```
 
-### 2. Initial Data Population (First Run)
-Because `.db` files are kept out of git tracking (`.gitignore`), your database will initialize fresh:
+### 2. Populate Fresh Local Database
+Because `.db` files are kept out of git tracking (`.gitignore`), populate your SQLite database in seconds:
 ```bash
-# Populate 50+ remote 4-day jobs in 3 seconds:
+# Ingest live Telegram scholarships:
+uv run main.py scrape
+
+# Ingest 50+ remote 4-day jobs:
 uv run main.py jobs scrape
 
-# Or simply start the dashboard and click the "Sync" button in the top navigation bar!
+# Ingest WeWorkRemotely gigs:
+uv run main.py wwr scrape
+
+# Ingest Tech Grants & Startup Accelerators:
+uv run main.py grants scrape
+
+# Verify all sources:
+uv run main.py sources
+```
+
+### 3. Launch the Bento Web Dashboard
+```bash
 uv run main.py ui
 ```
-Dashboard address: **`http://127.0.0.1:8000`**
+Open **`http://127.0.0.1:8000`** in your browser!
 
-### 3. Prompt to Send Antigravity on Your Work PC:
-Copy and paste this exact message into your first chat with Antigravity:
-> *"I've cloned the ScrapperGalore repo on my work PC and ran `uv sync`. Read `PROGRESS.md` to understand our full architecture (Milestones 1–10). We are ready to continue with Milestone 11: The Personal AI Profile Matcher & 1-Click Cover Letter Copilot. Let's start!"*
+### 4. Prompt to Send Antigravity on Your Home PC:
+Copy and paste this exact message into your first chat with Antigravity at home:
+> *"I've pulled the latest changes on my home PC and ran `uv sync`. Read `PROGRESS.md` to see what has been accomplished in Milestones 1–12. We have completed the core backend and CLI for Milestone 12 (WWR gigs, Tech Grants scraper, DB schema, Grant Copilot, and API endpoints). Let's finish the frontend Scrapers Hub grid in `index.html` and then move on to Milestone 13!"*
 
 ---
 
-## 6. Antigravity Agent Briefing (For the Assistant on Work PC)
+## 6. Antigravity Agent Briefing (For the Assistant on Home PC)
 
 > **Agent Context:**
-> - **Project:** Dual Telegram & Web Scraper + Interactive Bento-Grid SPA with an Application Pipeline & Calendar Sync Engine.
+> - **Project:** Dual Telegram & Web Scraper + Interactive Bento-Grid SPA with an Application Pipeline, Candidate AI Profile Matcher, 1-Click Application Copilot, and Multi-Vertical Grants/Jobs Ingestion.
 > - **Active Tech Stack:** Python 3.10+, `uv`, `httpx`, `beautifulsoup4`, `fastapi`, `uvicorn`, `sqlite3`, `pydantic`, `schedule`, Tailwind CSS, FontAwesome.
 > - **Architecture & Key Files:**
 >   - [`scrapers/telegram_scraper.py`](file:///scrapers/telegram_scraper.py): Scrapes Telegram public channel previews (`https://t.me/s/...`) with zero credentials.
 >   - [`scrapers/web_scraper.py`](file:///scrapers/web_scraper.py): Deep page scraper; cleans DOM, extracts key highlights (`<li>` bullets), and resolves CTA application URLs.
 >   - [`scrapers/job_scraper.py`](file:///scrapers/job_scraper.py): Scrapes 50+ remote listings from `4dayweek.io/remote-jobs`.
->   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `applications`, and `user_profiles` tables. Handles deduplication (`UNIQUE`), search, filtering, pipeline tracking, and profile persistence.
->   - [`services/matcher.py`](file:///services/matcher.py): Profile matching engine computing 0–100% fit scores, grades, colors, and matched skills.
->   - [`services/copilot.py`](file:///services/copilot.py): 1-click tailored Cover Letter and Statement of Purpose synthesizer.
->   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server (`GET /api/opportunities`, `GET /api/jobs`, `GET /api/pipeline`, `GET /api/profile`, `POST /api/copilot/generate`).
->   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA with Candidate AI Profile modal, match pills, Spotlight AI Radar, 1-Click Copilot modal, and 4-stage Kanban board.
->   - [`main.py`](file:///main.py): Argparse CLI entrypoint (`scrape`, `jobs`, `auto`, `ui`, `profile`, `match`, `copilot`).
-> - **Completed:** **Milestone 11: Candidate AI Profile Matcher & 1-Click Application Copilot**.
-> - **Next Up:** **Milestone 12: Multi-Vertical Scraper Expansion (Pillar 2)**. Adding Tech Grants, Accelerators (e.g. Y Combinator, Techstars), and Remote Freelance / High-Ticket Gigs (e.g. Hacker News "Who is hiring?", WeWorkRemotely).
+>   - [`scrapers/wwr_scraper.py`](file:///scrapers/wwr_scraper.py): XML RSS scraper for WeWorkRemotely remote developer & devops listings.
+>   - [`scrapers/grant_scraper.py`](file:///scrapers/grant_scraper.py): Tech Grants & Startup Accelerators indexer ($50k-$2.5M capital programs).
+>   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `grants`, `applications`, and `user_profiles` tables. Handles deduplication (`UNIQUE`), search, filtering, pipeline tracking, and profile persistence.
+>   - [`services/matcher.py`](file:///services/matcher.py): Multi-dimensional profile matching engine computing 0–100% fit scores, grades, colors, and matched skills for jobs, opps, and grants.
+>   - [`services/copilot.py`](file:///services/copilot.py): 1-click tailored Cover Letter, Statement of Purpose, and Grant Pitch Proposal generator.
+>   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server (`/api/opportunities`, `/api/jobs`, `/api/grants`, `/api/sources`, `/api/pipeline`, `/api/profile`, `/api/copilot/generate`, `/api/scrape/*`).
+>   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA with Candidate AI Profile modal, match pills, Spotlight AI Radar, 1-Click Copilot modal, 4-stage Kanban board, and multi-vertical filters.
+>   - [`main.py`](file:///main.py): Argparse CLI entrypoint (`scrape`, `jobs`, `wwr`, `grants`, `sources`, `auto`, `ui`, `profile`, `match`, `copilot`).
+> - **Current Status:** Milestone 12 backend, database, matching, copilot, CLI, and base UI completed. Scrapers Hub frontend rendering in `ui/templates/index.html` is the remaining task before Milestone 13.
+
 
 
 

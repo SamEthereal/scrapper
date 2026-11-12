@@ -12,6 +12,8 @@ from parsers.scholarship_parser import parse_post
 from scrapers.telegram_scraper import TelegramScraper
 from scrapers.web_scraper import WebScraper
 from scrapers.job_scraper import JobScraper
+from scrapers.wwr_scraper import WWRScraper
+from scrapers.grant_scraper import GrantScraper
 from storage.db import OpportunityDB
 from services.matcher import ProfileMatcher
 from services.copilot import ApplicationCopilot
@@ -156,6 +158,86 @@ def render_matched_table(
         )
 
     console.print(table)
+
+
+def render_grants_table(
+    console: Console,
+    grants: List[Dict[str, Any]],
+    title: str = "Tech Grants & Startup Accelerators",
+) -> None:
+    """Renders formatted table of Tech Grants & Accelerators."""
+    console.print(f"\n[bold green]{title}[/bold green] ([bold yellow]{len(grants)}[/bold yellow] programs)\n")
+    if not grants:
+        console.print("[dim]No grant opportunities recorded yet. Run 'uv run main.py grants scrape' to index.[/dim]\n")
+        return
+
+    table = Table(title=title, show_lines=True)
+    table.add_column("ID", style="dim", width=5)
+    table.add_column("Program / Grant Name", style="bold white", width=34)
+    table.add_column("Organization", style="cyan", width=22)
+    table.add_column("Capital / Funding", style="green", width=26)
+    table.add_column("Stage", style="magenta", width=22)
+    table.add_column("Deadline", style="yellow", width=16)
+
+    for g in grants:
+        table.add_row(
+            str(g["id"]),
+            g["title"][:32] + ("..." if len(g["title"]) > 32 else ""),
+            g["organization"][:20] + ("..." if len(g["organization"]) > 20 else ""),
+            (g.get("funding_amount") or "N/A")[:24],
+            (g.get("stage") or "Pre-Seed")[:20],
+            (g.get("deadline_date") or g.get("deadline") or "Rolling")[:14],
+        )
+
+    console.print(table)
+
+
+def render_sources_table(console: Console, db: OpportunityDB) -> None:
+    """Renders real-time status and metrics of all configured scraping engines."""
+    all_jobs = db.get_jobs(limit=1000)
+    wwr_count = sum(1 for j in all_jobs if j.get("source") == "WeWorkRemotely")
+    day4_count = sum(1 for j in all_jobs if j.get("source") == "4dayweek.io")
+
+    console.print("\n[bold cyan]Multi-Vertical Scraping Engines & Radar Status[/bold cyan]\n")
+
+    table = Table(title="Scraper Engines Health & Metrics", show_lines=True)
+    table.add_column("Engine", style="bold white", width=26)
+    table.add_column("Target Source", style="cyan", width=32)
+    table.add_column("Category", style="yellow", width=24)
+    table.add_column("Indexed Items", style="green", justify="right", width=14)
+    table.add_column("Status", width=14)
+
+    engines = [
+        ("Telegram Channel Preview", "https://t.me/OHUB4AllET", "Scholarships & Fellowships", db.count(), "[bold green]● Active[/bold green]"),
+        ("4-Day Week Job Cards", "https://4dayweek.io/remote-jobs", "Work-Life Remote Jobs", day4_count, "[bold green]● Active[/bold green]"),
+        ("WeWorkRemotely RSS", "https://weworkremotely.com/...rss", "Remote Tech & Gigs", wwr_count, "[bold green]● Active[/bold green]"),
+        ("Tech Grants & Accelerators", "YC, Techstars, Mozilla, EU", "Grants & Venture Capital", db.count_grants(), "[bold green]● Active[/bold green]"),
+    ]
+
+    for name, target, cat, count, status in engines:
+        table.add_row(name, target, cat, str(count), status)
+
+    console.print(table)
+
+
+def run_wwr_scraper(console: Console, db: OpportunityDB) -> None:
+    """Executes WeWorkRemotely RSS scraping cycle and stores new jobs."""
+    console.print("[yellow]Ingesting remote tech jobs & developer gigs from WeWorkRemotely...[/yellow]\n")
+    scraper = WWRScraper()
+    jobs = scraper.scrape(limit=50)
+    new_count = sum(1 for j in jobs if db.save_job(j))
+    console.print(f"[bold green]✓ Scraped {len(jobs)} live WWR jobs![/bold green] ([cyan]{new_count} newly indexed[/cyan], [dim]{len(jobs)-new_count} existing[/dim])")
+    console.print(f"[bold cyan]Total jobs now in database:[/bold cyan] [bold yellow]{db.count_jobs()}[/bold yellow]\n")
+
+
+def run_grant_scraper(console: Console, db: OpportunityDB) -> None:
+    """Executes Tech Grants & Startup Accelerators indexing cycle."""
+    console.print("[yellow]Indexing premier Tech Grants, Startup Accelerators & AI Compute credits...[/yellow]\n")
+    scraper = GrantScraper()
+    grants = scraper.scrape(limit=30)
+    new_count = sum(1 for g in grants if db.save_grant(g))
+    console.print(f"[bold green]✓ Indexed {len(grants)} grant & accelerator programs![/bold green] ([cyan]{new_count} new[/cyan])")
+    console.print(f"[bold cyan]Total grants in database:[/bold cyan] [bold yellow]{db.count_grants()}[/bold yellow]\n")
 
 
 def run_scholarship_scraper(console: Console, db: OpportunityDB) -> None:
@@ -372,11 +454,33 @@ def build_parser() -> argparse.ArgumentParser:
     # ==========================
     # MILESTONE 11: 1-CLICK COPILOT
     # ==========================
-    copilot_parser = subparsers.add_parser("copilot", help="Generate tailored Cover Letters or Statements of Purpose")
-    copilot_parser.add_argument("--type", choices=["job", "opp"], required=True, help="Type of listing (job or opp)")
+    copilot_parser = subparsers.add_parser("copilot", help="Generate tailored Cover Letters, Pitch Decks or Statements of Purpose")
+    copilot_parser.add_argument("--type", choices=["job", "opp", "grant"], required=True, help="Type of listing (job, opp, or grant)")
     copilot_parser.add_argument("--id", type=int, required=True, help="Database ID of the listing")
     copilot_parser.add_argument("--tone", choices=["professional", "academic"], default="professional", help="Document tone")
     copilot_parser.add_argument("--save", action="store_true", help="Save output to a markdown file")
+
+    # ==========================
+    # MILESTONE 12: WEWORKREMOTELY GIGS
+    # ==========================
+    wwr_parser = subparsers.add_parser("wwr", help="WeWorkRemotely remote developer jobs & gigs")
+    wwr_sub = wwr_parser.add_subparsers(dest="wwr_action", help="WWR operations")
+    wwr_sub.add_parser("scrape", help="Scrape latest developer jobs from WeWorkRemotely RSS")
+
+    # ==========================
+    # MILESTONE 12: TECH GRANTS & ACCELERATORS
+    # ==========================
+    grant_parser = subparsers.add_parser("grants", help="Tech Grants, Accelerators & Venture Funds")
+    grant_sub = grant_parser.add_subparsers(dest="grant_action", help="Grant operations")
+    grant_sub.add_parser("scrape", help="Index premier Tech Grants & Accelerators")
+    grant_sub.add_parser("list", help="List all stored Tech Grants & Accelerators")
+    g_search = grant_sub.add_parser("search", help="Search grants by keyword or entity")
+    g_search.add_argument("query", help="Keyword or organization to search")
+
+    # ==========================
+    # MILESTONE 12: MULTI-VERTICAL RADAR SOURCES
+    # ==========================
+    subparsers.add_parser("sources", help="Display all active scraping engines, metrics & health")
 
     return parser
 
@@ -514,9 +618,11 @@ def main():
     # Handle 1-Click Application Copilot (Milestone 11)
     elif args.subcommand == "copilot":
         profile = db.get_user_profile()
-        item_type = "job" if args.type == "job" else "opportunity"
+        item_type = "job" if args.type == "job" else ("grant" if args.type == "grant" else "opportunity")
         if args.type == "job":
             item = db.get_job_by_id(args.id)
+        elif args.type == "grant":
+            item = db.get_grant_by_id(args.id)
         else:
             item = db.get_opportunity_by_id(args.id)
 
@@ -539,6 +645,34 @@ def main():
             clean_name = f"application_{args.type}_{args.id}.md"
             Path(clean_name).write_text(doc["markdown"], encoding="utf-8")
             console.print(f"\n[bold green]✓ Document saved to disk:[/bold green] [cyan]{clean_name}[/cyan]\n")
+
+    # Handle WeWorkRemotely developer jobs & gigs (Milestone 12)
+    elif args.subcommand == "wwr":
+        if args.wwr_action == "scrape":
+            run_wwr_scraper(console, db)
+        else:
+            console.print("[yellow]Usage: uv run main.py wwr scrape[/yellow]")
+
+    # Handle Tech Grants & Accelerators (Milestone 12)
+    elif args.subcommand == "grants":
+        if args.grant_action == "scrape":
+            run_grant_scraper(console, db)
+        elif args.grant_action == "search":
+            results = db.get_grants(keyword=args.query)
+            render_grants_table(console, results, title=f"Tech Grants Search Results for '{args.query}'")
+        elif args.grant_action == "list":
+            results = db.get_grants(limit=50)
+            render_grants_table(console, results, title="All Indexed Tech Grants & Accelerators")
+        else:
+            console.print("[yellow]Please specify a grant command: scrape, list, or search[/yellow]")
+            console.print("  [cyan]uv run main.py grants scrape[/cyan]          - Index premier grants & accelerators")
+            console.print("  [cyan]uv run main.py grants list[/cyan]            - List all stored grants")
+            console.print("  [cyan]uv run main.py grants search <keyword>[/cyan] - Search grants by keyword or entity\n")
+
+    # Handle Multi-Vertical Sources status (Milestone 12)
+    elif args.subcommand == "sources":
+        render_sources_table(console, db)
+
 
     else:
         # Default with no arguments: show usage and stats

@@ -64,6 +64,13 @@ class ProfileMatcher:
             is_remote = bool(item.get("is_remote", 1))
             work_life_score = item.get("work_life_score")
             corpus = f"{title} {company} {location} {schedule}".lower()
+        elif item_type == "grant":
+            org = item.get("organization") or ""
+            stage = item.get("stage") or ""
+            location = item.get("location") or "Remote"
+            highlights = " ".join(item.get("key_highlights") or [])
+            corpus = f"{title} {org} {stage} {location} {highlights}".lower()
+            is_remote = "remote" in location.lower() or "global" in location.lower()
         else:
             raw_text = item.get("raw_text") or ""
             highlights = " ".join(item.get("key_highlights") or [])

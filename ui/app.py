@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from scrapers.job_scraper import JobScraper
 from scrapers.telegram_scraper import TelegramScraper
 from scrapers.web_scraper import WebScraper
+from scrapers.wwr_scraper import WWRScraper
+from scrapers.grant_scraper import GrantScraper
 from parsers.scholarship_parser import parse_post
 from storage.db import OpportunityDB
 from services.matcher import ProfileMatcher
@@ -73,7 +75,87 @@ def get_stats():
     return {
         "scholarships_count": db.count(),
         "jobs_count": db.count_jobs(),
+        "grants_count": db.count_grants(),
+        "pipeline_count": len(db.get_pipeline()),
     }
+
+
+@app.get("/api/sources")
+def get_sources():
+    """Returns real-time status and metrics of all configured scraping engines."""
+    all_jobs = db.get_jobs(limit=1000)
+    wwr_count = sum(1 for j in all_jobs if j.get("source") == "WeWorkRemotely")
+    day4_count = sum(1 for j in all_jobs if j.get("source") == "4dayweek.io")
+
+    return [
+        {
+            "id": "telegram_scholarships",
+            "name": "Telegram Scholarships Radar",
+            "target": "https://t.me/OHUB4AllET",
+            "category": "Scholarships & Fellowships",
+            "count": db.count(),
+            "status": "online",
+            "mode": "Zero-Credential Public Preview",
+            "endpoint": "/api/scrape/scholarships",
+            "icon": "fa-telegram",
+            "color": "indigo",
+            "desc": "Parses public channel previews for legitimate academic & fellowship openings."
+        },
+        {
+            "id": "jobs_4dayweek",
+            "name": "4-Day Week Remote Jobs",
+            "target": "https://4dayweek.io/remote-jobs",
+            "category": "Work-Life Balance Jobs",
+            "count": day4_count,
+            "status": "online",
+            "mode": "DOM Card Scraper",
+            "endpoint": "/api/scrape/jobs",
+            "icon": "fa-clock",
+            "color": "emerald",
+            "desc": "Extracts reduced-work-week developer & tech roles with work-life balance ratings."
+        },
+        {
+            "id": "jobs_wwr",
+            "name": "WeWorkRemotely Tech Gigs",
+            "target": "https://weworkremotely.com/categories/remote-programming-jobs.rss",
+            "category": "Remote Developers & Gigs",
+            "count": wwr_count,
+            "status": "online",
+            "mode": "Public XML RSS Feed",
+            "endpoint": "/api/scrape/wwr",
+            "icon": "fa-globe",
+            "color": "amber",
+            "desc": "Ingests remote engineering, full-stack, and contractor postings across global timezones."
+        },
+        {
+            "id": "tech_grants",
+            "name": "Tech Grants & Accelerators",
+            "target": "YC, Techstars, Mozilla, EU Horizon, AWS",
+            "category": "Grants & Non-Dilutive Capital",
+            "count": db.count_grants(),
+            "status": "online",
+            "mode": "Verified Venture Radar",
+            "endpoint": "/api/scrape/grants",
+            "icon": "fa-rocket",
+            "color": "purple",
+            "desc": "Tracks non-dilutive innovation grants, startup batches, and AI compute credits."
+        }
+    ]
+
+
+@app.get("/api/grants")
+def get_grants(
+    search: Optional[str] = None,
+    sort_by: str = "id",
+    order: str = "desc",
+):
+    """Retrieves and filters tech grants and accelerators with AI match scoring."""
+    grants = db.get_grants(limit=100, keyword=search)
+    profile = db.get_user_profile()
+    enriched = ProfileMatcher.enrich_items(profile, grants, item_type="grant")
+    if sort_by == "match":
+        enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=(order != "asc"))
+    return enriched
 
 
 @app.get("/api/history")
@@ -181,6 +263,10 @@ def generate_application_copilot(req: CopilotGenerateRequest):
         item = db.get_job_by_id(req.item_id)
         if not item:
             raise HTTPException(status_code=404, detail="Job listing not found")
+    elif req.item_type == "grant":
+        item = db.get_grant_by_id(req.item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Grant listing not found")
     else:
         item = db.get_opportunity_by_id(req.item_id)
         if not item:
@@ -348,3 +434,38 @@ def scrape_scholarships():
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.post("/api/scrape/wwr")
+def scrape_wwr_jobs():
+    """Triggers live scraping of WeWorkRemotely developer jobs & gigs."""
+    try:
+        scraper = WWRScraper()
+        jobs = scraper.scrape(limit=50)
+        new_count = sum(1 for j in jobs if db.save_job(j))
+        return {
+            "success": True,
+            "scraped": len(jobs),
+            "new_inserted": new_count,
+            "total_now": db.count_jobs(),
+        }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.post("/api/scrape/grants")
+def scrape_tech_grants():
+    """Triggers live indexing of Tech Grants, Accelerators & AI Compute credits."""
+    try:
+        scraper = GrantScraper()
+        grants = scraper.scrape(limit=30)
+        new_count = sum(1 for g in grants if db.save_grant(g))
+        return {
+            "success": True,
+            "scraped": len(grants),
+            "new_inserted": new_count,
+            "total_now": db.count_grants(),
+        }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+

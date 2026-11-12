@@ -21,11 +21,13 @@ class ApplicationCopilot:
         tone: str = "professional",
     ) -> Dict[str, Any]:
         """
-        Orchestrates document generation based on item_type ('job' or 'opportunity').
+        Orchestrates document generation based on item_type ('job', 'opportunity', or 'grant').
         Returns structured dict with markdown, plain_text, title, and metadata.
         """
         if item_type == "job":
             return cls.generate_job_cover_letter(profile, item, tone=tone)
+        elif item_type == "grant":
+            return cls.generate_grant_proposal(profile, item, tone=tone)
         else:
             return cls.generate_scholarship_statement(profile, item, tone=tone)
 
@@ -193,3 +195,91 @@ class ApplicationCopilot:
             "score": match_info.get("score", 85),
             "created_at": datetime.now().isoformat(),
         }
+
+    @classmethod
+    def generate_grant_proposal(
+        cls,
+        profile: Dict[str, Any],
+        grant: Dict[str, Any],
+        tone: str = "professional",
+    ) -> Dict[str, Any]:
+        """Generates an Executive Pitch & Grant Proposal for a tech grant or accelerator program."""
+        candidate_name = profile.get("full_name") or "Founder & Lead Engineer"
+        candidate_email = profile.get("email") or "founder@example.com"
+        candidate_title = profile.get("title") or "Lead Technical Architect"
+        candidate_bio = profile.get("bio") or ""
+
+        grant_title = grant.get("title") or "the Accelerator Program"
+        org = grant.get("organization") or "the Investment Committee"
+        funding = grant.get("funding_amount") or "Grant Funding"
+        stage = grant.get("stage") or "Pre-Seed / Seed"
+        highlights = grant.get("key_highlights") or []
+
+        match_info = ProfileMatcher.match_item(profile, grant, item_type="grant")
+        matched_skills = match_info.get("matched_skills") or []
+        skills_str = ", ".join(matched_skills[:3]) if matched_skills else "distributed systems and automated AI intelligence"
+
+        today_str = datetime.now().strftime("%B %d, %Y")
+
+        md_lines = [
+            f"# Executive Grant & Accelerator Proposal: {grant_title}",
+            f"**Submitted by:** {candidate_name} ({candidate_title})",
+            f"**Contact:** {candidate_email} | **Date:** {today_str}",
+            f"**Target Initiative:** {grant_title} | **Sponsoring Body:** {org}",
+            f"**Capital Requested / Allocation:** {funding}\n",
+            "---",
+            "",
+            "## 1. Executive Summary & Problem Space",
+            (
+                f"We are formally applying to **{org}** for participation in the **{grant_title}**. "
+                f"Modern knowledge discovery, employment intelligence, and academic opportunity distribution remain "
+                f"fragmented across siloed channels, closed chat ecosystems, and regional job boards. "
+                f"Our initiative addresses this bottleneck by constructing a unified, autonomous intelligence engine "
+                f"that scrapes, cleanses, de-duplicates, and semantically indexes high-value opportunities with real-time Copilot synthesis."
+            ),
+            "",
+            "## 2. Technical Architecture & Competitive Moat",
+            (
+                f"Our platform leverages advanced asynchronous pipelines built with **{skills_str}**. "
+                f"Key architectural strengths include:\n"
+                f"- **Zero-Credentials Scraping Core:** Bypassing API paywalls and rate-limits to ingest public web previews and RSS streams at negligible marginal cost.\n"
+                f"- **Normalized SQL Pipeline:** Enforcing deduplication indexes across cross-domain listings with ISO deadline calculation.\n"
+                f"- **On-Device Copilot & Match Radar:** Instant 0–100% profile compatibility scoring coupled with dynamic document generation.\n"
+                f"{candidate_bio.strip() if candidate_bio else 'Our engineering methodology emphasizes resilience, clean design patterns, and self-hosted high-performance backends.'}"
+            ),
+            "",
+            "## 3. Capital Deployment & Program Alignment",
+            (
+                f"Securing support from {org}—especially {funding}—will accelerate our growth across three deliberate phases:\n"
+                f"1. **Engineering & Multi-Vertical Scaling (40%):** Expanding scraping connectors across global grant APIs, freelancer networks, and research repositories.\n"
+                f"2. **Compute & Vector Infrastructure (35%):** Deploying embedding clusters for real-time semantic applicant matching.\n"
+                f"3. **Distribution & Community Adoption (25%):** Onboarding international student bodies and remote-first developer communities."
+            ),
+            "",
+            "## 4. Founder Credentials & Next Steps",
+            (
+                f"With direct expertise in {skills_str}, our technical leadership is purpose-built to deliver execution without friction. "
+                f"We welcome the opportunity to present our live demo and traction metrics to the {org} investment and selection committee."
+            ),
+            "",
+            "Sincerely,",
+            f"**{candidate_name}**",
+            f"{candidate_email}",
+        ]
+
+        markdown_doc = "\n".join(md_lines)
+        plain_text = markdown_doc.replace("#", "").replace("**", "")
+
+        return {
+            "title": f"Grant Application — {grant_title}",
+            "item_type": "grant",
+            "item_id": grant.get("id"),
+            "target_role": grant_title,
+            "organization": org,
+            "markdown": markdown_doc,
+            "plain_text": plain_text,
+            "matched_skills": matched_skills,
+            "score": match_info.get("score", 90),
+            "created_at": datetime.now().isoformat(),
+        }
+
