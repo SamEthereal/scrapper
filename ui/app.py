@@ -16,6 +16,7 @@ from parsers.scholarship_parser import parse_post
 from storage.db import OpportunityDB
 from services.matcher import ProfileMatcher
 from services.copilot import ApplicationCopilot
+from services.telegram_bot import TelegramAlertDispatcher
 
 
 class PipelineItemCreate(BaseModel):
@@ -33,6 +34,11 @@ class PipelineItemCreate(BaseModel):
 class PipelineItemUpdate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
+
+
+class TelegramSendRequest(BaseModel):
+    item_type: str  # 'job', 'opportunity', 'grant'
+    item_id: int
 
 
 class UserProfileUpdate(BaseModel):
@@ -381,6 +387,49 @@ def export_calendar_event(opp_id: int):
             "Cache-Control": "no-cache",
         },
     )
+
+
+# =============================================================================
+# Milestone 13: Telegram Alert Dispatcher Endpoints
+# =============================================================================
+
+telegram_dispatcher = TelegramAlertDispatcher(db)
+
+
+@app.get("/api/telegram/status")
+def get_telegram_status():
+    """Returns current Telegram Bot connection state and target chat ID."""
+    return telegram_dispatcher.get_bot_info()
+
+
+@app.post("/api/telegram/detect")
+def detect_telegram_chat():
+    """Polls Telegram updates to auto-link the chat ID of the user who clicked Start."""
+    return telegram_dispatcher.detect_chat_id()
+
+
+@app.post("/api/telegram/test")
+def test_telegram_connection():
+    """Dispatches a test verification alert card to the connected phone."""
+    return telegram_dispatcher.test_connection()
+
+
+@app.post("/api/telegram/send")
+def send_telegram_alert(payload: TelegramSendRequest):
+    """Sends a specific opportunity, job, or grant card directly to the user's Telegram."""
+    if payload.item_type == "job":
+        item = db.get_job_by_id(payload.item_id)
+    elif payload.item_type == "grant":
+        item = db.get_grant_by_id(payload.item_id)
+    else:
+        item = db.get_opportunity_by_id(payload.item_id)
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    profile = db.get_user_profile()
+    match = ProfileMatcher.match_item(profile, item, item_type=payload.item_type)
+    return telegram_dispatcher.send_opportunity_card(item, item_type=payload.item_type, match=match)
 
 
 @app.post("/api/scrape/jobs")

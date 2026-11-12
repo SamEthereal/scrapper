@@ -482,6 +482,15 @@ def build_parser() -> argparse.ArgumentParser:
     # ==========================
     subparsers.add_parser("sources", help="Display all active scraping engines, metrics & health")
 
+    # ==========================
+    # MILESTONE 13: TELEGRAM ALERT DISPATCHER
+    # ==========================
+    notify_parser = subparsers.add_parser("notify", help="Telegram Alert Dispatcher commands")
+    notify_parser.add_argument("--test", action="store_true", help="Send a test verification notification to connected Telegram")
+    notify_parser.add_argument("--detect", action="store_true", help="Auto-detect chat ID from recent bot messages")
+    notify_parser.add_argument("--type", choices=["job", "opp", "grant"], help="Type of item to send")
+    notify_parser.add_argument("--id", type=int, help="Database ID of item to send")
+
     return parser
 
 
@@ -672,6 +681,53 @@ def main():
     # Handle Multi-Vertical Sources status (Milestone 12)
     elif args.subcommand == "sources":
         render_sources_table(console, db)
+
+    # Handle Telegram Notifications (Milestone 13)
+    elif args.subcommand == "notify":
+        from services.telegram_bot import TelegramAlertDispatcher
+        bot = TelegramAlertDispatcher(db)
+
+        if args.detect:
+            console.print("[yellow]Querying Telegram for incoming user messages...[/yellow]")
+            res = bot.detect_chat_id()
+            if res.get("success"):
+                console.print(f"[bold green]✓ Linked Chat:[/bold green] {res.get('user')} (ID: [bold cyan]{res.get('chat_id')}[/bold cyan])")
+            elif res.get("waiting"):
+                console.print(f"[bold yellow]⏳ Awaiting Interaction:[/bold yellow] {res.get('message')}")
+            else:
+                console.print(f"[bold red]⚠ Error:[/bold red] {res.get('error')}")
+
+        elif args.test:
+            console.print("[yellow]Sending verification test message to phone...[/yellow]")
+            res = bot.test_connection()
+            if res.get("success"):
+                console.print("[bold green]✓ Test alert delivered successfully to Telegram![/bold green]")
+            else:
+                console.print(f"[bold red]⚠ Dispatch failed:[/bold red] {res.get('error')}")
+
+        elif args.id and args.type:
+            item_type = "job" if args.type == "job" else ("grant" if args.type == "grant" else "opportunity")
+            if item_type == "job":
+                item = db.get_job_by_id(args.id)
+            elif item_type == "grant":
+                item = db.get_grant_by_id(args.id)
+            else:
+                item = db.get_opportunity_by_id(args.id)
+
+            if not item:
+                console.print(f"[bold red]⚠ Item {args.type} #{args.id} not found in database.[/bold red]")
+                return
+
+            profile = db.get_user_profile()
+            match = ProfileMatcher.match_item(profile, item, item_type=item_type)
+            res = bot.send_opportunity_card(item, item_type=item_type, match=match)
+            if res.get("success"):
+                console.print(f"[bold green]✓ Dispatched {item_type} #{args.id} to Telegram successfully![/bold green]")
+            else:
+                console.print(f"[bold red]⚠ Failed to send:[/bold red] {res.get('error') or res.get('message')}")
+        else:
+            info = bot.get_bot_info()
+            console.print(f"[bold cyan]Telegram Bot Status:[/bold cyan] {info}")
 
 
     else:

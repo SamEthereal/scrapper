@@ -119,10 +119,11 @@
         <i id="theme-icon" class="fa-regular fa-moon text-xs"></i>
       </button>
 
-      <!-- Notification Bell -->
-      <button class="relative w-9 h-9 rounded-full bg-[#faf8f5] dark:bg-[#161c28] border border-[#e5e1d7] dark:border-[#232c3d] flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:scale-105 transition-transform shadow-sm">
-        <i class="fa-regular fa-bell text-xs"></i>
-        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500"></span>
+      <!-- Telegram Phone Alerts Button (Milestone 13) -->
+      <button onclick="openTelegramModal()" id="tg-header-btn" class="flex items-center space-x-1.5 bg-[#faf8f5] dark:bg-[#161c28] border border-[#e5e1d7] dark:border-[#232c3d] px-3 py-1.5 rounded-full text-xs font-semibold hover:scale-105 transition-transform shadow-sm cursor-pointer" title="Configure Telegram Phone Alerts">
+        <i class="fa-brands fa-telegram text-sky-500 text-sm"></i>
+        <span id="tg-header-label" class="hidden sm:inline text-[11px] text-neutral-700 dark:text-neutral-300">Bot Alerts</span>
+        <span id="tg-header-dot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
       </button>
 
       <!-- User Profile Badge (Milestone 11 AI Profile Trigger) -->
@@ -243,6 +244,11 @@
                 </button>
               </div>
             </div>
+
+            <!-- Send to Telegram Phone Button (Milestone 13) -->
+            <button onclick="dispatchSpotlightToTelegram()" id="telegram-send-btn" class="w-9 h-9 rounded-full bg-[#eeebe2] dark:bg-[#20293a] flex items-center justify-center text-sky-500 hover:scale-105 transition-transform" title="Push Alert Card to Telegram Phone">
+              <i class="fa-brands fa-telegram text-sm"></i>
+            </button>
 
             <!-- Star Favorite Button -->
             <button onclick="toggleStarSpotlight()" id="star-btn" class="w-9 h-9 rounded-full bg-[#eeebe2] dark:bg-[#20293a] flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:scale-105 transition-transform" title="Save to Favorites">
@@ -708,6 +714,90 @@
   </div>
 
   <!-- ========================================================================= -->
+  <!-- 2D. TELEGRAM ALERTS MODAL (MILESTONE 13)                                 -->
+  <!-- ========================================================================= -->
+  <div id="telegram-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] shadow-2xl max-w-lg w-full p-6 space-y-5">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d]">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-xl font-extrabold shadow-sm">
+            <i class="fa-brands fa-telegram"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-neutral-900 dark:text-white">Telegram Alert Radar</h3>
+            <p class="text-xs text-neutral-400">Push high-match jobs, grants & scholarships directly to your phone</p>
+          </div>
+        </div>
+        <button onclick="closeTelegramModal()" class="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Bot Card Info -->
+      <div class="bg-white dark:bg-[#1f2737] p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-robot text-sky-500"></i>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200">Bot Username:</span>
+          </div>
+          <a href="https://t.me/ScraperGaloreBot" target="_blank" class="font-extrabold text-sky-600 dark:text-sky-400 hover:underline flex items-center space-x-1">
+            <span>@ScraperGaloreBot</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+          </a>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-tower-broadcast text-emerald-500"></i>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200">Status:</span>
+          </div>
+          <span id="tg-modal-status" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+            Token Validated
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-id-badge text-purple-500"></i>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200">Connected Chat:</span>
+          </div>
+          <span id="tg-modal-chat" class="font-mono text-[11px] text-neutral-600 dark:text-neutral-300">
+            Awaiting Start...
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick 2-Step Activation Guide -->
+      <div class="space-y-2 text-xs">
+        <h4 class="font-bold text-neutral-900 dark:text-white uppercase tracking-wider text-[10px]">Two-Click Activation:</h4>
+        <div class="space-y-1.5 text-neutral-600 dark:text-neutral-400">
+          <div class="flex items-start space-x-2">
+            <span class="w-4 h-4 rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+            <p>Open <a href="https://t.me/ScraperGaloreBot" target="_blank" class="text-sky-600 dark:text-sky-400 font-bold hover:underline">@ScraperGaloreBot</a> on Telegram and press <b>Start</b> (or send <code>/start</code>).</p>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="w-4 h-4 rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+            <p>Click <b>"Auto-Detect My Chat ID"</b> below. The bot will pair your account and send a welcome test card.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center space-x-2.5 pt-2">
+        <button onclick="detectTelegramChatId()" id="tg-detect-btn" class="flex-1 py-2.5 rounded-xl bg-sky-500 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-1.5 hover:bg-sky-600 transition-colors cursor-pointer">
+          <i class="fa-solid fa-link text-xs"></i>
+          <span>Auto-Detect My Chat ID</span>
+        </button>
+        <button onclick="sendTelegramTestNotification()" id="tg-test-btn" class="px-4 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center justify-center space-x-1.5 hover:opacity-90 transition-opacity cursor-pointer">
+          <i class="fa-solid fa-paper-plane text-xs"></i>
+          <span>Send Test</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- 2D. 1-CLICK APPLICATION COPILOT MODAL (MILESTONE 11)                      -->
   <!-- ========================================================================= -->
   <div id="copilot-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -772,6 +862,90 @@
     </div>
   </div>
 
+  <!-- ========================================================================= -->
+  <!-- 2D. TELEGRAM ALERTS MODAL (MILESTONE 13)                                 -->
+  <!-- ========================================================================= -->
+  <div id="telegram-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] shadow-2xl max-w-lg w-full p-6 space-y-5">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d]">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-xl font-extrabold shadow-sm">
+            <i class="fa-brands fa-telegram"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-neutral-900 dark:text-white">Telegram Alert Radar</h3>
+            <p class="text-xs text-neutral-400">Push high-match jobs, grants & scholarships directly to your phone</p>
+          </div>
+        </div>
+        <button onclick="closeTelegramModal()" class="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Bot Card Info -->
+      <div class="bg-white dark:bg-[#1f2737] p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-robot text-sky-500"></i>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200">Bot Username:</span>
+          </div>
+          <a href="https://t.me/ScraperGaloreBot" target="_blank" class="font-extrabold text-sky-600 dark:text-sky-400 hover:underline flex items-center space-x-1">
+            <span>@ScraperGaloreBot</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+          </a>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-tower-broadcast text-emerald-500"></i>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200">Status:</span>
+          </div>
+          <span id="tg-modal-status" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+            Token Validated
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-id-badge text-purple-500"></i>
+            <span class="font-bold text-neutral-800 dark:text-neutral-200">Connected Chat:</span>
+          </div>
+          <span id="tg-modal-chat" class="font-mono text-[11px] text-neutral-600 dark:text-neutral-300">
+            Awaiting Start...
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick 2-Step Activation Guide -->
+      <div class="space-y-2 text-xs">
+        <h4 class="font-bold text-neutral-900 dark:text-white uppercase tracking-wider text-[10px]">Two-Click Activation:</h4>
+        <div class="space-y-1.5 text-neutral-600 dark:text-neutral-400">
+          <div class="flex items-start space-x-2">
+            <span class="w-4 h-4 rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+            <p>Open <a href="https://t.me/ScraperGaloreBot" target="_blank" class="text-sky-600 dark:text-sky-400 font-bold hover:underline">@ScraperGaloreBot</a> on Telegram and press <b>Start</b> (or send <code>/start</code>).</p>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="w-4 h-4 rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+            <p>Click <b>"Auto-Detect My Chat ID"</b> below. The bot will pair your account and send a welcome test card.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center space-x-2.5 pt-2">
+        <button onclick="detectTelegramChatId()" id="tg-detect-btn" class="flex-1 py-2.5 rounded-xl bg-sky-500 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-1.5 hover:bg-sky-600 transition-colors cursor-pointer">
+          <i class="fa-solid fa-link text-xs"></i>
+          <span>Auto-Detect My Chat ID</span>
+        </button>
+        <button onclick="sendTelegramTestNotification()" id="tg-test-btn" class="px-4 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center justify-center space-x-1.5 hover:opacity-90 transition-opacity cursor-pointer">
+          <i class="fa-solid fa-paper-plane text-xs"></i>
+          <span>Send Test</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Toast Notification Pill -->
   <div id="toast-notification" class="fixed bottom-6 right-6 bg-black dark:bg-white text-white dark:text-black px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center space-x-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
     <i class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
@@ -810,6 +984,7 @@
 
       await loadData();
       await loadHistory();
+      await loadTelegramStatus();
       renderFavorites();
     }
 
@@ -1948,6 +2123,106 @@
       } else {
         showToast(`✅ Source URL queued: ${url}`);
         input.value = '';
+      }
+    }
+
+    // =========================================================================
+    // Milestone 13: Telegram Alerts & Mobile Dispatch Functions
+    // =========================================================================
+
+    async function loadTelegramStatus() {
+      try {
+        const res = await fetch('/api/telegram/status');
+        const data = await res.json();
+        const dot = document.getElementById('tg-header-dot');
+        const modalChat = document.getElementById('tg-modal-chat');
+        const modalStatus = document.getElementById('tg-modal-status');
+
+        if (data.chat_id) {
+          if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500';
+          if (modalChat) modalChat.innerText = `ID: ${data.chat_id}`;
+          if (modalStatus) {
+            modalStatus.innerText = 'Connected & Active';
+            modalStatus.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+          }
+        } else {
+          if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse';
+          if (modalChat) modalChat.innerText = 'Awaiting Start on @ScraperGaloreBot...';
+        }
+      } catch (e) {
+        console.error('Failed to load telegram status', e);
+      }
+    }
+
+    function openTelegramModal() {
+      loadTelegramStatus();
+      document.getElementById('telegram-modal').classList.remove('hidden');
+    }
+
+    function closeTelegramModal() {
+      document.getElementById('telegram-modal').classList.add('hidden');
+    }
+
+    async function detectTelegramChatId() {
+      const btn = document.getElementById('tg-detect-btn');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Checking messages...</span>';
+
+      try {
+        const res = await fetch('/api/telegram/detect', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🎉 Telegram Chat linked! Sending verification test...');
+          await fetch('/api/telegram/test', { method: 'POST' });
+          await loadTelegramStatus();
+        } else if (data.waiting) {
+          alert(data.message);
+        } else {
+          alert('Error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Failed to detect chat ID: ' + err);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-link text-xs"></i> <span>Auto-Detect My Chat ID</span>';
+      }
+    }
+
+    async function sendTelegramTestNotification() {
+      try {
+        const res = await fetch('/api/telegram/test', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('📨 Test alert card delivered to your Telegram phone!');
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert('Failed to send test: ' + err);
+      }
+    }
+
+    async function dispatchSpotlightToTelegram() {
+      if (!currentSpotlight) return;
+      const isJob = currentSpotlight._kind === 'job';
+      const isGrant = currentSpotlight._kind === 'grant';
+      const itemType = isJob ? 'job' : (isGrant ? 'grant' : 'opportunity');
+
+      showToast('📨 Dispatching alert card to your phone...');
+      try {
+        const res = await fetch('/api/telegram/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item_type: itemType, item_id: currentSpotlight.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🚀 Alert card delivered to your Telegram!');
+        } else if (data.simulated) {
+          openTelegramModal();
+        } else {
+          alert(data.error || 'Failed to dispatch alert card');
+        }
+      } catch (err) {
+        alert('Dispatch error: ' + err);
       }
     }
 

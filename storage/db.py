@@ -160,6 +160,17 @@ class OpportunityDB:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_grants_title ON grants(title);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_grants_org ON grants(organization);")
 
+            # Create settings table for Milestone 13 (Alerts, API Keys & System Config)
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
+
     def save_opportunity(
         self,
         item: OpportunityItem,
@@ -741,6 +752,32 @@ class OpportunityDB:
         with self._get_connection() as conn:
             row = conn.execute("SELECT COUNT(*) FROM grants;").fetchone()
             return row[0] if row else 0
+
+    def get_setting(self, key: str, default: Optional[str] = None) -> Optional[str]:
+        """Retrieves a configuration value from SQLite."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT value FROM settings WHERE key = ?;", (key,)).fetchone()
+            return row["value"] if row else default
+
+    def set_setting(self, key: str, value: str) -> None:
+        """Stores or updates a configuration value in SQLite."""
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO settings (key, value, updated_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP;
+                """,
+                (key, value),
+            )
+            conn.commit()
+
+    def get_all_settings(self) -> Dict[str, str]:
+        """Returns all configured settings as a key-value dictionary."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT key, value FROM settings;").fetchall()
+            return {r["key"]: r["value"] for r in rows}
+
 
 
 

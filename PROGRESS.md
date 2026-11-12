@@ -214,14 +214,34 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - Grants in hero spotlight display funding amount, target venture stage, eligibility, and a glowing `1-Click Pitch Proposal` button.
   - Interactive **Scrapers Control Hub (`#scrapers-view`)**: Live multi-vertical crawler grid connected to `/api/sources` with real-time status indicators, indexed counts, 1-click individual execution buttons (`Run Engine`), live millisecond execution toasts, and a direct URL/channel queuing input.
 
+### Milestone 13: Free Mobile Alerts & Telegram Bot Dispatcher Engine
+- **Location:** `services/telegram_bot.py`, `storage/db.py`, `ui/app.py`, `main.py`, `ui/templates/index.html`
+- **Active Bot:** `@ScraperGaloreBot` (ID: `9278809224`, Token validated).
+- **Architecture & Capabilities:**
+  - Zero-cost mobile push alerts with rich HTML formatting, emoji classification, and match percentage ratings.
+  - Interactive inline keyboard buttons (`[🔗 Direct Apply]`, `[⭐ Open Dashboard]`).
+  - Auto Chat-ID Detection via `getUpdates` allowing 1-click pairing as soon as the user presses Start on `@ScraperGaloreBot`.
+  - SQLite persistent settings table (`settings`) storing bot credentials, active chat targets, and preferences.
+- **REST Endpoints (`ui/app.py`):**
+  - `GET /api/telegram/status`: Validates bot credentials and active linked chat ID.
+  - `POST /api/telegram/detect`: Polls `getUpdates` to auto-link the candidate's phone ID.
+  - `POST /api/telegram/test`: Sends a rich verification test notification.
+  - `POST /api/telegram/send`: Dispatches any selected scholarship, 4-day job, or grant to Telegram.
+- **Frontend UI (`ui/templates/index.html`):**
+  - Header pill showing live Telegram Bot connection state.
+  - Dedicated **Telegram Alert Radar Modal** (`#telegram-modal`) with auto-detect and verification triggers.
+  - Hero spotlight **"Push to Phone 📱"** button delivering instant cards.
+- **CLI Commands (`main.py`):**
+  - `uv run main.py notify`: View bot status and link.
+  - `uv run main.py notify --detect`: Auto-detect and pair chat ID from incoming messages.
+  - `uv run main.py notify --test`: Send test verification alert to Telegram.
+  - `uv run main.py notify --type job --id <id>`: Dispatch specific job alert card.
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)
 
-1. **Milestone 13: Push Distribution Channels & Notification Dispatcher:**
-   - Automated Telegram bot dispatching instant push alerts to private user channels.
-   - Weekly automated digest newsletter generated via email or desktop notification queue.
-2. **Milestone 14: User Authentication & Multi-Tenancy:**
+1. **Milestone 14: User Authentication & Multi-Tenancy:**
    - Add FastAPI Auth (JWT or OAuth2 / GitHub login).
    - Per-user preferences: Saved search alerts, starred items in PostgreSQL/SQLite user table, and resume uploads.
 
