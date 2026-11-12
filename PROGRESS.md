@@ -160,20 +160,51 @@ Build a dual **Web Scraper & Telegram Scraper** for:
 
 ---
 
-## 5. How to Continue on Another PC
+## 5. How to Continue on Your Work PC
 
-When you clone this repo on your work PC:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/SamEthereal/scrapper.git
-   cd scrapper
-   ```
-2. Run `uv sync` to install dependencies into the virtual environment automatically.
-3. Launch the web dashboard:
-   ```bash
-   uv run main.py ui
-   ```
-4. Open Antigravity in that folder and start a new chat with:
-   > *"I've pulled the repo on my work PC. Read PROGRESS.md and let's continue where we left off."*
+When you open Antigravity on your work PC, follow these quick steps:
+
+### 1. Clone & Set Up Environment
+```bash
+# 1. Clone the repository
+git clone https://github.com/SamEthereal/scrapper.git
+cd scrapper
+
+# 2. Sync virtual environment and dependencies via uv
+uv sync
+```
+
+### 2. Initial Data Population (First Run)
+Because `.db` files are kept out of git tracking (`.gitignore`), your database will initialize fresh:
+```bash
+# Populate 50+ remote 4-day jobs in 3 seconds:
+uv run main.py jobs scrape
+
+# Or simply start the dashboard and click the "Sync" button in the top navigation bar!
+uv run main.py ui
+```
+Dashboard address: **`http://127.0.0.1:8000`**
+
+### 3. Prompt to Send Antigravity on Your Work PC:
+Copy and paste this exact message into your first chat with Antigravity:
+> *"I've cloned the ScrapperGalore repo on my work PC and ran `uv sync`. Read `PROGRESS.md` to understand our full architecture (Milestones 1–10). We are ready to continue with Milestone 11: The Personal AI Profile Matcher & 1-Click Cover Letter Copilot. Let's start!"*
+
+---
+
+## 6. Antigravity Agent Briefing (For the Assistant on Work PC)
+
+> **Agent Context:**
+> - **Project:** Dual Telegram & Web Scraper + Interactive Bento-Grid SPA with an Application Pipeline & Calendar Sync Engine.
+> - **Active Tech Stack:** Python 3.10+, `uv`, `httpx`, `beautifulsoup4`, `fastapi`, `uvicorn`, `sqlite3`, `pydantic`, `schedule`, Tailwind CSS, FontAwesome.
+> - **Architecture & Key Files:**
+>   - [`scrapers/telegram_scraper.py`](file:///scrapers/telegram_scraper.py): Scrapes Telegram public channel previews (`https://t.me/s/...`) with zero credentials.
+>   - [`scrapers/web_scraper.py`](file:///scrapers/web_scraper.py): Deep page scraper; cleans DOM, extracts key highlights (`<li>` bullets), and resolves CTA application URLs.
+>   - [`scrapers/job_scraper.py`](file:///scrapers/job_scraper.py): Scrapes 50+ remote listings from `4dayweek.io/remote-jobs`.
+>   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, and `applications` tables. Handles deduplication (`UNIQUE`), search, filtering, and pipeline tracking.
+>   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server (`GET /api/opportunities`, `GET /api/jobs`, `GET /api/pipeline`, `GET /api/calendar/{id}.ics`).
+>   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA (Ceramic cream & obsidian dark mode, interactive stream, hero showcase, floating spec table, 4-stage Kanban pipeline board, and calendar sync).
+>   - [`main.py`](file:///main.py): Argparse CLI entrypoint (`scrape`, `jobs`, `auto`, `ui`).
+> - **Next Up:** **Milestone 11: AI Profile Matcher & 1-Click Application Copilot (Pillar 1)**. Adding a user profile modal (skills, degree, preferences), computing fit scores (0–100%) against scraped requirements, and generating 1-click tailored cover letter / statement drafts.
+
 
 
