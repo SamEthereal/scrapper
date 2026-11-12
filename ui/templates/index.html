@@ -592,6 +592,10 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
+        <button onclick="openFeedStudio()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-extrabold text-xs shadow-sm flex items-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+          <i class="fa-solid fa-satellite-dish text-xs"></i>
+          <span>Feed Studio</span>
+        </button>
         <button onclick="triggerSyncAll()" class="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
           <i class="fa-solid fa-rotate text-xs"></i>
           <span>Sync All Engines</span>
@@ -2227,6 +2231,243 @@
     }
 
     window.onload = init;
+
+    // =========================================================================
+    // Milestone 14: Universal Feed Studio Functions
+    // =========================================================================
+
+    function openFeedStudio() {
+      renderCustomSources();
+      document.getElementById('feed-studio-modal').classList.remove('hidden');
+    }
+
+    function closeFeedStudio() {
+      document.getElementById('feed-studio-modal').classList.add('hidden');
+    }
+
+    async function addCustomSource() {
+      const name = document.getElementById('fs-name').value.trim();
+      const url = document.getElementById('fs-url').value.trim();
+      const sourceType = document.getElementById('fs-type').value;
+      const category = document.getElementById('fs-category').value;
+
+      if (!name || !url) {
+        alert('Please fill in both the Source Name and Source URL.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/custom-sources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, url, source_type: sourceType, category })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🛰️ Source "${name}" added to Feed Studio!`);
+          document.getElementById('fs-name').value = '';
+          document.getElementById('fs-url').value = '';
+          renderCustomSources();
+          renderScrapersHub();
+        } else {
+          alert(data.error || 'Failed to add source');
+        }
+      } catch (err) {
+        alert('Error adding source: ' + err);
+      }
+    }
+
+    async function renderCustomSources() {
+      const container = document.getElementById('fs-sources-list');
+      if (!container) return;
+
+      try {
+        const res = await fetch('/api/custom-sources');
+        const sources = await res.json();
+
+        if (!sources.length) {
+          container.innerHTML = '<div class="text-center text-xs text-neutral-400 py-6">No custom sources yet. Add one above!</div>';
+          return;
+        }
+
+        const typeIcons = { rss: 'fa-rss', telegram: 'fa-telegram', web: 'fa-globe' };
+        const typeColors = { rss: 'text-orange-500', telegram: 'text-sky-500', web: 'text-emerald-500' };
+        const catBadges = { jobs: '💼', scholarships: '🎓', grants: '🚀' };
+
+        container.innerHTML = sources.map(s => `
+          <div class="flex items-center justify-between bg-[#faf8f5] dark:bg-[#1a2130] rounded-2xl border border-neutral-200 dark:border-neutral-700 px-4 py-3 hover:shadow-sm transition-all">
+            <div class="flex items-center space-x-3 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                <i class="fa-${s.source_type === 'telegram' ? 'brands' : 'solid'} ${typeIcons[s.source_type] || 'fa-globe'} ${typeColors[s.source_type] || 'text-neutral-400'} text-sm"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center space-x-2">
+                  <span class="text-xs font-bold text-neutral-900 dark:text-white truncate">${s.name}</span>
+                  <span class="text-[10px]">${catBadges[s.category] || ''}</span>
+                  ${s.is_active ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0"></span>'}
+                </div>
+                <div class="flex items-center space-x-2 text-[10px] text-neutral-400 truncate">
+                  <span class="truncate">${s.url}</span>
+                  ${s.items_count ? `<span class="font-bold text-neutral-600 dark:text-neutral-300">${s.items_count} items</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <button onclick="scrapeCustomSource(${s.id}, '${s.name.replace(/'/g, "\\'")}');" class="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-300 flex items-center justify-center hover:scale-105 transition-transform" title="Scrape this source">
+                <i class="fa-solid fa-bolt text-[10px]"></i>
+              </button>
+              <button onclick="toggleCustomSource(${s.id})" class="w-7 h-7 rounded-lg bg-neutral-100 dark:bg-neutral-800 ${s.is_active ? 'text-emerald-600' : 'text-neutral-400'} flex items-center justify-center hover:scale-105 transition-transform" title="${s.is_active ? 'Pause' : 'Activate'}">
+                <i class="fa-solid ${s.is_active ? 'fa-pause' : 'fa-play'} text-[10px]"></i>
+              </button>
+              <button onclick="deleteCustomSource(${s.id}, '${s.name.replace(/'/g, "\\'")}');" class="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-300 flex items-center justify-center hover:scale-105 transition-transform" title="Remove source">
+                <i class="fa-solid fa-trash text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<div class="text-center text-xs text-rose-500 py-4">Failed to load sources</div>';
+      }
+    }
+
+    async function scrapeCustomSource(sourceId, name) {
+      showToast('🔍 Scraping "' + name + '"...');
+      try {
+        const res = await fetch('/api/scrape/custom/' + sourceId, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('⚡ "' + name + '": Scraped ' + (data.scraped || 0) + ' items (' + (data.new || 0) + ' new)!');
+          renderCustomSources();
+          await loadData();
+        } else {
+          alert('Scraper error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Failed to scrape source: ' + err);
+      }
+    }
+
+    async function toggleCustomSource(sourceId) {
+      try {
+        await fetch('/api/custom-sources/' + sourceId + '/toggle', { method: 'PATCH' });
+        renderCustomSources();
+      } catch (err) {
+        alert('Failed to toggle source: ' + err);
+      }
+    }
+
+    async function deleteCustomSource(sourceId, name) {
+      if (!confirm('Remove "' + name + '" from Feed Studio?')) return;
+      try {
+        await fetch('/api/custom-sources/' + sourceId, { method: 'DELETE' });
+        showToast('🗑️ "' + name + '" removed from Feed Studio.');
+        renderCustomSources();
+        renderScrapersHub();
+      } catch (err) {
+        alert('Failed to delete source: ' + err);
+      }
+    }
+
+    async function scrapeAllCustomSources() {
+      const btn = document.getElementById('fs-sync-all-btn');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i> <span>Syncing...</span>';
+      showToast('🛰️ Syncing all custom sources...');
+
+      try {
+        const res = await fetch('/api/scrape/custom-all', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          const total = (data.results || []).reduce((acc, r) => acc + (r.new || 0), 0);
+          showToast('✅ All custom sources synced! ' + total + ' new items total.');
+          renderCustomSources();
+          await loadData();
+        }
+      } catch (err) {
+        alert('Failed to sync custom sources: ' + err);
+      } finally {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-[10px]"></i> <span>Sync All Custom</span>';
+      }
+    }
   </script>
+
+  <!-- ========================================================================= -->
+  <!-- MILESTONE 14: UNIVERSAL FEED STUDIO MODAL                               -->
+  <!-- ========================================================================= -->
+  <div id="feed-studio-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto space-y-5">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d]">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white flex items-center justify-center text-sm font-extrabold shadow-sm">
+            <i class="fa-solid fa-satellite-dish"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-neutral-900 dark:text-white">Universal Feed Studio</h3>
+            <p class="text-xs text-neutral-400">Add RSS feeds, Telegram channels, and web pages as custom scraping sources</p>
+          </div>
+        </div>
+        <button onclick="closeFeedStudio()" class="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Add New Source Form -->
+      <div class="space-y-3 p-4 bg-white dark:bg-[#1a2130] rounded-2xl border border-neutral-200 dark:border-neutral-700">
+        <div class="flex items-center space-x-2 text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-2">
+          <i class="fa-solid fa-plus text-violet-500"></i>
+          <span>Add New Source</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-medium">
+          <div class="sm:col-span-2 space-y-1">
+            <label class="font-bold text-neutral-600 dark:text-neutral-400">Source Name</label>
+            <input type="text" id="fs-name" placeholder="e.g. My RSS Feed, CoolStartupJobs..." class="w-full bg-[#faf8f5] dark:bg-[#161c28] border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-violet-500">
+          </div>
+          <div class="sm:col-span-2 space-y-1">
+            <label class="font-bold text-neutral-600 dark:text-neutral-400">Source URL</label>
+            <input type="text" id="fs-url" placeholder="https://example.com/feed.rss or https://t.me/channel_name" class="w-full bg-[#faf8f5] dark:bg-[#161c28] border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-violet-500">
+          </div>
+          <div class="space-y-1">
+            <label class="font-bold text-neutral-600 dark:text-neutral-400">Source Type</label>
+            <select id="fs-type" class="w-full bg-[#faf8f5] dark:bg-[#161c28] border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-violet-500">
+              <option value="rss">📡 RSS / Atom Feed</option>
+              <option value="telegram">✈️ Telegram Channel</option>
+              <option value="web">🌐 Web Page</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="font-bold text-neutral-600 dark:text-neutral-400">Category</label>
+            <select id="fs-category" class="w-full bg-[#faf8f5] dark:bg-[#161c28] border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-violet-500">
+              <option value="jobs">💼 Jobs & Gigs</option>
+              <option value="scholarships">🎓 Scholarships</option>
+              <option value="grants">🚀 Grants & Capital</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="addCustomSource()" class="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Add Source to Feed Studio</span>
+        </button>
+      </div>
+
+      <!-- Custom Sources List -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-neutral-600 dark:text-neutral-400">
+            <i class="fa-solid fa-list text-violet-500 mr-1"></i> Your Custom Sources
+          </span>
+          <button onclick="scrapeAllCustomSources()" id="fs-sync-all-btn" class="px-3 py-1.5 rounded-lg bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 font-bold text-[10px] flex items-center space-x-1.5 hover:opacity-80 transition-opacity">
+            <i class="fa-solid fa-rotate text-[10px]"></i>
+            <span>Sync All Custom</span>
+          </button>
+        </div>
+        <div id="fs-sources-list" class="space-y-2 max-h-[280px] overflow-y-auto">
+          <div class="text-center text-xs text-neutral-400 py-6">No custom sources yet. Add one above!</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>

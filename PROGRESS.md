@@ -237,30 +237,50 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - `uv run main.py notify --test`: Send test verification alert to Telegram.
   - `uv run main.py notify --type job --id <id>`: Dispatch specific job alert card.
 
+### Milestone 14: Universal Feed Studio (Custom Source Onboarding)
+- **Location:** `scrapers/universal_scraper.py`, `storage/db.py`, `ui/app.py`, `ui/templates/index.html`
+- **Architecture & Capabilities:**
+  - Zero-code custom feed onboarding: Add any RSS/Atom feed, public Telegram channel (`t.me/s/...`), or web page directly from the web interface.
+  - Multi-category routing: Automatically routes parsed items into `opportunities`, `jobs`, or `grants` tables with deduplication and metadata extraction.
+  - Database persistence: `custom_sources` table in SQLite tracking active sources, health, item counters, and last execution timestamps.
+- **REST Endpoints (`ui/app.py`):**
+  - `GET /api/custom-sources`: Returns all user-defined custom sources with status.
+  - `POST /api/custom-sources`: Registers a new custom source with live URL uniqueness check.
+  - `DELETE /api/custom-sources/{id}`: Removes a custom source.
+  - `PATCH /api/custom-sources/{id}/toggle`: Pauses or activates a source.
+  - `POST /api/scrape/custom/{id}`: Triggers an immediate scrape for a specific custom feed.
+  - `POST /api/scrape/custom-all`: Concurrently syncs all active custom feeds.
+- **Frontend UI (`ui/templates/index.html`):**
+  - Glowing **"Feed Studio"** header button inside the Scrapers Control Hub.
+  - Modal with quick-add form (name, URL, source type, target category) and live management list.
+  - 1-Click execution, pause/resume toggle, and delete actions with instant execution toasts.
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)
 
-1. **Milestone 14: User Authentication & Multi-Tenancy:**
+1. **Milestone 15: AI-Powered Semantic Search & Hybrid Vector Ranking:**
+   - Integrate vector embeddings (e.g. miniLM or Gemini embeddings) for natural-language query matching.
+2. **Milestone 16: User Authentication & Multi-Tenancy:**
    - Add FastAPI Auth (JWT or OAuth2 / GitHub login).
-   - Per-user preferences: Saved search alerts, starred items in PostgreSQL/SQLite user table, and resume uploads.
+   - Per-user preferences: Saved search alerts, starred items in SQLite user table, and resume uploads.
 
 ---
 
-## 5. How to Continue on Your Home PC
+## 5. How to Continue on Any Machine
 
-When you open Antigravity on your home PC, follow these quick steps:
+When you open Antigravity on your other PC, follow these quick steps:
 
 ### 1. Pull Latest Changes
 ```bash
-# Pull the latest commits including Milestone 11 & Milestone 12
+# Pull the latest commits including Milestones 13 & 14
 git pull origin main
 
 # Ensure virtual environment and dependencies are up to date
 uv sync
 ```
 
-### 2. Populate Fresh Local Database
+### 2. Populate Fresh Local Database (If needed)
 Because `.db` files are kept out of git tracking (`.gitignore`), populate your SQLite database in seconds:
 ```bash
 # Ingest live Telegram scholarships:
@@ -281,20 +301,16 @@ uv run main.py sources
 
 ### 3. Launch the Bento Web Dashboard
 ```bash
-uv run main.py ui
+uv run uvicorn ui.app:app --host 127.0.0.1 --port 8000 --reload
 ```
 Open **`http://127.0.0.1:8000`** in your browser!
 
-### 4. Prompt to Send Antigravity on Your Home PC:
-Copy and paste this exact message into your first chat with Antigravity at home:
-> *"I've pulled the latest changes on my home PC and ran `uv sync`. Read `PROGRESS.md` to see what has been accomplished in Milestones 1–12. We have completed the core backend and CLI for Milestone 12 (WWR gigs, Tech Grants scraper, DB schema, Grant Copilot, and API endpoints). Let's finish the frontend Scrapers Hub grid in `index.html` and then move on to Milestone 13!"*
-
 ---
 
-## 6. Antigravity Agent Briefing (For the Assistant on Home PC)
+## 6. Antigravity Agent Briefing
 
 > **Agent Context:**
-> - **Project:** Dual Telegram & Web Scraper + Interactive Bento-Grid SPA with an Application Pipeline, Candidate AI Profile Matcher, 1-Click Application Copilot, and Multi-Vertical Grants/Jobs Ingestion.
+> - **Project:** All-in-One Opportunity & Job Intelligence Platform ("ScraperGalore") with Dual Telegram/Web Crawlers, Interactive Bento-Grid SPA, 4-Stage Kanban Application Pipeline, Candidate AI Profile Matcher, 1-Click Application Copilot, Free Telegram Bot Alerts, and Universal Feed Studio.
 > - **Active Tech Stack:** Python 3.10+, `uv`, `httpx`, `beautifulsoup4`, `fastapi`, `uvicorn`, `sqlite3`, `pydantic`, `schedule`, Tailwind CSS, FontAwesome.
 > - **Architecture & Key Files:**
 >   - [`scrapers/telegram_scraper.py`](file:///scrapers/telegram_scraper.py): Scrapes Telegram public channel previews (`https://t.me/s/...`) with zero credentials.
@@ -302,13 +318,15 @@ Copy and paste this exact message into your first chat with Antigravity at home:
 >   - [`scrapers/job_scraper.py`](file:///scrapers/job_scraper.py): Scrapes 50+ remote listings from `4dayweek.io/remote-jobs`.
 >   - [`scrapers/wwr_scraper.py`](file:///scrapers/wwr_scraper.py): XML RSS scraper for WeWorkRemotely remote developer & devops listings.
 >   - [`scrapers/grant_scraper.py`](file:///scrapers/grant_scraper.py): Tech Grants & Startup Accelerators indexer ($50k-$2.5M capital programs).
->   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `grants`, `applications`, and `user_profiles` tables. Handles deduplication (`UNIQUE`), search, filtering, pipeline tracking, and profile persistence.
+>   - [`scrapers/universal_scraper.py`](file:///scrapers/universal_scraper.py): Universal Feed Studio engine for custom user-defined RSS feeds, Telegram channels, and webpages.
+>   - [`services/telegram_bot.py`](file:///services/telegram_bot.py): Telegram alert dispatcher linked to `@ScraperGaloreBot`.
+>   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `grants`, `applications`, `user_profiles`, `settings`, and `custom_sources`.
 >   - [`services/matcher.py`](file:///services/matcher.py): Multi-dimensional profile matching engine computing 0–100% fit scores, grades, colors, and matched skills for jobs, opps, and grants.
 >   - [`services/copilot.py`](file:///services/copilot.py): 1-click tailored Cover Letter, Statement of Purpose, and Grant Pitch Proposal generator.
->   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server (`/api/opportunities`, `/api/jobs`, `/api/grants`, `/api/sources`, `/api/pipeline`, `/api/profile`, `/api/copilot/generate`, `/api/scrape/*`).
->   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA with Candidate AI Profile modal, match pills, Spotlight AI Radar, 1-Click Copilot modal, 4-stage Kanban board, and multi-vertical filters.
->   - [`main.py`](file:///main.py): Argparse CLI entrypoint (`scrape`, `jobs`, `wwr`, `grants`, `sources`, `auto`, `ui`, `profile`, `match`, `copilot`).
-> - **Current Status:** Milestone 12 backend, database, matching, copilot, CLI, and base UI completed. Scrapers Hub frontend rendering in `ui/templates/index.html` is the remaining task before Milestone 13.
+>   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server.
+>   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA.
+> - **Current Status:** Milestones 1 through 14 fully implemented, validated, and documented.
+
 
 
 

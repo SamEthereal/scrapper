@@ -171,6 +171,24 @@ class OpportunityDB:
                 """
             )
 
+            # Create custom_sources table for Milestone 14 (Universal Feed Studio)
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS custom_sources (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    url TEXT NOT NULL UNIQUE,
+                    source_type TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    is_active INTEGER DEFAULT 1,
+                    items_count INTEGER DEFAULT 0,
+                    last_scraped_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_csources_url ON custom_sources(url);")
+
     def save_opportunity(
         self,
         item: OpportunityItem,
@@ -778,22 +796,70 @@ class OpportunityDB:
             rows = conn.execute("SELECT key, value FROM settings;").fetchall()
             return {r["key"]: r["value"] for r in rows}
 
+    # =========================================================================
+    # Milestone 14: Universal Feed Studio — Custom Sources CRUD
+    # =========================================================================
 
+    def add_custom_source(
+        self, name: str, url: str, source_type: str, category: str
+    ) -> Dict[str, Any]:
+        """Adds a new custom scraping source. Returns the created record."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO custom_sources (name, url, source_type, category)
+                VALUES (?, ?, ?, ?);
+                """,
+                (name, url, source_type, category),
+            )
+            conn.commit()
+            row = conn.execute(
+                "SELECT * FROM custom_sources WHERE id = ?;", (cursor.lastrowid,)
+            ).fetchone()
+            return dict(row)
 
+    def get_custom_sources(self, active_only: bool = False) -> List[Dict[str, Any]]:
+        """Returns all custom sources, optionally filtered to active ones."""
+        query = "SELECT * FROM custom_sources"
+        if active_only:
+            query += " WHERE is_active = 1"
+        query += " ORDER BY created_at DESC;"
+        with self._get_connection() as conn:
+            rows = conn.execute(query).fetchall()
+            return [dict(r) for r in rows]
 
+    def delete_custom_source(self, source_id: int) -> bool:
+        """Deletes a custom source by ID."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM custom_sources WHERE id = ?;", (source_id,))
+            return cursor.rowcount > 0
 
+    def toggle_custom_source(self, source_id: int) -> Optional[Dict[str, Any]]:
+        """Toggles a custom source between active/inactive. Returns updated record."""
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM custom_sources WHERE id = ?;", (source_id,)
+            ).fetchone()
+            if not row:
+                return None
+            new_active = 0 if row["is_active"] else 1
+            conn.execute(
+                "UPDATE custom_sources SET is_active = ? WHERE id = ?;",
+                (new_active, source_id),
+            )
+            conn.commit()
+            updated = conn.execute(
+                "SELECT * FROM custom_sources WHERE id = ?;", (source_id,)
+            ).fetchone()
+            return dict(updated)
 
-
-
-
-
-
-  
-
-            
-
-
-        
-
-
-    
+    def update_custom_source_stats(self, source_id: int, items_count: int) -> None:
+        """Updates the items_count and last_scraped_at for a custom source."""
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE custom_sources SET items_count = ?, last_scraped_at = CURRENT_TIMESTAMP WHERE id = ?;",
+                (items_count, source_id),
+            )
+            conn.commit()

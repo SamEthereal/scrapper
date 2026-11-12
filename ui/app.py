@@ -12,6 +12,7 @@ from scrapers.telegram_scraper import TelegramScraper
 from scrapers.web_scraper import WebScraper
 from scrapers.wwr_scraper import WWRScraper
 from scrapers.grant_scraper import GrantScraper
+from scrapers.universal_scraper import UniversalScraper
 from parsers.scholarship_parser import parse_post
 from storage.db import OpportunityDB
 from services.matcher import ProfileMatcher
@@ -57,6 +58,13 @@ class CopilotGenerateRequest(BaseModel):
     item_type: str  # 'job' or 'opportunity'
     item_id: int
     tone: str = "professional"
+
+
+class CustomSourceCreate(BaseModel):
+    name: str
+    url: str
+    source_type: str  # 'rss', 'telegram', 'web'
+    category: str     # 'jobs', 'scholarships', 'grants'
 
 app = FastAPI(
     title="Opportunity & Job Scraper API",
@@ -448,7 +456,6 @@ def scrape_jobs():
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
-
 @app.post("/api/scrape/scholarships")
 def scrape_scholarships():
     """Triggers live scraping of Telegram scholarship channel."""
@@ -518,3 +525,68 @@ def scrape_tech_grants():
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
+
+# =============================================================================
+# Milestone 14: Universal Feed Studio — Custom Sources API
+# =============================================================================
+
+@app.get("/api/custom-sources")
+def get_custom_sources():
+    """Returns all user-defined custom scraping sources."""
+    return db.get_custom_sources()
+
+
+@app.post("/api/custom-sources")
+def add_custom_source(source: CustomSourceCreate):
+    """Adds a new custom scraping source to the Universal Feed Studio."""
+    try:
+        created = db.add_custom_source(
+            name=source.name,
+            url=source.url,
+            source_type=source.source_type,
+            category=source.category,
+        )
+        return {"success": True, "source": created}
+    except Exception as e:
+        if "UNIQUE" in str(e).upper():
+            return JSONResponse(status_code=409, content={"success": False, "error": "A source with this URL already exists."})
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@app.delete("/api/custom-sources/{source_id}")
+def delete_custom_source(source_id: int):
+    """Removes a custom source from the Universal Feed Studio."""
+    success = db.delete_custom_source(source_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Custom source not found")
+    return {"success": True}
+
+
+@app.patch("/api/custom-sources/{source_id}/toggle")
+def toggle_custom_source(source_id: int):
+    """Toggles a custom source between active and inactive."""
+    result = db.toggle_custom_source(source_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Custom source not found")
+    return {"success": True, "source": result}
+
+
+@app.post("/api/scrape/custom/{source_id}")
+def scrape_custom_source(source_id: int):
+    """Triggers scraping of a specific custom source."""
+    sources = db.get_custom_sources()
+    source = next((s for s in sources if s["id"] == source_id), None)
+    if not source:
+        raise HTTPException(status_code=404, detail="Custom source not found")
+
+    scraper = UniversalScraper(db)
+    result = scraper.scrape_source(source)
+    return result
+
+
+@app.post("/api/scrape/custom-all")
+def scrape_all_custom_sources():
+    """Triggers scraping of all active custom sources."""
+    scraper = UniversalScraper(db)
+    results = scraper.scrape_all_active()
+    return {"success": True, "results": results}
