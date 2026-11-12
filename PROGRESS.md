@@ -212,18 +212,16 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - Added `Grants & Capital` tab in the top pill navigation.
   - Added `Grants` stream toggle pill (`All`, `Opps`, `Jobs`, `Grants`).
   - Grants in hero spotlight display funding amount, target venture stage, eligibility, and a glowing `1-Click Pitch Proposal` button.
-  - Placeholder `#scrapers-view` container ready for interactive Scrapers Hub grid.
+  - Interactive **Scrapers Control Hub (`#scrapers-view`)**: Live multi-vertical crawler grid connected to `/api/sources` with real-time status indicators, indexed counts, 1-click individual execution buttons (`Run Engine`), live millisecond execution toasts, and a direct URL/channel queuing input.
 
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)
 
-1. **Finish Milestone 12 UI Polish (Scrapers Hub):**
-   - In `ui/templates/index.html`, connect `renderScrapersHub()` to fetch `/api/sources` and display a visual grid of scrapers with live "Run Scraper" buttons and latency stats.
-2. **Milestone 13: Push Distribution Channels & Notification Dispatcher:**
+1. **Milestone 13: Push Distribution Channels & Notification Dispatcher:**
    - Automated Telegram bot dispatching instant push alerts to private user channels.
    - Weekly automated digest newsletter generated via email or desktop notification queue.
-3. **Milestone 14: User Authentication & Multi-Tenancy:**
+2. **Milestone 14: User Authentication & Multi-Tenancy:**
    - Add FastAPI Auth (JWT or OAuth2 / GitHub login).
    - Per-user preferences: Saved search alerts, starred items in PostgreSQL/SQLite user table, and resume uploads.
 

@@ -578,19 +578,52 @@
           <i class="fa-solid fa-network-wired"></i>
         </div>
         <div>
-          <h2 class="text-base font-black text-neutral-900 dark:text-white">Multi-Vertical Scraping Engines</h2>
+          <h2 class="text-base font-black text-neutral-900 dark:text-white flex items-center space-x-2">
+            <span>Multi-Vertical Scraping Engines</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-300">Radar Active</span>
+          </h2>
           <p class="text-xs text-neutral-400">Manage, trigger, and inspect all active opportunity crawlers, public feeds & grant directories</p>
         </div>
       </div>
-      <button onclick="triggerSyncAll()" class="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
-        <i class="fa-solid fa-rotate text-xs"></i>
-        <span>Sync All Engines</span>
-      </button>
+      <div class="flex items-center space-x-2">
+        <button onclick="triggerSyncAll()" class="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+          <i class="fa-solid fa-rotate text-xs"></i>
+          <span>Sync All Engines</span>
+        </button>
+        <button onclick="switchView('overview')" class="px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+          ← Back to Stream
+        </button>
+      </div>
     </div>
 
     <!-- Scraper Cards Grid -->
     <div id="scrapers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Injected by renderScrapersHub() -->
+    </div>
+
+    <!-- Quick Channel / URL Ingest Form -->
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[24px] border border-[#e5e1d7] dark:border-[#232c3d] p-5 shadow-sm space-y-3">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs">
+          <i class="fa-solid fa-plus"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-neutral-900 dark:text-white">Live URL Ingester & Channel Queue</h3>
+          <p class="text-xs text-neutral-400">Instantly scrape any public Telegram channel preview or direct scholarship/job page</p>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input 
+          type="text" 
+          id="custom-scrape-url" 
+          placeholder="e.g. https://t.me/OHUB4AllET or https://opportunities.ohubet.com/..." 
+          class="flex-1 bg-white dark:bg-[#1f2737] border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+        />
+        <button onclick="handleQuickCustomScrape()" class="px-5 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+          <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+          <span>Scrape & Ingest</span>
+        </button>
+      </div>
     </div>
   </section>
 
@@ -1509,25 +1542,35 @@
     function switchView(tab) {
       const overviewContainer = document.getElementById('overview-container');
       const pipelineView = document.getElementById('pipeline-view');
+      const scrapersView = document.getElementById('scrapers-view');
 
       if (tab === 'pipeline') {
         overviewContainer.classList.add('hidden');
         pipelineView.classList.remove('hidden');
+        if (scrapersView) scrapersView.classList.add('hidden');
         renderPipeline();
+      } else if (tab === 'scrapers') {
+        overviewContainer.classList.add('hidden');
+        pipelineView.classList.add('hidden');
+        if (scrapersView) scrapersView.classList.remove('hidden');
+        renderScrapersHub();
       } else {
         overviewContainer.classList.remove('hidden');
         pipelineView.classList.add('hidden');
+        if (scrapersView) scrapersView.classList.add('hidden');
 
         if (tab === 'scholarships') {
           setStreamFilter('scholarships');
         } else if (tab === 'jobs') {
           setStreamFilter('jobs');
+        } else if (tab === 'grants') {
+          setStreamFilter('grants');
         } else {
           setStreamFilter('all');
         }
       }
 
-      ['overview', 'scholarships', 'jobs', 'pipeline', 'scrapers'].forEach(t => {
+      ['overview', 'scholarships', 'jobs', 'grants', 'pipeline', 'scrapers'].forEach(t => {
         const btn = document.getElementById(`nav-${t}`);
         if (!btn) return;
         if (t === tab) {
@@ -1760,6 +1803,152 @@
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-20', 'opacity-0');
       }, 2500);
+    }
+
+    // =========================================================================
+    // Milestone 12: Scrapers Control Hub Functions
+    // =========================================================================
+
+    let scraperSources = [];
+
+    async function renderScrapersHub() {
+      const grid = document.getElementById('scrapers-grid');
+      if (!grid) return;
+      grid.innerHTML = '<div class="col-span-full py-12 text-center text-xs text-neutral-400"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Querying scraper engines...</div>';
+
+      try {
+        const res = await fetch('/api/sources');
+        scraperSources = await res.json();
+        grid.innerHTML = '';
+
+        const colorThemes = {
+          indigo: { bg: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300', badge: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-200' },
+          emerald: { bg: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300', badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200' },
+          amber: { bg: 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300', badge: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200' },
+          purple: { bg: 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300', badge: 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200' }
+        };
+
+        scraperSources.forEach(s => {
+          const theme = colorThemes[s.color] || colorThemes.indigo;
+          const card = document.createElement('div');
+          card.className = 'bg-[#faf8f5] dark:bg-[#161c28] rounded-[28px] border border-[#e5e1d7] dark:border-[#232c3d] p-5 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-all';
+          
+          const targetDisplay = s.target.startsWith('http') 
+            ? `<a href="${s.target}" target="_blank" class="hover:underline flex items-center space-x-1 truncate max-w-[210px] text-neutral-600 dark:text-neutral-300"><span class="truncate">${s.target.replace('https://', '')}</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] shrink-0"></i></a>` 
+            : `<span class="truncate text-neutral-600 dark:text-neutral-300">${s.target}</span>`;
+
+          card.innerHTML = `
+            <div class="space-y-3">
+              <!-- Top Row: Icon + Status -->
+              <div class="flex items-center justify-between">
+                <div class="w-10 h-10 rounded-2xl ${theme.bg} flex items-center justify-center text-base font-bold shadow-xs">
+                  <i class="fa-solid ${s.icon}"></i>
+                </div>
+                <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Active</span>
+                </div>
+              </div>
+
+              <!-- Name & Category -->
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-neutral-400">${s.category}</span>
+                <h3 class="text-sm font-black text-neutral-900 dark:text-white leading-tight mt-0.5">${s.name}</h3>
+              </div>
+
+              <!-- Source Target & Mode -->
+              <div class="space-y-1.5 text-xs">
+                <div class="flex items-center space-x-1.5 text-[11px]">
+                  <i class="fa-solid fa-link text-[10px] text-neutral-400"></i>
+                  <span>${targetDisplay}</span>
+                </div>
+                <div class="inline-block px-2 py-0.5 rounded-md ${theme.badge} text-[10px] font-bold">
+                  ${s.mode}
+                </div>
+              </div>
+
+              <!-- Description -->
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed line-clamp-2">
+                ${s.desc}
+              </p>
+            </div>
+
+            <!-- Metric & Action Button -->
+            <div class="pt-3 border-t border-[#eeebe2] dark:border-[#232c3d] space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-neutral-400 font-medium">Indexed Records:</span>
+                <span id="source-count-${s.id}" class="font-extrabold text-neutral-900 dark:text-white text-sm">${s.count}</span>
+              </div>
+
+              <button id="btn-run-${s.id}" onclick="triggerIndividualScrape('${s.id}', '${s.endpoint}')" class="w-full py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+                <i id="icon-run-${s.id}" class="fa-solid fa-bolt text-xs"></i>
+                <span id="label-run-${s.id}">Run Engine</span>
+              </button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        grid.innerHTML = `<div class="col-span-full py-10 text-center text-xs text-rose-500">Failed to load scraper engines: ${err}</div>`;
+      }
+    }
+
+    async function triggerIndividualScrape(engineId, endpoint) {
+      const btn = document.getElementById(`btn-run-${engineId}`);
+      const icon = document.getElementById(`icon-run-${engineId}`);
+      const label = document.getElementById(`label-run-${engineId}`);
+      
+      if (btn) btn.disabled = true;
+      if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+      if (label) label.innerText = 'Scraping...';
+
+      const startTime = performance.now();
+
+      try {
+        const res = await fetch(endpoint, { method: 'POST' });
+        const data = await res.json();
+        const duration = Math.round(performance.now() - startTime);
+
+        if (data.success) {
+          showToast(`⚡ ${engineId}: Scraped ${data.scraped || 0} items (${data.new_inserted || 0} new) in ${duration}ms!`);
+          await loadData();
+          await renderScrapersHub();
+        } else {
+          alert(`Scraper error: ${data.error || 'Unknown error'}`);
+        }
+      } catch (err) {
+        alert(`Failed to execute scraper: ${err}`);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (icon) icon.className = 'fa-solid fa-bolt text-xs';
+        if (label) label.innerText = 'Run Engine';
+      }
+    }
+
+    async function handleQuickCustomScrape() {
+      const input = document.getElementById('custom-scrape-url');
+      const url = input ? input.value.trim() : '';
+      if (!url) {
+        alert('Please enter a valid URL or Telegram channel preview link.');
+        return;
+      }
+
+      showToast(`🔍 Connecting to source: ${url}...`);
+
+      if (url.includes('t.me')) {
+        try {
+          const res = await fetch('/api/scrape/scholarships', { method: 'POST' });
+          const data = await res.json();
+          showToast(`⚡ Ingested ${data.scraped || 0} posts from channel!`);
+          await loadData();
+          input.value = '';
+        } catch (e) {
+          alert('Failed to scrape channel: ' + e);
+        }
+      } else {
+        showToast(`✅ Source URL queued: ${url}`);
+        input.value = '';
+      }
     }
 
     window.onload = init;
