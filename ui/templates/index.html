@@ -122,16 +122,18 @@
         <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500"></span>
       </button>
 
-      <!-- User Profile Badge (Matches John Smith in mockup) -->
-      <div class="flex items-center space-x-2 bg-[#faf8f5] dark:bg-[#161c28] pl-1.5 pr-3.5 py-1.5 rounded-full border border-[#e5e1d7] dark:border-[#232c3d] shadow-sm">
-        <div class="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center font-bold text-black text-xs">
+      <!-- User Profile Badge (Milestone 11 AI Profile Trigger) -->
+      <button onclick="openProfileModal()" class="flex items-center space-x-2 bg-[#faf8f5] dark:bg-[#161c28] pl-1.5 pr-3 py-1.5 rounded-full border border-[#e5e1d7] dark:border-[#232c3d] shadow-sm hover:scale-105 transition-all cursor-pointer" title="Open AI Candidate Profile & Matching Preferences">
+        <div id="user-avatar-badge" class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center font-extrabold text-black text-xs shadow-xs">
           SA
         </div>
         <div class="flex flex-col text-left leading-none">
-          <span class="text-xs font-bold text-neutral-800 dark:text-neutral-100">Samuel</span>
-          <span class="text-[9px] text-neutral-400 font-medium">Pro Scraper</span>
+          <span id="user-name-display" class="text-xs font-bold text-neutral-800 dark:text-neutral-100">Samuel</span>
+          <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center">
+            <i class="fa-solid fa-sparkles text-[8px] mr-1"></i> AI Matcher
+          </span>
         </div>
-      </div>
+      </button>
     </div>
   </header>
 
@@ -332,6 +334,26 @@
             </div>
           </div>
 
+          <!-- Milestone 11: AI Profile Match Radar & 1-Click Copilot Bar -->
+          <div id="spotlight-ai-radar" class="mt-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-indigo-500/10 border border-[#e5e1d7] dark:border-[#232c3d] flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <div id="radar-score-badge" class="w-10 h-10 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black text-sm flex items-center justify-center shadow-xs shrink-0">
+                85%
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center space-x-1.5">
+                  <span id="radar-verdict" class="text-xs font-black text-neutral-900 dark:text-neutral-100">Strong Match</span>
+                  <span id="radar-grade-chip" class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Target Fit</span>
+                </div>
+                <p id="radar-skills" class="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium truncate">Matches core candidate profile</p>
+              </div>
+            </div>
+            <button onclick="triggerCopilotModal()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-amber-500 hover:opacity-95 text-white font-extrabold text-xs shadow-md flex items-center space-x-1.5 transition-all hover:scale-105 cursor-pointer shrink-0" title="Generate Tailored Cover Letter or Motivation Statement">
+              <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i>
+              <span>1-Click Copilot</span>
+            </button>
+          </div>
+
           <!-- Bottom Action Buttons (Matches 'Confirm plan' & 'Clear all' in mockup) -->
           <div class="flex items-center space-x-2 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <a id="spotlight-primary-btn" href="#" target="_blank" class="flex-1 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold text-xs text-center hover:opacity-90 transition-opacity shadow-sm flex items-center justify-center space-x-1.5">
@@ -373,6 +395,9 @@
 
         <!-- Quick filter chips -->
         <div class="flex flex-wrap gap-1.5 pt-1 text-[11px]">
+          <button onclick="quickFilter('top_match')" class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-200 font-bold transition-all shadow-2xs">
+            🎯 Top AI Match
+          </button>
           <button onclick="quickFilter('closing_soon')" class="px-2.5 py-1 rounded-lg bg-[#eeebe2] dark:bg-[#20293a] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 font-medium transition-colors">
             ⏳ Closing Soon
           </button>
@@ -539,12 +564,165 @@
   </section>
 
   <!-- ========================================================================= -->
+  <!-- 2C. CANDIDATE AI PROFILE MODAL (MILESTONE 11)                             -->
+  <!-- ========================================================================= -->
+  <div id="profile-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto space-y-5">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d]">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-sm font-extrabold shadow-sm">
+            <i class="fa-solid fa-user-astronaut"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-neutral-900 dark:text-white">Candidate AI Profile</h3>
+            <p class="text-xs text-neutral-400">Powers real-time fit matching, score calibration, and application drafts</p>
+          </div>
+        </div>
+        <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Form Inputs Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium">
+        <div class="space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Full Name</label>
+          <input type="text" id="prof-name" class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+        </div>
+        <div class="space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Contact Email</label>
+          <input type="email" id="prof-email" class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+        </div>
+        <div class="sm:col-span-2 space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Professional Headline / Target Title</label>
+          <input type="text" id="prof-title" placeholder="e.g. Full-Stack Engineer & AI Researcher" class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+        </div>
+        <div class="sm:col-span-2 space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Key Skills & Tools (comma-separated)</label>
+          <input type="text" id="prof-skills" oninput="renderSkillBadgesPreview()" placeholder="Python, FastAPI, TypeScript, Docker, Machine Learning..." class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+          <div id="prof-skills-tags" class="flex flex-wrap gap-1.5 pt-1.5"></div>
+        </div>
+        <div class="space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Degree / Credential</label>
+          <input type="text" id="prof-degree" placeholder="e.g. BSc in Computer Science, MSc" class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+        </div>
+        <div class="space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Years of Experience</label>
+          <input type="number" id="prof-exp" min="0" max="40" class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+        </div>
+        <div class="sm:col-span-2 space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Target Roles (comma-separated)</label>
+          <input type="text" id="prof-roles" placeholder="Software Engineer, Full Stack, Research Fellow..." class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+        </div>
+        <div class="sm:col-span-2 space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Preferred Work Locations & Style</label>
+          <input type="text" id="prof-locations" placeholder="Remote, Europe, US..." class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl px-3 py-2 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white">
+        </div>
+        <div class="sm:col-span-2 space-y-1">
+          <label class="font-bold text-neutral-700 dark:text-neutral-300">Professional Summary / Bio</label>
+          <textarea id="prof-bio" rows="3" placeholder="Brief summary of your background, achievements, and core passions..." class="w-full bg-white dark:bg-[#1a2130] border border-neutral-300 dark:border-neutral-700 rounded-xl p-3 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-black dark:focus:border-white"></textarea>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-[#eeebe2] dark:border-[#232c3d]">
+        <span class="text-[11px] text-neutral-400">Updates match scores across all listings instantly</span>
+        <div class="flex items-center space-x-2">
+          <button onclick="closeProfileModal()" class="px-4 py-2 rounded-xl text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 font-semibold transition-colors">
+            Cancel
+          </button>
+          <button onclick="saveProfile()" class="px-5 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black font-extrabold shadow-sm hover:opacity-90 transition-opacity flex items-center space-x-1.5">
+            <i class="fa-solid fa-check text-xs"></i>
+            <span>Save & Re-Score Listings</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2D. 1-CLICK APPLICATION COPILOT MODAL (MILESTONE 11)                      -->
+  <!-- ========================================================================= -->
+  <div id="copilot-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#faf8f5] dark:bg-[#161c28] rounded-[32px] border border-[#e5e1d7] dark:border-[#232c3d] shadow-2xl max-w-3xl w-full p-6 max-h-[92vh] flex flex-col space-y-4">
+      
+      <!-- Copilot Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-[#eeebe2] dark:border-[#232c3d]">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-amber-500 text-white flex items-center justify-center text-sm font-extrabold shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <div>
+            <h3 id="copilot-doc-title" class="text-base font-black text-neutral-900 dark:text-white">AI Application Copilot</h3>
+            <p id="copilot-doc-subtitle" class="text-xs text-neutral-400">Tailored to your candidate profile and scraped requirements</p>
+          </div>
+        </div>
+        <button onclick="closeCopilotModal()" class="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Tone Selector & Stats Ribbon -->
+      <div class="flex items-center justify-between text-xs font-semibold px-1">
+        <div class="flex items-center space-x-1.5">
+          <span class="text-neutral-400 mr-1 text-[11px]">Tone:</span>
+          <button onclick="regenerateCopilotWithTone('professional')" id="tone-btn-prof" class="px-2.5 py-1 rounded-full bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold">
+            Professional
+          </button>
+          <button onclick="regenerateCopilotWithTone('academic')" id="tone-btn-acad" class="px-2.5 py-1 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-[10px] font-medium">
+            Academic / Research
+          </button>
+        </div>
+        <div id="copilot-skills-pill" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+          Tailored to your profile
+        </div>
+      </div>
+
+      <!-- Document Reader / Editor Area -->
+      <div class="flex-1 min-h-[300px] overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-700/80 bg-white dark:bg-[#121824] p-4 flex flex-col">
+        <textarea id="copilot-text-area" class="w-full flex-1 bg-transparent text-neutral-800 dark:text-neutral-100 font-mono text-xs leading-relaxed focus:outline-none resize-none" spellcheck="false"></textarea>
+      </div>
+
+      <!-- Actions Bar -->
+      <div class="flex items-center justify-between pt-2">
+        <span class="text-[11px] text-neutral-400">Ready for direct submission or review</span>
+        <div class="flex items-center space-x-2">
+          <button onclick="copyCopilotDocument()" id="copilot-copy-btn" class="px-3.5 py-2 rounded-xl bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 text-neutral-800 dark:text-neutral-200 font-bold text-xs flex items-center space-x-1.5 transition-all">
+            <i class="fa-regular fa-clone text-xs" id="copy-icon"></i>
+            <span id="copy-label">Copy Text</span>
+          </button>
+          <button onclick="downloadCopilotDocument()" class="px-3.5 py-2 rounded-xl bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 text-neutral-800 dark:text-neutral-200 font-bold text-xs flex items-center space-x-1.5 transition-all">
+            <i class="fa-solid fa-download text-xs"></i>
+            <span>Download .md</span>
+          </button>
+          <button onclick="trackCopilotInPipeline()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-black font-extrabold text-xs shadow-sm flex items-center space-x-1.5 transition-all">
+            <i class="fa-solid fa-list-check text-xs"></i>
+            <span>Save to Pipeline</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Pill -->
+  <div id="toast-notification" class="fixed bottom-6 right-6 bg-black dark:bg-white text-white dark:text-black px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center space-x-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
+    <i class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
+    <span id="toast-message">Notification</span>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- 3. JAVASCRIPT LOGIC & REACTIVE STATE                                      -->
   <!-- ========================================================================= -->
   <script>
     let allOpportunities = [];
     let allJobs = [];
     let pipelineItems = [];
+    let userProfile = null;
+    let currentCopilotDoc = null;
     let activeStreamType = 'all'; // 'all', 'scholarships', 'jobs'
     let currentSpotlight = null;
     let favorites = JSON.parse(localStorage.getItem('sg_favorites') || '[]');
@@ -572,14 +750,24 @@
 
     async function loadData() {
       try {
-        const [oppsRes, jobsRes, pipeRes] = await Promise.all([
+        const [oppsRes, jobsRes, pipeRes, profRes] = await Promise.all([
           fetch('/api/opportunities'),
           fetch('/api/jobs'),
-          fetch('/api/pipeline')
+          fetch('/api/pipeline'),
+          fetch('/api/profile')
         ]);
         allOpportunities = await oppsRes.json();
         allJobs = await jobsRes.json();
         pipelineItems = await pipeRes.json();
+        userProfile = await profRes.json();
+
+        // Update header user avatar & name
+        if (userProfile && userProfile.full_name) {
+          const names = userProfile.full_name.trim().split(' ');
+          const initials = names.length > 1 ? (names[0][0] + names[names.length - 1][0]).toUpperCase() : names[0].slice(0, 2).toUpperCase();
+          document.getElementById('user-avatar-badge').innerText = initials;
+          document.getElementById('user-name-display').innerText = names[0];
+        }
 
         // Render stream
         renderStreamList();
@@ -654,11 +842,23 @@
               <p class="text-[10px] text-neutral-400 truncate">${sub}</p>
             </div>
           </div>
-          <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${
-            isJob ? 'bg-neutral-200/80 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-          }">
-            ${isJob ? (item.salary ? item.salary.split('–')[0].trim() : '4-Day') : 'Scholarship'}
-          </span>
+          <div class="flex items-center space-x-1.5 shrink-0">
+            ${item.match ? `
+              <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0 ${
+                item.match.color === 'emerald' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' :
+                item.match.color === 'lime' ? 'bg-lime-100 text-lime-800 dark:bg-lime-950/70 dark:text-lime-300 border border-lime-300 dark:border-lime-800' :
+                item.match.color === 'amber' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-800' :
+                'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'
+              }" title="${item.match.grade}: ${(item.match.reasons && item.match.reasons[0]) || ''}">
+                <i class="fa-solid fa-bullseye text-[8px] mr-0.5"></i>${item.match.score}%
+              </span>
+            ` : ''}
+            <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${
+              isJob ? 'bg-neutral-200/80 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+            }">
+              ${isJob ? (item.salary ? item.salary.split('–')[0].trim() : '4-Day') : 'Scholarship'}
+            </span>
+          </div>
         `;
         container.appendChild(row);
       });
@@ -721,6 +921,28 @@
       // Update Apply Link
       const applyUrl = item.url || item.official_portal || item.apply_url || '#';
       document.getElementById('spotlight-primary-btn').href = applyUrl;
+
+      // Update Milestone 11 AI Match Radar in Spotlight
+      if (item.match) {
+        document.getElementById('radar-score-badge').innerText = `${item.match.score}%`;
+        document.getElementById('radar-verdict').innerText = item.match.grade || 'AI Match';
+        document.getElementById('radar-grade-chip').innerText = item.match.role_fit || 'Target Fit';
+
+        const matched = item.match.matched_skills || [];
+        const reason = item.match.reasons && item.match.reasons[0] ? item.match.reasons[0] : 'Matches candidate profile';
+        document.getElementById('radar-skills').innerText = matched.length > 0 ? `Matched skills: ${matched.slice(0, 3).join(', ')}` : reason;
+
+        const scoreBadge = document.getElementById('radar-score-badge');
+        if (item.match.color === 'emerald') {
+          scoreBadge.className = 'w-10 h-10 rounded-2xl bg-emerald-500 text-white font-black text-sm flex items-center justify-center shadow-xs shrink-0';
+        } else if (item.match.color === 'lime') {
+          scoreBadge.className = 'w-10 h-10 rounded-2xl bg-lime-500 text-neutral-900 font-black text-sm flex items-center justify-center shadow-xs shrink-0';
+        } else if (item.match.color === 'amber') {
+          scoreBadge.className = 'w-10 h-10 rounded-2xl bg-amber-500 text-black font-black text-sm flex items-center justify-center shadow-xs shrink-0';
+        } else {
+          scoreBadge.className = 'w-10 h-10 rounded-2xl bg-neutral-300 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 font-black text-sm flex items-center justify-center shadow-xs shrink-0';
+        }
+      }
 
       // Update Star Button
       updateStarBtn();
@@ -1146,7 +1368,12 @@
     }
 
     function quickFilter(chip) {
-      if (chip === 'closing_soon') {
+      if (chip === 'top_match') {
+        allJobs.sort((a, b) => ((b.match ? b.match.score : 0) - (a.match ? a.match.score : 0)));
+        allOpportunities.sort((a, b) => ((b.match ? b.match.score : 0) - (a.match ? a.match.score : 0)));
+        renderStreamList();
+        showToast('🎯 Stream ranked by highest AI Fit Score');
+      } else if (chip === 'closing_soon') {
         setStreamFilter('scholarships');
         renderStreamList();
       } else if (chip === 'phd') {
@@ -1261,6 +1488,218 @@
       if (url) {
         alert('Queued source for scraping: ' + url);
       }
+    }
+
+    // =========================================================================
+    // Milestone 11: Candidate Profile & AI Application Copilot Functions
+    // =========================================================================
+
+    function openProfileModal() {
+      if (!userProfile) return;
+      document.getElementById('prof-name').value = userProfile.full_name || '';
+      document.getElementById('prof-email').value = userProfile.email || '';
+      document.getElementById('prof-title').value = userProfile.title || '';
+      document.getElementById('prof-skills').value = userProfile.skills || '';
+      document.getElementById('prof-degree').value = userProfile.degree || '';
+      document.getElementById('prof-exp').value = userProfile.experience_years || 0;
+      document.getElementById('prof-roles').value = userProfile.target_roles || '';
+      document.getElementById('prof-locations').value = userProfile.preferred_locations || '';
+      document.getElementById('prof-bio').value = userProfile.bio || '';
+      renderSkillBadgesPreview();
+      document.getElementById('profile-modal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profile-modal').classList.add('hidden');
+    }
+
+    function renderSkillBadgesPreview() {
+      const skillsStr = document.getElementById('prof-skills').value;
+      const container = document.getElementById('prof-skills-tags');
+      container.innerHTML = '';
+      const list = skillsStr.split(',').map(s => s.trim()).filter(Boolean);
+      list.forEach(skill => {
+        const badge = document.createElement('span');
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center space-x-1';
+        badge.innerHTML = `<span>${skill}</span>`;
+        container.appendChild(badge);
+      });
+    }
+
+    async function saveProfile() {
+      const payload = {
+        full_name: document.getElementById('prof-name').value.trim() || 'Candidate',
+        email: document.getElementById('prof-email').value.trim(),
+        title: document.getElementById('prof-title').value.trim(),
+        skills: document.getElementById('prof-skills').value.trim(),
+        degree: document.getElementById('prof-degree').value.trim(),
+        experience_years: parseInt(document.getElementById('prof-exp').value || '0', 10),
+        preferred_locations: document.getElementById('prof-locations').value.trim(),
+        target_roles: document.getElementById('prof-roles').value.trim(),
+        bio: document.getElementById('prof-bio').value.trim(),
+      };
+
+      try {
+        const res = await fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) {
+          userProfile = result.profile;
+          closeProfileModal();
+          showToast('✓ Profile updated & listings re-scored!');
+          await loadData();
+        }
+      } catch (err) {
+        alert('Failed to save candidate profile: ' + err);
+      }
+    }
+
+    let activeCopilotTone = 'professional';
+
+    async function triggerCopilotModal() {
+      if (!currentSpotlight) return;
+      document.getElementById('copilot-modal').classList.remove('hidden');
+      await generateCopilot('professional');
+    }
+
+    function closeCopilotModal() {
+      document.getElementById('copilot-modal').classList.add('hidden');
+    }
+
+    async function regenerateCopilotWithTone(tone) {
+      activeCopilotTone = tone;
+      const profBtn = document.getElementById('tone-btn-prof');
+      const acadBtn = document.getElementById('tone-btn-acad');
+      if (tone === 'academic') {
+        acadBtn.className = 'px-2.5 py-1 rounded-full bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold';
+        profBtn.className = 'px-2.5 py-1 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-[10px] font-medium';
+      } else {
+        profBtn.className = 'px-2.5 py-1 rounded-full bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold';
+        acadBtn.className = 'px-2.5 py-1 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-[10px] font-medium';
+      }
+      await generateCopilot(tone);
+    }
+
+    async function generateCopilot(tone = 'professional') {
+      const isJob = currentSpotlight._kind === 'job';
+      const itemType = isJob ? 'job' : 'opportunity';
+      const textArea = document.getElementById('copilot-text-area');
+      textArea.value = 'Synthesizing tailored application document aligned with your candidate profile and scraped listing requirements...';
+
+      try {
+        const res = await fetch('/api/copilot/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item_type: itemType,
+            item_id: currentSpotlight.id,
+            tone: tone
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentCopilotDoc = data.document;
+          document.getElementById('copilot-doc-title').innerText = currentCopilotDoc.title;
+          document.getElementById('copilot-doc-subtitle').innerText = `Target: ${currentCopilotDoc.target_role} (${currentCopilotDoc.organization})`;
+          textArea.value = currentCopilotDoc.markdown;
+          const skillsList = currentCopilotDoc.matched_skills || [];
+          document.getElementById('copilot-skills-pill').innerText = skillsList.length > 0 ? `Matched: ${skillsList.slice(0, 3).join(', ')}` : 'Tailored alignment';
+        } else {
+          textArea.value = 'Failed to generate document: ' + (data.error || 'Unknown error');
+        }
+      } catch (err) {
+        textArea.value = 'Network error contacting copilot service: ' + err;
+      }
+    }
+
+    async function copyCopilotDocument() {
+      const text = document.getElementById('copilot-text-area').value;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        const ta = document.getElementById('copilot-text-area');
+        ta.select();
+        document.execCommand('copy');
+      }
+      const label = document.getElementById('copy-label');
+      const icon = document.getElementById('copy-icon');
+      label.innerText = 'Copied!';
+      icon.className = 'fa-solid fa-check text-emerald-500 text-xs';
+      showToast('📋 Document copied to clipboard!');
+      setTimeout(() => {
+        label.innerText = 'Copy Text';
+        icon.className = 'fa-regular fa-clone text-xs';
+      }, 2000);
+    }
+
+    function downloadCopilotDocument() {
+      const text = document.getElementById('copilot-text-area').value;
+      if (!text || !currentCopilotDoc) return;
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(currentCopilotDoc.title || 'application_document').replace(/[^a-zA-Z0-9_-]/g, '_')}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('💾 Application document downloaded (.md)');
+    }
+
+    async function trackCopilotInPipeline() {
+      if (!currentSpotlight) return;
+      const isJob = currentSpotlight._kind === 'job';
+      const itemType = isJob ? 'job' : 'opportunity';
+      const text = document.getElementById('copilot-text-area').value;
+
+      const payload = {
+        item_type: itemType,
+        item_id: currentSpotlight.id,
+        title: currentSpotlight.title,
+        subtitle: isJob ? currentSpotlight.company : (currentSpotlight.channel_name || 'Scholarship'),
+        deadline_or_salary: isJob ? currentSpotlight.salary : currentSpotlight.deadline,
+        deadline_date: isJob ? null : currentSpotlight.deadline_date,
+        url: currentSpotlight.url || currentSpotlight.official_portal || currentSpotlight.apply_url,
+        status: 'applied',
+        notes: `[Tailored Cover Letter / Statement Generated via Copilot]\n\n${text.slice(0, 1500)}`
+      };
+
+      try {
+        const res = await fetch('/api/pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const saved = await res.json();
+        const existingIdx = pipelineItems.findIndex(p => p.item_type === itemType && p.item_id === currentSpotlight.id);
+        if (existingIdx >= 0) {
+          pipelineItems[existingIdx] = saved;
+        } else {
+          pipelineItems.unshift(saved);
+        }
+        updateSpotlightTrackBtn();
+        renderPipeline();
+        closeCopilotModal();
+        showToast('🎯 Tracked in Pipeline as "Applied" with Cover Letter!');
+      } catch (err) {
+        alert('Failed to save to pipeline: ' + err);
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-message').innerText = message;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
     }
 
     window.onload = init;

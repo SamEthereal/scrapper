@@ -12,6 +12,8 @@ from scrapers.telegram_scraper import TelegramScraper
 from scrapers.web_scraper import WebScraper
 from parsers.scholarship_parser import parse_post
 from storage.db import OpportunityDB
+from services.matcher import ProfileMatcher
+from services.copilot import ApplicationCopilot
 
 
 class PipelineItemCreate(BaseModel):
@@ -29,6 +31,24 @@ class PipelineItemCreate(BaseModel):
 class PipelineItemUpdate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
+
+
+class UserProfileUpdate(BaseModel):
+    full_name: str
+    email: Optional[str] = None
+    title: Optional[str] = None
+    skills: str = ""
+    degree: Optional[str] = None
+    experience_years: int = 0
+    preferred_locations: Optional[str] = None
+    target_roles: Optional[str] = None
+    bio: Optional[str] = None
+
+
+class CopilotGenerateRequest(BaseModel):
+    item_type: str  # 'job' or 'opportunity'
+    item_id: int
+    tone: str = "professional"
 
 app = FastAPI(
     title="Opportunity & Job Scraper API",
@@ -76,7 +96,8 @@ def get_opportunities(
     sort_by: str = "date",
     order: str = "desc",
 ):
-    """Retrieves and filters scholarship opportunities."""
+    """Retrieves and filters scholarship opportunities with AI match scoring."""
+    db_sort = sort_by if sort_by != "match" else "date"
     if closing_soon:
         items = db.get_closing_soon(days=days)
     else:
@@ -84,11 +105,16 @@ def get_opportunities(
             keyword=search,
             country=country,
             level=level,
-            sort_by=sort_by,
+            sort_by=db_sort,
             order=order,
             limit=100,
         )
-    return items
+
+    profile = db.get_user_profile()
+    enriched = ProfileMatcher.enrich_items(profile, items, item_type="opportunity")
+    if sort_by == "match":
+        enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=(order != "asc"))
+    return enriched
 
 
 @app.get("/api/jobs")
@@ -100,17 +126,73 @@ def get_jobs(
     sort_by: str = "id",
     order: str = "desc",
 ):
-    """Retrieves and filters job listings."""
+    """Retrieves and filters job listings with AI match scoring."""
+    db_sort = sort_by if sort_by != "match" else "id"
     jobs = db.filter_jobs(
         keyword=search,
         has_salary=has_salary,
         remote_only=remote_only,
         min_score=min_score,
-        sort_by=sort_by,
+        sort_by=db_sort,
         order=order,
         limit=100,
     )
-    return jobs
+
+    profile = db.get_user_profile()
+    enriched = ProfileMatcher.enrich_items(profile, jobs, item_type="job")
+    if sort_by == "match":
+        enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=(order != "asc"))
+    return enriched
+
+
+# =============================================================================
+# Milestone 11: User Profile & 1-Click Application Copilot Endpoints
+# =============================================================================
+
+@app.get("/api/profile")
+def get_profile():
+    """Returns the current user profile, skills, and matching preferences."""
+    return db.get_user_profile()
+
+
+@app.post("/api/profile")
+def update_profile(profile_data: UserProfileUpdate):
+    """Updates user skills, target roles, education, and preferences."""
+    updated = db.save_user_profile(
+        full_name=profile_data.full_name,
+        email=profile_data.email,
+        title=profile_data.title,
+        skills=profile_data.skills,
+        degree=profile_data.degree,
+        experience_years=profile_data.experience_years,
+        preferred_locations=profile_data.preferred_locations,
+        target_roles=profile_data.target_roles,
+        bio=profile_data.bio,
+    )
+    return {"success": True, "profile": updated}
+
+
+@app.post("/api/copilot/generate")
+def generate_application_copilot(req: CopilotGenerateRequest):
+    """Generates a tailored Cover Letter or Statement of Purpose for a listing."""
+    profile = db.get_user_profile()
+
+    if req.item_type == "job":
+        item = db.get_job_by_id(req.item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Job listing not found")
+    else:
+        item = db.get_opportunity_by_id(req.item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Scholarship opportunity not found")
+
+    document = ApplicationCopilot.generate_document(
+        profile=profile,
+        item=item,
+        item_type=req.item_type,
+        tone=req.tone,
+    )
+    return {"success": True, "document": document}
 
 
 @app.get("/api/pipeline")

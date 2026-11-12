@@ -96,6 +96,48 @@ class OpportunityDB:
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_apps_status ON applications(status);")
 
+            # Create user_profiles table for Milestone 11 (AI Matcher & Application Copilot)
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_profiles (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    full_name TEXT NOT NULL,
+                    email TEXT,
+                    title TEXT,
+                    skills TEXT NOT NULL,
+                    degree TEXT,
+                    experience_years INTEGER DEFAULT 0,
+                    preferred_locations TEXT,
+                    target_roles TEXT,
+                    bio TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
+
+            # Seed default profile if none exists
+            row = conn.execute("SELECT COUNT(*) FROM user_profiles;").fetchone()
+            if row and row[0] == 0:
+                conn.execute(
+                    """
+                    INSERT INTO user_profiles (
+                        id, full_name, email, title, skills, degree, experience_years,
+                        preferred_locations, target_roles, bio
+                    ) VALUES (
+                        1,
+                        'Samuel Aseffa',
+                        'sami.aseffa@gmail.com',
+                        'Full-Stack & Distributed Systems Engineer',
+                        'Python, FastAPI, TypeScript, React, Docker, Machine Learning, Data Scraping, SQL, Cloud Architecture',
+                        'BSc in Computer Science',
+                        4,
+                        'Remote, Europe, North America',
+                        'Software Engineer, Full-Stack Developer, AI Backend Engineer, Research Fellow',
+                        'Passionate engineer specialized in scalable scrapers, intelligent automated pipelines, and modern web applications with 4+ years of hands-on experience.'
+                    );
+                    """
+                )
+
     def save_opportunity(
         self,
         item: OpportunityItem,
@@ -491,6 +533,89 @@ class OpportunityDB:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM applications WHERE id = ?;", (app_id,))
             return cursor.rowcount > 0
+
+    # =========================================================================
+    # Milestone 11: User Profile Persistence (AI Matcher & Application Copilot)
+    # =========================================================================
+
+    def get_user_profile(self) -> Dict[str, Any]:
+        """Retrieves the active user profile (id=1). Returns default if not yet created."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM user_profiles WHERE id = 1;").fetchone()
+            if not row:
+                return {
+                    "id": 1,
+                    "full_name": "Samuel Aseffa",
+                    "email": "sami.aseffa@gmail.com",
+                    "title": "Full-Stack & Distributed Systems Engineer",
+                    "skills": "Python, FastAPI, TypeScript, React, Docker, Machine Learning, Data Scraping, SQL, Cloud Architecture",
+                    "skills_list": [
+                        "Python", "FastAPI", "TypeScript", "React", "Docker",
+                        "Machine Learning", "Data Scraping", "SQL", "Cloud Architecture"
+                    ],
+                    "degree": "BSc in Computer Science",
+                    "experience_years": 4,
+                    "preferred_locations": "Remote, Europe, North America",
+                    "target_roles": "Software Engineer, Full-Stack Developer, AI Backend Engineer, Research Fellow",
+                    "target_roles_list": [
+                        "Software Engineer", "Full-Stack Developer", "AI Backend Engineer", "Research Fellow"
+                    ],
+                    "bio": "Passionate engineer specialized in scalable scrapers, intelligent automated pipelines, and modern web applications with 4+ years of hands-on experience.",
+                    "updated_at": None,
+                }
+            data = dict(row)
+            skills_raw = data.get("skills") or ""
+            data["skills_list"] = [s.strip() for s in skills_raw.split(",") if s.strip()]
+            roles_raw = data.get("target_roles") or ""
+            data["target_roles_list"] = [r.strip() for r in roles_raw.split(",") if r.strip()]
+            return data
+
+    def save_user_profile(
+        self,
+        full_name: str,
+        email: Optional[str] = None,
+        title: Optional[str] = None,
+        skills: str = "",
+        degree: Optional[str] = None,
+        experience_years: int = 0,
+        preferred_locations: Optional[str] = None,
+        target_roles: Optional[str] = None,
+        bio: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Upserts the active user profile (id=1) in the database."""
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO user_profiles (
+                    id, full_name, email, title, skills, degree, experience_years,
+                    preferred_locations, target_roles, bio, updated_at
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(id) DO UPDATE SET
+                    full_name = excluded.full_name,
+                    email = excluded.email,
+                    title = excluded.title,
+                    skills = excluded.skills,
+                    degree = excluded.degree,
+                    experience_years = excluded.experience_years,
+                    preferred_locations = excluded.preferred_locations,
+                    target_roles = excluded.target_roles,
+                    bio = excluded.bio,
+                    updated_at = CURRENT_TIMESTAMP;
+                """,
+                (
+                    full_name,
+                    email or "",
+                    title or "",
+                    skills,
+                    degree or "",
+                    experience_years,
+                    preferred_locations or "",
+                    target_roles or "",
+                    bio or "",
+                ),
+            )
+            conn.commit()
+            return self.get_user_profile()
 
 
 

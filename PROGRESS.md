@@ -140,6 +140,38 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - **Inline Notes:** Editable personal notes per application saved to SQLite.
   - **Spotlight Integration:** The central hero spotlight now features a dynamic **`[Track in Pipeline]`** status button and **`[📅 Calendar]`** dropdown.
 
+### Milestone 11: Candidate AI Profile Matcher & 1-Click Application Copilot
+- **Location:** `storage/db.py`, `services/matcher.py`, `services/copilot.py`, `ui/app.py`, `ui/templates/index.html`, `main.py`
+- **Database Schema:** `user_profiles` table in SQLite (`id`, `full_name`, `email`, `title`, `skills`, `degree`, `experience_years`, `preferred_locations`, `target_roles`, `bio`, `updated_at`). Seeded with active developer profile.
+- **AI Matching Engine (`services/matcher.py`):**
+  - Multi-dimensional fit scoring algorithm (0–100%):
+    - **Skill Overlap (45 pts):** Regex boundary matching between candidate skills and listings.
+    - **Role / Title Alignment (30 pts):** Overlap between target titles and scraped roles.
+    - **Work Style & Location (15 pts):** Remote preference alignment and geographic targeting.
+    - **Degree & Seniority (10 pts):** Academic qualification / experience year mapping.
+  - Returns `score`, `grade` (*Exceptional Match*, *Strong Match*, *Good Fit*, *Potential Fit*), `color`, `matched_skills`, and personalized justifications (`reasons`).
+- **1-Click Application Copilot (`services/copilot.py`):**
+  - Synthesizes personalized, high-converting **Cover Letters** (for jobs) and **Statements of Purpose** (for scholarships/fellowships).
+  - Integrates matched skills, candidate background, and listings' specific cultural highlights (e.g. 4-day week, work-life rating, research lab focus).
+- **FastAPI REST Endpoints (`ui/app.py`):**
+  - `GET /api/profile`: Retrieves active candidate profile and skills list.
+  - `POST /api/profile`: Updates profile data and triggers immediate re-scoring.
+  - `POST /api/copilot/generate`: Generates tailored Markdown and plain-text application drafts with metadata.
+  - Enriched `/api/opportunities` and `/api/jobs` with automatic `match` data and `sort_by=match`.
+- **Bento Web Dashboard UI (`ui/templates/index.html`):**
+  - Header profile button with user initials badge opening the Candidate AI Profile Modal.
+  - Interactive profile modal with real-time tag previews, skills chip editing, and 1-click re-scoring.
+  - Stream list cards with color-coded AI match percentage pills (`🎯 98% Fit`).
+  - Hero spotlight featuring the **AI Match Radar** with matched skills and a glowing **`[1-Click Copilot]`** button.
+  - Full-featured Copilot modal with tone switching, document reader/editor, copy to clipboard, `.md` download, and 1-click **"Save to Pipeline with Letter"**.
+  - Right-column quick filter chip: **`🎯 Top AI Match`**.
+- **CLI Suite (`main.py`):**
+  - `uv run main.py profile view`
+  - `uv run main.py profile set --skills "Python, Docker, ML"`
+  - `uv run main.py match jobs`
+  - `uv run main.py match opps`
+  - `uv run main.py copilot --type job --id <id> [--save]`
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Using the Full Might of Scraping)
@@ -200,11 +232,14 @@ Copy and paste this exact message into your first chat with Antigravity:
 >   - [`scrapers/telegram_scraper.py`](file:///scrapers/telegram_scraper.py): Scrapes Telegram public channel previews (`https://t.me/s/...`) with zero credentials.
 >   - [`scrapers/web_scraper.py`](file:///scrapers/web_scraper.py): Deep page scraper; cleans DOM, extracts key highlights (`<li>` bullets), and resolves CTA application URLs.
 >   - [`scrapers/job_scraper.py`](file:///scrapers/job_scraper.py): Scrapes 50+ remote listings from `4dayweek.io/remote-jobs`.
->   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, and `applications` tables. Handles deduplication (`UNIQUE`), search, filtering, and pipeline tracking.
->   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server (`GET /api/opportunities`, `GET /api/jobs`, `GET /api/pipeline`, `GET /api/calendar/{id}.ics`).
->   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA (Ceramic cream & obsidian dark mode, interactive stream, hero showcase, floating spec table, 4-stage Kanban pipeline board, and calendar sync).
->   - [`main.py`](file:///main.py): Argparse CLI entrypoint (`scrape`, `jobs`, `auto`, `ui`).
-> - **Next Up:** **Milestone 11: AI Profile Matcher & 1-Click Application Copilot (Pillar 1)**. Adding a user profile modal (skills, degree, preferences), computing fit scores (0–100%) against scraped requirements, and generating 1-click tailored cover letter / statement drafts.
+>   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `applications`, and `user_profiles` tables. Handles deduplication (`UNIQUE`), search, filtering, pipeline tracking, and profile persistence.
+>   - [`services/matcher.py`](file:///services/matcher.py): Profile matching engine computing 0–100% fit scores, grades, colors, and matched skills.
+>   - [`services/copilot.py`](file:///services/copilot.py): 1-click tailored Cover Letter and Statement of Purpose synthesizer.
+>   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server (`GET /api/opportunities`, `GET /api/jobs`, `GET /api/pipeline`, `GET /api/profile`, `POST /api/copilot/generate`).
+>   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA with Candidate AI Profile modal, match pills, Spotlight AI Radar, 1-Click Copilot modal, and 4-stage Kanban board.
+>   - [`main.py`](file:///main.py): Argparse CLI entrypoint (`scrape`, `jobs`, `auto`, `ui`, `profile`, `match`, `copilot`).
+> - **Completed:** **Milestone 11: Candidate AI Profile Matcher & 1-Click Application Copilot**.
+> - **Next Up:** **Milestone 12: Multi-Vertical Scraper Expansion (Pillar 2)**. Adding Tech Grants, Accelerators (e.g. Y Combinator, Techstars), and Remote Freelance / High-Ticket Gigs (e.g. Hacker News "Who is hiring?", WeWorkRemotely).
 
 
 

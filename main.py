@@ -13,6 +13,8 @@ from scrapers.telegram_scraper import TelegramScraper
 from scrapers.web_scraper import WebScraper
 from scrapers.job_scraper import JobScraper
 from storage.db import OpportunityDB
+from services.matcher import ProfileMatcher
+from services.copilot import ApplicationCopilot
 
 # Ensure UTF-8 output on Windows consoles
 if sys.platform == "win32":
@@ -88,6 +90,69 @@ def render_jobs_table(
             loc_display[:22] + ("..." if len(loc_display) > 22 else ""),
             salary_text,
             score_text,
+        )
+
+    console.print(table)
+
+
+def render_profile_card(console: Console, profile: Dict[str, Any]) -> None:
+    """Renders user profile details in a formatted rich Panel."""
+    skills_badges = "  ".join(f"[bold cyan]• {s}[/bold cyan]" for s in profile.get("skills_list", []))
+    roles_badges = "  ".join(f"[bold green]• {r}[/bold green]" for r in profile.get("target_roles_list", []))
+
+    content = (
+        f"[bold white text-lg]{profile.get('full_name')}[/bold white text-lg]  "
+        f"[dim]({profile.get('email') or 'No email set'})[/dim]\n"
+        f"[bold yellow]{profile.get('title')}[/bold yellow]\n\n"
+        f"[bold]🎓 Degree:[/bold] {profile.get('degree')}  |  "
+        f"[bold]⏳ Experience:[/bold] {profile.get('experience_years')} yrs  |  "
+        f"[bold]📍 Preferred Locations:[/bold] {profile.get('preferred_locations')}\n\n"
+        f"[bold]🎯 Target Roles:[/bold]\n{roles_badges or '[dim]None specified[/dim]'}\n\n"
+        f"[bold]⚡ Key Skills & Tools:[/bold]\n{skills_badges or '[dim]None specified[/dim]'}\n\n"
+        f"[bold]📝 Bio / Summary:[/bold]\n[dim]{profile.get('bio')}[/dim]"
+    )
+    console.print(Panel(content, title="[bold green]Candidate AI Profile (Active)[/bold green]", border_style="green"))
+
+
+def render_matched_table(
+    console: Console,
+    items: List[Dict[str, Any]],
+    item_type: str = "job",
+    title: str = "Ranked AI Matches",
+) -> None:
+    """Renders opportunities or jobs ranked by AI Match Score."""
+    console.print(f"\n[bold green]{title}[/bold green] ([bold yellow]{len(items)}[/bold yellow] evaluated)\n")
+    if not items:
+        console.print("[dim]No listings found to rank.[/dim]\n")
+        return
+
+    table = Table(title=title, show_lines=True)
+    table.add_column("Score", style="bold", width=9)
+    table.add_column("Verdict", style="dim", width=17)
+    table.add_column("Title / Role", style="bold white", width=30)
+    table.add_column("Entity / Host", style="cyan", width=20)
+    table.add_column("Matched Skills", style="green", width=22)
+    table.add_column("Key Match Justification", style="yellow", width=34)
+
+    for it in items:
+        match = it.get("match", {})
+        score = match.get("score", 0)
+        grade = match.get("grade", "N/A")
+        color = match.get("color", "white")
+        matched = ", ".join(match.get("matched_skills", [])[:3]) or "Domain fit"
+        reasons = match.get("reasons", [])
+        reason_txt = reasons[0] if reasons else "Profile aligns"
+
+        score_badge = f"[{color}]{score}%[/{color}]"
+        name_col = it.get("company") if item_type == "job" else (it.get("official_portal") or "Telegram")
+
+        table.add_row(
+            score_badge,
+            f"[{color}]{grade}[/{color}]",
+            it["title"][:28] + ("..." if len(it["title"]) > 28 else ""),
+            (name_col or "")[:18],
+            matched[:20] + ("..." if len(matched) > 20 else ""),
+            reason_txt[:32] + ("..." if len(reason_txt) > 32 else ""),
         )
 
     console.print(table)
@@ -277,6 +342,42 @@ def build_parser() -> argparse.ArgumentParser:
     auto_parser.add_argument("--interval", type=int, default=60, help="Minutes between scrape cycles (default: 60)")
     auto_parser.add_argument("--once", action="store_true", help="Run a single cycle and exit (useful for cron/task schedulers)")
 
+    # ==========================
+    # MILESTONE 11: USER PROFILE
+    # ==========================
+    prof_parser = subparsers.add_parser("profile", help="Manage candidate profile for AI matching")
+    prof_sub = prof_parser.add_subparsers(dest="profile_action", help="Profile operations")
+    prof_sub.add_parser("view", help="View current candidate profile")
+    p_set = prof_sub.add_parser("set", help="Update candidate profile")
+    p_set.add_argument("--name", help="Full name")
+    p_set.add_argument("--email", help="Contact email")
+    p_set.add_argument("--title", help="Current or target headline")
+    p_set.add_argument("--skills", help="Comma-separated skills (e.g. 'Python, FastAPI, Docker')")
+    p_set.add_argument("--degree", help="Highest educational degree")
+    p_set.add_argument("--exp", type=int, help="Years of professional experience")
+    p_set.add_argument("--locations", help="Preferred work locations / Remote")
+    p_set.add_argument("--roles", help="Comma-separated target roles")
+    p_set.add_argument("--bio", help="Professional summary or bio")
+
+    # ==========================
+    # MILESTONE 11: AI MATCHING
+    # ==========================
+    match_parser = subparsers.add_parser("match", help="Rank jobs or scholarships by AI Profile Fit Score")
+    match_sub = match_parser.add_subparsers(dest="match_target", help="Listing type to match")
+    m_jobs = match_sub.add_parser("jobs", help="Rank jobs by profile match score")
+    m_jobs.add_argument("--min-score", type=int, default=0, help="Minimum fit score (0-100)")
+    m_opps = match_sub.add_parser("opps", help="Rank scholarships by profile match score")
+    m_opps.add_argument("--min-score", type=int, default=0, help="Minimum fit score (0-100)")
+
+    # ==========================
+    # MILESTONE 11: 1-CLICK COPILOT
+    # ==========================
+    copilot_parser = subparsers.add_parser("copilot", help="Generate tailored Cover Letters or Statements of Purpose")
+    copilot_parser.add_argument("--type", choices=["job", "opp"], required=True, help="Type of listing (job or opp)")
+    copilot_parser.add_argument("--id", type=int, required=True, help="Database ID of the listing")
+    copilot_parser.add_argument("--tone", choices=["professional", "academic"], default="professional", help="Document tone")
+    copilot_parser.add_argument("--save", action="store_true", help="Save output to a markdown file")
+
     return parser
 
 
@@ -371,6 +472,74 @@ def main():
         else:
             scheduler.start(interval_minutes=args.interval)
 
+    # Handle candidate profile commands (Milestone 11)
+    elif args.subcommand == "profile":
+        if args.profile_action == "set":
+            current = db.get_user_profile()
+            updated = db.save_user_profile(
+                full_name=args.name or current["full_name"],
+                email=args.email if args.email is not None else current["email"],
+                title=args.title if args.title is not None else current["title"],
+                skills=args.skills if args.skills is not None else current["skills"],
+                degree=args.degree if args.degree is not None else current["degree"],
+                experience_years=args.exp if args.exp is not None else current["experience_years"],
+                preferred_locations=args.locations if args.locations is not None else current["preferred_locations"],
+                target_roles=args.roles if args.roles is not None else current["target_roles"],
+                bio=args.bio if args.bio is not None else current["bio"],
+            )
+            console.print("[bold green]✓ Candidate profile updated successfully![/bold green]\n")
+            render_profile_card(console, updated)
+        else:
+            profile = db.get_user_profile()
+            render_profile_card(console, profile)
+
+    # Handle AI match ranking commands (Milestone 11)
+    elif args.subcommand == "match":
+        profile = db.get_user_profile()
+        if args.match_target == "opps":
+            items = db.get_all(limit=50)
+            enriched = ProfileMatcher.enrich_items(profile, items, item_type="opportunity")
+            if args.min_score > 0:
+                enriched = [x for x in enriched if x.get("match", {}).get("score", 0) >= args.min_score]
+            enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=True)
+            render_matched_table(console, enriched, item_type="opp", title="Scholarships Ranked by AI Match Score")
+        else:
+            items = db.get_jobs(limit=50)
+            enriched = ProfileMatcher.enrich_items(profile, items, item_type="job")
+            if args.min_score > 0:
+                enriched = [x for x in enriched if x.get("match", {}).get("score", 0) >= args.min_score]
+            enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=True)
+            render_matched_table(console, enriched, item_type="job", title="Jobs Ranked by AI Match Score")
+
+    # Handle 1-Click Application Copilot (Milestone 11)
+    elif args.subcommand == "copilot":
+        profile = db.get_user_profile()
+        item_type = "job" if args.type == "job" else "opportunity"
+        if args.type == "job":
+            item = db.get_job_by_id(args.id)
+        else:
+            item = db.get_opportunity_by_id(args.id)
+
+        if not item:
+            console.print(f"[bold red]Listing not found for ID {args.id} (type: {args.type})[/bold red]")
+            return
+
+        doc = ApplicationCopilot.generate_document(
+            profile=profile,
+            item=item,
+            item_type=item_type,
+            tone=args.tone,
+        )
+
+        console.print(f"\n[bold green]✨ AI Application Copilot Generated:[/bold green] [bold white]{doc['title']}[/bold white]\n")
+        console.print(Panel(doc["markdown"], title=f"[bold cyan]{doc['title']}[/bold cyan]", border_style="cyan"))
+
+        if args.save:
+            from pathlib import Path
+            clean_name = f"application_{args.type}_{args.id}.md"
+            Path(clean_name).write_text(doc["markdown"], encoding="utf-8")
+            console.print(f"\n[bold green]✓ Document saved to disk:[/bold green] [cyan]{clean_name}[/cyan]\n")
+
     else:
         # Default with no arguments: show usage and stats
         console.print(f"[bold cyan]Database Status:[/bold cyan] [green]{db.count()}[/green] scholarships | [green]{db.count_jobs()}[/green] jobs stored.\n")
@@ -385,6 +554,12 @@ def main():
         console.print("  [cyan]uv run main.py jobs search Design[/cyan]          - Search by role or skill")
         console.print("  [cyan]uv run main.py jobs filter --salary[/cyan]        - Only jobs with salary listed")
         console.print("  [cyan]uv run main.py jobs filter --min-score 90[/cyan]  - Only high work-life balance jobs")
+        console.print("\n[bold yellow]🤖 Milestone 11: AI Profile, Matching & Copilot:[/bold yellow]")
+        console.print("  [cyan]uv run main.py profile view[/cyan]                - View candidate profile & skills")
+        console.print("  [cyan]uv run main.py profile set --skills '...'[/cyan]  - Update profile skills or target roles")
+        console.print("  [cyan]uv run main.py match jobs[/cyan]                  - Rank jobs by AI Profile Match Score")
+        console.print("  [cyan]uv run main.py match opps[/cyan]                  - Rank scholarships by AI Match Score")
+        console.print("  [cyan]uv run main.py copilot --type job --id 1[/cyan]   - 1-Click tailored cover letter generator")
         console.print("\n[bold yellow]🌐 Interactive Web Dashboard:[/bold yellow]")
         console.print("  [cyan]uv run main.py ui[/cyan]                          - Launch browser UI at http://127.0.0.1:8000")
         console.print("\n[bold yellow]⏰ Background Automation:[/bold yellow]")
