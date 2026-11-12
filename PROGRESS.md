@@ -284,6 +284,19 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - `uv run main.py resume parse <file> [--save]`: Parse any resume and optionally sync to profile.
   - `uv run main.py resume recs`: Display personalized dynamic AI recommendations from terminal.
 
+### Milestone 16: Complete Web Dashboard Redesign (SaaS Shell & Dual Grid/Table Views)
+- **Location:** `ui/templates/index.html`
+- **Architecture & Ergonomics:**
+  - Replaced the initial 3-column / holographic mockup with a professional, responsive 2-column SaaS application layout (Linear / Stripe / Vercel style).
+  - **Left Navigation Control Rail:** Fixed brand identity header with active server pulse, live KPI badges (Indexed opportunities, active pipeline applications), categorized stream links with counter badges, quick-launch buttons for AI Resume Studio, Scrapers Hub, and Pipeline Kanban, and candidate profile capsule.
+  - **Top Workspace Toolbar:** Debounced universal search bar across all sources, multi-criteria sort selector (`Best Match`, `Closing Soonest`, `Salary / Funding`, `Recently Added`), dynamic **Card Grid** vs **Compact Table** view switcher, Telegram Phone Radar quick-launcher, live Sync button, and light/dark theme toggle.
+  - **Executive Spotlight Banner:** Hero showcase highlighting the top AI-recommended opportunity with instant 1-click Copilot letter drafting, Telegram push, pipeline bookmarking, and official portal access.
+  - **Dual Opportunity Display Modes:**
+    - **Card Grid View:** Rich interactive cards with color-coded category pills, AI match percentage radar badges, salary/funding tags, deadline countdowns, and instant action buttons.
+    - **Compact Table View:** High-density data grid optimized for rapid scanning with sortable columns for Title/Org, Category, Compensation/Funding, Deadline, Match Score, and Actions.
+  - **Integrated Modals Suite:** 100% preservation of all live interactive modals (Candidate Profile Editor, 1-Click Application Copilot, AI Resume & Dynamic Recommendations Studio, Telegram Phone Radar, and Universal Feed Studio).
+- **Standards & Best Practices:** Follows modern web design guidelines (`css-layout`, `responsive-design`, container queries, accessible contrast ratios, and dark/light color schemes).
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)
