@@ -9,7 +9,7 @@ Implements two-tier scraping with structured data extraction:
 
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 import httpx
