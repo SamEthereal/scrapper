@@ -4,6 +4,11 @@ from typing import List, Optional
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from pydantic import BaseModel
+from parsers.normalizer import (
+    normalize_experience_level,
+    normalize_job_category,
+    normalize_job_type,
+)
 
 
 class JobItem(BaseModel):
@@ -17,6 +22,9 @@ class JobItem(BaseModel):
     work_life_score: Optional[int] = None
     url: str
     source: str = "4dayweek.io"
+    experience_level: Optional[str] = "Mid-Level"
+    category: Optional[str] = "IT & Software"
+    job_type: Optional[str] = "Full-time"
 
 
 def extract_salary(strings: List[str]) -> Optional[str]:
@@ -73,6 +81,11 @@ def parse_job_card(card: BeautifulSoup, base_url: str = "https://4dayweek.io") -
     schedule = extract_schedule(strings)
     score = extract_work_life_score(strings)
 
+    card_text = " ".join(strings)
+    exp_level = normalize_experience_level(title, card_text)
+    cat = normalize_job_category(title, card_text)
+    jtype = normalize_job_type(title, card_text, is_remote=remote)
+
     return JobItem(
         title=title,
         company=company,
@@ -83,4 +96,7 @@ def parse_job_card(card: BeautifulSoup, base_url: str = "https://4dayweek.io") -
         work_life_score=score,
         url=job_url,
         source="4dayweek.io",
+        experience_level=exp_level,
+        category=cat,
+        job_type=jtype,
     )

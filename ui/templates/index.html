@@ -298,26 +298,95 @@
           </div>
 
           <!-- Quick Filters Ribbon -->
-          <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div class="flex flex-wrap items-center gap-2">
-              <button onclick="setFilterFlag('all')" id="flt-all" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-colors">
-                All (<span id="count-flt-all">0</span>)
-              </button>
-              <button onclick="setFilterFlag('remote')" id="flt-remote" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                🌐 Remote Only
-              </button>
-              <button onclick="setFilterFlag('salary')" id="flt-salary" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                💰 Verified Salary
-              </button>
-              <button onclick="setFilterFlag('worklife')" id="flt-worklife" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                🌱 High Work-Life (85+)
-              </button>
-              <button onclick="setFilterFlag('closing')" id="flt-closing" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                ⏰ Closing in 60 Days
-              </button>
+          <!-- Quick Filters Ribbon & Granular Taxonomy Selectors -->
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <button onclick="setFilterFlag('all')" id="flt-all" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-colors">
+                  All (<span id="count-flt-all">0</span>)
+                </button>
+                <button onclick="setFilterFlag('remote')" id="flt-remote" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                  🌐 Remote Only
+                </button>
+                <button onclick="setFilterFlag('salary')" id="flt-salary" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                  💰 Verified Salary
+                </button>
+                <button onclick="setFilterFlag('worklife')" id="flt-worklife" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                  🌱 High Work-Life (85+)
+                </button>
+                <button onclick="setFilterFlag('closing')" id="flt-closing" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                  ⏰ Closing in 60 Days
+                </button>
+              </div>
+
+              <span id="active-results-indicator" class="text-slate-400 font-semibold text-xs">Showing 0 matching opportunities</span>
             </div>
 
-            <span id="active-results-indicator" class="text-slate-400 font-semibold text-xs">Showing 0 matching opportunities</span>
+            <!-- Granular Taxonomy Selectors (Seniority, Vertical, Destination, Academic Degree) -->
+            <div class="flex flex-wrap items-center gap-2.5 pt-1 text-xs">
+              <!-- Seniority Selector -->
+              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+                <i class="fa-solid fa-user-graduate text-sky-500 text-[11px]"></i>
+                <label class="text-[10px] font-extrabold uppercase text-slate-400">Seniority:</label>
+                <select id="filter-seniority" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                  <option value="all">All Seniorities</option>
+                  <option value="junior">Junior / Fresh Grad</option>
+                  <option value="mid">Mid-Level</option>
+                  <option value="senior">Senior / Lead</option>
+                </select>
+              </div>
+
+              <!-- Category / Vertical Selector -->
+              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+                <i class="fa-solid fa-layer-group text-purple-500 text-[11px]"></i>
+                <label class="text-[10px] font-extrabold uppercase text-slate-400">Vertical:</label>
+                <select id="filter-category" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                  <option value="all">All Verticals</option>
+                  <option value="it">IT & Software</option>
+                  <option value="data">Data & AI</option>
+                  <option value="finance">Finance & Accounting</option>
+                  <option value="engineering">Engineering</option>
+                  <option value="healthcare">Healthcare & Medical</option>
+                  <option value="marketing">Marketing & Sales</option>
+                  <option value="operations">Operations & HR</option>
+                </select>
+              </div>
+
+              <!-- Country / Destination Selector -->
+              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+                <i class="fa-solid fa-earth-americas text-emerald-500 text-[11px]"></i>
+                <label class="text-[10px] font-extrabold uppercase text-slate-400">Destination:</label>
+                <select id="filter-country" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                  <option value="all">All Destinations</option>
+                  <option value="ethiopia">Ethiopia / Local</option>
+                  <option value="usa">USA</option>
+                  <option value="uk">United Kingdom</option>
+                  <option value="germany">Germany</option>
+                  <option value="canada">Canada</option>
+                  <option value="europe">Europe</option>
+                  <option value="asia">Asia</option>
+                  <option value="global">Global / Remote</option>
+                </select>
+              </div>
+
+              <!-- Academic Degree Level -->
+              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+                <i class="fa-solid fa-award text-amber-500 text-[11px]"></i>
+                <label class="text-[10px] font-extrabold uppercase text-slate-400">Degree:</label>
+                <select id="filter-degree" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                  <option value="all">All Degrees</option>
+                  <option value="undergraduate">Undergraduate (BSc)</option>
+                  <option value="master">Master's (MSc/MA)</option>
+                  <option value="phd">PhD / Doctoral</option>
+                  <option value="fellowship">Fellowship / Postdoc</option>
+                </select>
+              </div>
+
+              <!-- Reset Filters -->
+              <button onclick="resetGranularFilters()" class="px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-rose-500 font-bold text-[11px] transition-colors" title="Reset all taxonomy filters">
+                <i class="fa-solid fa-filter-circle-xmark mr-1"></i> Reset
+              </button>
+            </div>
           </div>
 
           <!-- Cards Grid Container -->
@@ -1008,7 +1077,59 @@
         list = list.filter(i => Boolean(i.deadline_date));
       }
 
-      // 3. Sorting
+      // 3. Taxonomy Filters (Seniority, Vertical, Destination, Academic Degree)
+      const seniority = document.getElementById('filter-seniority')?.value || 'all';
+      if (seniority !== 'all') {
+        list = list.filter(i => {
+          const exp = (i.experience_level || '').toLowerCase();
+          const title = (i.title || '').toLowerCase();
+          if (seniority === 'junior') return exp.includes('junior') || exp.includes('entry') || title.includes('junior') || title.includes('intern');
+          if (seniority === 'senior') return exp.includes('senior') || exp.includes('lead') || title.includes('senior') || title.includes('lead');
+          if (seniority === 'mid') return exp.includes('mid') || (!title.includes('junior') && !title.includes('senior'));
+          return true;
+        });
+      }
+
+      const cat = document.getElementById('filter-category')?.value || 'all';
+      if (cat !== 'all') {
+        list = list.filter(i => {
+          const c = (i.category || '').toLowerCase();
+          const t = (i.title || '').toLowerCase();
+          if (cat === 'it') return c.includes('it') || c.includes('software') || t.includes('developer') || t.includes('engineer');
+          if (cat === 'data') return c.includes('data') || c.includes('ai') || t.includes('data');
+          if (cat === 'finance') return c.includes('finance') || c.includes('accounting') || t.includes('accountant');
+          if (cat === 'engineering') return c.includes('engineering') || t.includes('civil') || t.includes('mechanical');
+          if (cat === 'healthcare') return c.includes('health') || c.includes('medical') || t.includes('nurse');
+          if (cat === 'marketing') return c.includes('marketing') || c.includes('sales');
+          if (cat === 'operations') return c.includes('operations') || c.includes('hr');
+          return true;
+        });
+      }
+
+      const country = document.getElementById('filter-country')?.value || 'all';
+      if (country !== 'all') {
+        list = list.filter(i => {
+          const c = (i.country || '').toLowerCase();
+          const loc = (i.location || '').toLowerCase();
+          const t = (i.title || '').toLowerCase();
+          return c.includes(country) || loc.includes(country) || t.includes(country);
+        });
+      }
+
+      const degree = document.getElementById('filter-degree')?.value || 'all';
+      if (degree !== 'all') {
+        list = list.filter(i => {
+          const deg = (i.academic_level || '').toLowerCase();
+          const t = (i.title || '').toLowerCase();
+          if (degree === 'undergraduate') return deg.includes('undergrad') || t.includes('undergraduate') || t.includes('bachelor');
+          if (degree === 'master') return deg.includes('master') || t.includes('master') || t.includes('msc');
+          if (degree === 'phd') return deg.includes('phd') || deg.includes('doctoral') || t.includes('phd');
+          if (degree === 'fellowship') return deg.includes('fellowship') || t.includes('fellowship') || t.includes('postdoc');
+          return true;
+        });
+      }
+
+      // 4. Sorting
       const sortVal = document.getElementById('sort-selector').value;
       if (sortVal === 'match') {
         list.sort((a, b) => (b.match?.score || 50) - (a.match?.score || 50));
@@ -1057,6 +1178,14 @@
       document.getElementById('spotlight-desc').innerText = hl || (item.schedule ? `${item.schedule} structure with verified autonomy.` : 'High impact vetted opportunity.');
     }
 
+    function resetGranularFilters() {
+      if (document.getElementById('filter-seniority')) document.getElementById('filter-seniority').value = 'all';
+      if (document.getElementById('filter-category')) document.getElementById('filter-category').value = 'all';
+      if (document.getElementById('filter-country')) document.getElementById('filter-country').value = 'all';
+      if (document.getElementById('filter-degree')) document.getElementById('filter-degree').value = 'all';
+      setFilterFlag('all');
+    }
+
     function renderCardsGrid(items) {
       const container = document.getElementById('cards-grid-container');
       if (!items.length) {
@@ -1077,6 +1206,11 @@
         const org = item.company || item.organization || item.channel_name || 'Organization';
         const comp = item.salary || item.funding_amount || (item.deadline_date ? `⏰ ${item.deadline_date}` : 'Open');
         const portalUrl = item.official_portal || item.apply_url || item.url || '#';
+
+        const expPill = item.experience_level ? `<span class="px-2 py-0.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 font-bold text-[10px]"><i class="fa-solid fa-user-graduate text-[9px] mr-1"></i>${item.experience_level}</span>` : '';
+        const catPill = item.category ? `<span class="px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-semibold text-[10px]">${item.category}</span>` : '';
+        const countryPill = item.country && item.country !== 'Global' ? `<span class="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold text-[10px]">📍 ${item.country}</span>` : '';
+        const degPill = item.academic_level && item.academic_level !== 'All Levels' ? `<span class="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-[10px]">📜 ${item.academic_level}</span>` : '';
 
         return `
           <div class="bg-white dark:bg-dark-surface rounded-3xl border border-slate-200 dark:border-dark-border p-5 shadow-xs hover:shadow-md hover:border-brand-500/50 transition-all flex flex-col justify-between space-y-4">
@@ -1099,14 +1233,18 @@
                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-2 mt-0.5" title="${item.title}">${item.title}</h3>
               </div>
 
-              <!-- Meta pills (Location, Comp, Schedule) -->
-              <div class="flex flex-wrap items-center gap-2 text-[11px]">
+              <!-- Meta pills (Location, Comp, Seniority, Category, Country) -->
+              <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
                 <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-dark-card text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[150px]">
                   <i class="fa-solid fa-location-dot text-slate-400 mr-1 text-[9px]"></i>${item.location || 'Remote'}
                 </span>
                 <span class="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold">
                   ${comp}
                 </span>
+                ${expPill}
+                ${catPill}
+                ${countryPill}
+                ${degPill}
                 ${item.work_life_score ? `<span class="px-2 py-0.5 rounded-lg bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 font-bold">★ ${item.work_life_score}/100</span>` : ''}
               </div>
 
@@ -1154,6 +1292,9 @@
         const comp = item.salary || item.funding_amount || '—';
         const portalUrl = item.official_portal || item.apply_url || item.url || '#';
 
+        const tagText = item.experience_level || item.academic_level || item.country || '';
+        const tagBadge = tagText ? `<span class="mt-1 block px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-dark-card text-slate-600 dark:text-slate-300 w-fit">${tagText}</span>` : '';
+
         return `
           <tr class="hover:bg-slate-50 dark:hover:bg-dark-card/50 transition-colors">
             <td class="py-3 px-4">
@@ -1162,6 +1303,7 @@
             </td>
             <td class="py-3 px-4">
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300">${item._kind}</span>
+              ${tagBadge}
             </td>
             <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${item.location || 'Remote'}</td>
             <td class="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">${comp}</td>

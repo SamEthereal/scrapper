@@ -297,6 +297,35 @@ Build a dual **Web Scraper & Telegram Scraper** for:
   - **Integrated Modals Suite:** 100% preservation of all live interactive modals (Candidate Profile Editor, 1-Click Application Copilot, AI Resume & Dynamic Recommendations Studio, Telegram Phone Radar, and Universal Feed Studio).
 - **Standards & Best Practices:** Follows modern web design guidelines (`css-layout`, `responsive-design`, container queries, accessible contrast ratios, and dark/light color schemes).
 
+### Milestone 17: Curated Multi-Source Quality Gates & Granular Product Taxonomy
+- **Location:** `parsers/normalizer.py`, `scrapers/local_jobs_scraper.py`, `scrapers/scholarship_directory_scraper.py`, `storage/db.py`, `ui/app.py`, `ui/templates/index.html`, `main.py`
+- **Architecture & Goals:**
+  - Enforced the "Quality over Quantity" standard: Only high-signal, clean structured sources are retained; fragile or noisy sources are discarded.
+  - **Standardized Product Taxonomy Engine (`parsers/normalizer.py`):**
+    - **Job Seniority Extractor:** Automatically normalizes roles into `Junior / Entry` (*Fresh Graduate, 0–2 yrs, Intern*), `Mid-Level` (*2–5 yrs, Specialist*), or `Senior / Lead` (*5+ yrs, Principal, Architect, Manager*).
+    - **Job Category Extractor:** Normalizes roles into `IT & Software`, `Data & AI`, `Finance & Accounting`, `Engineering`, `Healthcare & Medical`, `Marketing & Sales`, `Operations & HR`.
+    - **Job Type Normalizer:** `Full-time`, `Remote`, `Contract / Freelance`, `Internship`, `Part-time`.
+    - **Scholarship Destination Extractor:** `Ethiopia / Local`, `USA`, `UK`, `Germany`, `Canada`, `Europe`, `Asia`, `Global`.
+    - **Academic Degree Level Extractor:** `Undergraduate (BSc)`, `Master's (MSc/MA)`, `PhD / Doctoral`, `Fellowship / Postdoc`.
+    - **Funding Scope Extractor:** `Fully Funded` (100% tuition, stipend, travel), `Partial / Tuition`, `Research Grant / Stipend`.
+  - **Curated Multi-Source Scrapers:**
+    - **Local Jobs (`scrapers/local_jobs_scraper.py`):**
+      - *Ethiopian Reporter Jobs*: Structured career-level query feeds with direct fresh-graduate & senior tagging.
+      - *Elelan Jobs*: Two-tier crawler extracting employer contacts, requirements, and deadlines.
+      - *RemoteOK Global Tech*: REST API scraper extracting international developer roles with salary ranges.
+    - **Scholarship Portals (`scrapers/scholarship_directory_scraper.py`):**
+      - *Scholars4Dev*: Two-tier crawler targeting Ethiopian & developing nation scholarships with explicit university portals.
+      - *@ethioscholarshipopportunity*: Zero-credential public Telegram scraper.
+      - *Carraadesk Quality Gate*: Strict dual classifier routing scholarships to opportunities and jobs to vacancies, dropping ambiguous noise.
+  - **Database Schema Upgrades (`storage/db.py`):**
+    - Added `experience_level`, `category`, and `job_type` columns to `jobs` table with indexes.
+    - Added `country`, `academic_level`, and `funding_type` columns to `opportunities` table with indexes.
+    - Backfilled 140 jobs and 19 opportunities with normalized metadata.
+  - **REST API & Web UI Integration:**
+    - Upgraded `/api/jobs` and `/api/opportunities` with parameterized seniority, category, country, and academic level filtering.
+    - Integrated multi-dimensional dropdowns (`Seniority`, `Vertical`, `Destination`, `Degree`) into the web dashboard header.
+    - Added reactive Seniority and Country badges to all card grids and dense table rows.
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)

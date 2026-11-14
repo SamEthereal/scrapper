@@ -5,6 +5,11 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel
 from scrapers.telegram_scraper import RawTelegramPost
+from parsers.normalizer import (
+    normalize_country,
+    normalize_academic_level,
+    normalize_funding_type,
+)
 
 
 class OpportunityItem(BaseModel):
@@ -19,6 +24,9 @@ class OpportunityItem(BaseModel):
     apply_url: Optional[str] = None
     is_opportunity: bool = False
     raw_text: str
+    country: Optional[str] = "Global"
+    academic_level: Optional[str] = "All Levels"
+    funding_type: Optional[str] = "Fully Funded"
 
 
 # Social and channel promo domains to ignore when looking for application links
@@ -108,6 +116,10 @@ def parse_post(post: RawTelegramPost) -> OpportunityItem:
     if not title and lines:
         title = lines[0]
 
+    country = normalize_country(title, text)
+    academic_level = normalize_academic_level(title, text)
+    funding_type = normalize_funding_type(title, text)
+
     return OpportunityItem(
         post_id=post.post_id,
         channel_name=post.channel_name,
@@ -119,4 +131,7 @@ def parse_post(post: RawTelegramPost) -> OpportunityItem:
         apply_url=apply_url,
         is_opportunity=is_opportunity,
         raw_text=text,
+        country=country,
+        academic_level=academic_level,
+        funding_type=funding_type,
     )

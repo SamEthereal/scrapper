@@ -44,14 +44,22 @@ class OpportunityDB:
                 );
                 """
             )
-            # Schema migration: Add deadline_date if upgrading an existing db
+            # Schema migration: Add deadline_date, country, academic_level, funding_type if upgrading an existing db
             columns = [col["name"] for col in conn.execute("PRAGMA table_info(opportunities);").fetchall()]
             if "deadline_date" not in columns:
                 conn.execute("ALTER TABLE opportunities ADD COLUMN deadline_date TEXT;")
+            if "country" not in columns:
+                conn.execute("ALTER TABLE opportunities ADD COLUMN country TEXT DEFAULT 'Global';")
+            if "academic_level" not in columns:
+                conn.execute("ALTER TABLE opportunities ADD COLUMN academic_level TEXT DEFAULT 'All Levels';")
+            if "funding_type" not in columns:
+                conn.execute("ALTER TABLE opportunities ADD COLUMN funding_type TEXT DEFAULT 'Fully Funded';")
 
             # Indexes for fast search and sorting
             conn.execute("CREATE INDEX IF NOT EXISTS idx_opp_title ON opportunities(title);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_opp_deadline_date ON opportunities(deadline_date);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_opp_country ON opportunities(country);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_opp_level ON opportunities(academic_level);")
 
             # Create jobs table for Phase 2
             conn.execute(
@@ -67,12 +75,26 @@ class OpportunityDB:
                     work_life_score INTEGER,
                     url TEXT UNIQUE,
                     source TEXT DEFAULT '4dayweek.io',
+                    experience_level TEXT DEFAULT 'Mid-Level',
+                    category TEXT DEFAULT 'IT & Software',
+                    job_type TEXT DEFAULT 'Full-time',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 """
             )
+            # Schema migration for jobs table
+            job_cols = [col["name"] for col in conn.execute("PRAGMA table_info(jobs);").fetchall()]
+            if "experience_level" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN experience_level TEXT DEFAULT 'Mid-Level';")
+            if "category" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN category TEXT DEFAULT 'IT & Software';")
+            if "job_type" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN job_type TEXT DEFAULT 'Full-time';")
+
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs(title);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_exp ON jobs(experience_level);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_cat ON jobs(category);")
 
             # Create applications table for Phase 4 (Application Tracker / Pipeline)
             conn.execute(
@@ -211,6 +233,10 @@ class OpportunityDB:
         highlights_json = json.dumps(key_highlights or [], ensure_ascii=False)
         deadline_date = getattr(item, "deadline_date", None)
 
+        country = getattr(item, "country", None) or "Global"
+        academic_level = getattr(item, "academic_level", None) or "All Levels"
+        funding_type = getattr(item, "funding_type", None) or "Fully Funded"
+
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -226,8 +252,11 @@ class OpportunityDB:
                     apply_url,
                     official_portal,
                     key_highlights,
-                    is_opportunity
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    is_opportunity,
+                    country,
+                    academic_level,
+                    funding_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     item.channel_name,
@@ -241,6 +270,9 @@ class OpportunityDB:
                     official_portal,
                     highlights_json,
                     1 if item.is_opportunity else 0,
+                    country,
+                    academic_level,
+                    funding_type,
                 ),
             )
             return cursor.rowcount > 0
@@ -272,6 +304,7 @@ class OpportunityDB:
         keyword: Optional[str] = None,
         country: Optional[str] = None,
         level: Optional[str] = None,
+        funding_type: Optional[str] = None,
         open_only: bool = False,
         has_deadline: bool = False,
         only_opportunities: bool = True,
@@ -284,8 +317,9 @@ class OpportunityDB:
         
         Args:
             keyword: Substring match across title and highlights.
-            country: Specific country filter (e.g. 'UK', 'Spain', 'USA').
-            level: Degree level (e.g. 'PhD', 'Master', 'Undergraduate').
+            country: Specific country filter (e.g. 'Ethiopia', 'Germany', 'USA', 'UK').
+            level: Degree level (e.g. 'PhD / Doctoral', "Master's", 'Undergraduate', 'Fellowship / Postdoc').
+            funding_type: Funding scope (e.g. 'Fully Funded', 'Partial / Tuition', 'Research Grant / Stipend').
             open_only: If True, only returns opportunities whose deadline is today or in the future.
             has_deadline: If True, only returns opportunities with a known deadline.
             only_opportunities: If True, filters out ads/consultancy promos.
@@ -303,13 +337,17 @@ class OpportunityDB:
             conditions.append("(title LIKE ? OR key_highlights LIKE ?)")
             params.extend([f"%{keyword}%", f"%{keyword}%"])
 
-        if country:
-            conditions.append("(title LIKE ? OR key_highlights LIKE ?)")
-            params.extend([f"%{country}%", f"%{country}%"])
+        if country and country.lower() != "all":
+            conditions.append("(country = ? OR title LIKE ? OR key_highlights LIKE ?)")
+            params.extend([country, f"%{country}%", f"%{country}%"])
 
-        if level:
-            conditions.append("(title LIKE ? OR key_highlights LIKE ?)")
-            params.extend([f"%{level}%", f"%{level}%"])
+        if level and level.lower() != "all":
+            conditions.append("(academic_level = ? OR title LIKE ? OR key_highlights LIKE ?)")
+            params.extend([level, f"%{level}%", f"%{level}%"])
+
+        if funding_type and funding_type.lower() != "all":
+            conditions.append("(funding_type = ? OR title LIKE ? OR key_highlights LIKE ?)")
+            params.extend([funding_type, f"%{funding_type}%", f"%{funding_type}%"])
 
         if has_deadline:
             conditions.append("deadline_date IS NOT NULL AND deadline_date != ''")
@@ -399,6 +437,10 @@ class OpportunityDB:
         Saves a job listing to the database with deduplication on URL.
         Returns True if newly inserted, False if already exists.
         """
+        exp_level = getattr(job, "experience_level", None) or "Mid-Level"
+        cat = getattr(job, "category", None) or "IT & Software"
+        jtype = getattr(job, "job_type", None) or "Full-time"
+
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -412,8 +454,11 @@ class OpportunityDB:
                     schedule,
                     work_life_score,
                     url,
-                    source
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    source,
+                    experience_level,
+                    category,
+                    job_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     job.title,
@@ -425,6 +470,9 @@ class OpportunityDB:
                     job.work_life_score,
                     job.url,
                     job.source,
+                    exp_level,
+                    cat,
+                    jtype,
                 ),
             )
             return cursor.rowcount > 0
@@ -448,6 +496,9 @@ class OpportunityDB:
         self,
         keyword: Optional[str] = None,
         company: Optional[str] = None,
+        experience_level: Optional[str] = None,
+        category: Optional[str] = None,
+        job_type: Optional[str] = None,
         has_salary: bool = False,
         remote_only: bool = False,
         min_score: Optional[int] = None,
@@ -468,6 +519,18 @@ class OpportunityDB:
         if company:
             conditions.append("company LIKE ?")
             params.append(f"%{company}%")
+
+        if experience_level and experience_level.lower() != "all":
+            conditions.append("experience_level = ?")
+            params.append(experience_level)
+
+        if category and category.lower() != "all":
+            conditions.append("category = ?")
+            params.append(category)
+
+        if job_type and job_type.lower() != "all":
+            conditions.append("job_type = ?")
+            params.append(job_type)
 
         if has_salary:
             conditions.append("salary IS NOT NULL AND salary != ''")

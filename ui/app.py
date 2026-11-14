@@ -13,6 +13,8 @@ from scrapers.web_scraper import WebScraper
 from scrapers.wwr_scraper import WWRScraper
 from scrapers.grant_scraper import GrantScraper
 from scrapers.universal_scraper import UniversalScraper
+from scrapers.local_jobs_scraper import LocalJobsScraper
+from scrapers.scholarship_directory_scraper import ScholarshipDirectoryScraper
 from parsers.scholarship_parser import parse_post
 from storage.db import OpportunityDB
 from services.matcher import ProfileMatcher
@@ -115,6 +117,14 @@ def get_sources():
     all_jobs = db.get_jobs(limit=1000)
     wwr_count = sum(1 for j in all_jobs if j.get("source") == "WeWorkRemotely")
     day4_count = sum(1 for j in all_jobs if j.get("source") == "4dayweek.io")
+    remoteok_count = sum(1 for j in all_jobs if j.get("source") == "RemoteOK")
+    reporter_count = sum(1 for j in all_jobs if j.get("source") == "Reporter Jobs")
+    elelan_count = sum(1 for j in all_jobs if j.get("source") == "Elelan Jobs")
+
+    all_opps = db.get_all(limit=1000)
+    scholars4dev_count = sum(1 for o in all_opps if o.get("channel_name") == "Scholars4Dev")
+    ethio_tg_count = sum(1 for o in all_opps if "ethioscholarship" in o.get("channel_name", "").lower())
+    carraa_count = sum(1 for o in all_opps if o.get("channel_name") == "Carraadesk")
 
     return [
         {
@@ -129,6 +139,71 @@ def get_sources():
             "icon": "fa-telegram",
             "color": "indigo",
             "desc": "Parses public channel previews for legitimate academic & fellowship openings."
+        },
+        {
+            "id": "scholars4dev",
+            "name": "Scholars4Dev (Ethiopians & Developing)",
+            "target": "https://www.scholars4dev.com/tag/scholarships-for-ethiopians/",
+            "category": "Curated Global Scholarships",
+            "count": scholars4dev_count,
+            "status": "online",
+            "mode": "Two-Tier Directory Crawler",
+            "endpoint": "/api/scrape/curated/scholars4dev",
+            "icon": "fa-graduation-cap",
+            "color": "blue",
+            "desc": "Clean, fully-funded Masters & PhD awards with explicit country eligibility and deadlines."
+        },
+        {
+            "id": "ethio_scholarships",
+            "name": "Ethio Scholarship Telegram",
+            "target": "https://t.me/ethioscholarshipopportunity",
+            "category": "Telegram Scholarship Feed",
+            "count": ethio_tg_count,
+            "status": "online",
+            "mode": "Zero-Credential Public Stream",
+            "endpoint": "/api/scrape/curated/ethio-scholarships",
+            "icon": "fa-paper-plane",
+            "color": "cyan",
+            "desc": "Verified Ethiopian student scholarship opportunities, fellowships, and entrance exams."
+        },
+        {
+            "id": "jobs_reporter",
+            "name": "Reporter Jobs (Ethiopia)",
+            "target": "https://www.ethiopianreporterjobs.com/jobs-in-ethiopia/",
+            "category": "Local Ethiopian Jobs",
+            "count": reporter_count,
+            "status": "online",
+            "mode": "Structured Career-Level Feed",
+            "endpoint": "/api/scrape/curated/reporter",
+            "icon": "fa-briefcase",
+            "color": "emerald",
+            "desc": "Ethiopia's premier professional job board with Senior, Mid, and Fresh Graduate filtering."
+        },
+        {
+            "id": "jobs_elelan",
+            "name": "Elelan Jobs (Addis Ababa)",
+            "target": "https://elelanjobs.com/",
+            "category": "Local Ethiopian Jobs",
+            "count": elelan_count,
+            "status": "online",
+            "mode": "Two-Tier Detail Scraper",
+            "endpoint": "/api/scrape/curated/elelan",
+            "icon": "fa-building",
+            "color": "teal",
+            "desc": "Two-tier crawler extracting verified requirements, company contacts, and application deadlines."
+        },
+        {
+            "id": "jobs_remoteok",
+            "name": "RemoteOK International Tech",
+            "target": "https://remoteok.com/api",
+            "category": "Foreign Tech & Engineering",
+            "count": remoteok_count,
+            "status": "online",
+            "mode": "Open Developer JSON API",
+            "endpoint": "/api/scrape/curated/remoteok",
+            "icon": "fa-laptop-code",
+            "color": "rose",
+            "desc": "High-paying global remote software engineering, DevOps, and AI developer jobs."
         },
         {
             "id": "jobs_4dayweek",
@@ -155,6 +230,19 @@ def get_sources():
             "icon": "fa-globe",
             "color": "amber",
             "desc": "Ingests remote engineering, full-stack, and contractor postings across global timezones."
+        },
+        {
+            "id": "carraadesk",
+            "name": "Carraadesk Quality Gate",
+            "target": "https://carraadesk.com/",
+            "category": "Dual Opportunities & Jobs",
+            "count": carraa_count,
+            "status": "online",
+            "mode": "Smart Intent Classifier",
+            "endpoint": "/api/scrape/curated/carraadesk",
+            "icon": "fa-filter",
+            "color": "violet",
+            "desc": "Strictly gates articles: routes scholarships to opportunities and jobs to vacancies, dropping noise."
         },
         {
             "id": "tech_grants",
@@ -202,6 +290,7 @@ def get_opportunities(
     search: Optional[str] = None,
     country: Optional[str] = None,
     level: Optional[str] = None,
+    funding_type: Optional[str] = None,
     closing_soon: bool = False,
     days: int = 60,
     sort_by: str = "date",
@@ -216,6 +305,7 @@ def get_opportunities(
             keyword=search,
             country=country,
             level=level,
+            funding_type=funding_type,
             sort_by=db_sort,
             order=order,
             limit=100,
@@ -231,16 +321,22 @@ def get_opportunities(
 @app.get("/api/jobs")
 def get_jobs(
     search: Optional[str] = None,
+    experience_level: Optional[str] = None,
+    category: Optional[str] = None,
+    job_type: Optional[str] = None,
     has_salary: bool = False,
     remote_only: bool = False,
     min_score: Optional[int] = None,
     sort_by: str = "id",
     order: str = "desc",
 ):
-    """Retrieves and filters job listings with AI match scoring."""
+    """Retrieves and filters job listings with AI match scoring and experience level filters."""
     db_sort = sort_by if sort_by != "match" else "id"
     jobs = db.filter_jobs(
         keyword=search,
+        experience_level=experience_level,
+        category=category,
+        job_type=job_type,
         has_salary=has_salary,
         remote_only=remote_only,
         min_score=min_score,
@@ -539,6 +635,58 @@ def scrape_tech_grants():
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+# =============================================================================
+# Curated Multi-Source Scrapers (Reporter, Elelan, RemoteOK, Scholars4Dev, etc.)
+# =============================================================================
+
+@app.post("/api/scrape/curated/reporter")
+def scrape_curated_reporter():
+    """Triggers live scraping of Ethiopian Reporter Jobs."""
+    scraper = LocalJobsScraper(db)
+    result = scraper.scrape_reporter_jobs(limit=15)
+    return result
+
+
+@app.post("/api/scrape/curated/elelan")
+def scrape_curated_elelan():
+    """Triggers two-tier scraping of Elelan Jobs."""
+    scraper = LocalJobsScraper(db)
+    result = scraper.scrape_elelan_jobs(limit=10)
+    return result
+
+
+@app.post("/api/scrape/curated/remoteok")
+def scrape_curated_remoteok():
+    """Triggers scraping of RemoteOK global engineering and developer roles."""
+    scraper = LocalJobsScraper(db)
+    result = scraper.scrape_remoteok(limit=25)
+    return result
+
+
+@app.post("/api/scrape/curated/scholars4dev")
+def scrape_curated_scholars4dev():
+    """Triggers two-tier scraping of Scholars4Dev opportunities."""
+    scraper = ScholarshipDirectoryScraper(db)
+    result = scraper.scrape_scholars4dev(limit=10)
+    return result
+
+
+@app.post("/api/scrape/curated/ethio-scholarships")
+def scrape_curated_ethio_scholarships():
+    """Triggers live zero-credential scraping of @ethioscholarshipopportunity."""
+    scraper = ScholarshipDirectoryScraper(db)
+    result = scraper.scrape_ethio_scholarship_telegram(limit=15)
+    return result
+
+
+@app.post("/api/scrape/curated/carraadesk")
+def scrape_curated_carraadesk():
+    """Triggers quality-gated dual scraping of Carraadesk."""
+    scraper = ScholarshipDirectoryScraper(db)
+    result = scraper.scrape_carraadesk(limit=10)
+    return result
 
 
 # =============================================================================

@@ -197,20 +197,34 @@ def render_sources_table(console: Console, db: OpportunityDB) -> None:
     all_jobs = db.get_jobs(limit=1000)
     wwr_count = sum(1 for j in all_jobs if j.get("source") == "WeWorkRemotely")
     day4_count = sum(1 for j in all_jobs if j.get("source") == "4dayweek.io")
+    remoteok_count = sum(1 for j in all_jobs if j.get("source") == "RemoteOK")
+    reporter_count = sum(1 for j in all_jobs if j.get("source") == "Reporter Jobs")
+    elelan_count = sum(1 for j in all_jobs if j.get("source") == "Elelan Jobs")
 
-    console.print("\n[bold cyan]Multi-Vertical Scraping Engines & Radar Status[/bold cyan]\n")
+    all_opps = db.get_all(limit=1000)
+    scholars4dev_count = sum(1 for o in all_opps if o.get("channel_name") == "Scholars4Dev")
+    ethio_tg_count = sum(1 for o in all_opps if "ethioscholarship" in o.get("channel_name", "").lower())
+    carraa_count = sum(1 for o in all_opps if o.get("channel_name") == "Carraadesk")
+
+    console.print("\n[bold cyan]Multi-Vertical Scraping Engines & Curated Radar Status[/bold cyan]\n")
 
     table = Table(title="Scraper Engines Health & Metrics", show_lines=True)
-    table.add_column("Engine", style="bold white", width=26)
-    table.add_column("Target Source", style="cyan", width=32)
+    table.add_column("Engine", style="bold white", width=28)
+    table.add_column("Target Source", style="cyan", width=34)
     table.add_column("Category", style="yellow", width=24)
     table.add_column("Indexed Items", style="green", justify="right", width=14)
     table.add_column("Status", width=14)
 
     engines = [
-        ("Telegram Channel Preview", "https://t.me/OHUB4AllET", "Scholarships & Fellowships", db.count(), "[bold green]● Active[/bold green]"),
-        ("4-Day Week Job Cards", "https://4dayweek.io/remote-jobs", "Work-Life Remote Jobs", day4_count, "[bold green]● Active[/bold green]"),
-        ("WeWorkRemotely RSS", "https://weworkremotely.com/...rss", "Remote Tech & Gigs", wwr_count, "[bold green]● Active[/bold green]"),
+        ("Telegram Scholarships Radar", "https://t.me/OHUB4AllET", "Scholarships & Fellowships", db.count(), "[bold green]● Active[/bold green]"),
+        ("Scholars4Dev Directory", "scholars4dev.com/tag/...", "Curated Global Scholarships", scholars4dev_count, "[bold green]● Active[/bold green]"),
+        ("Ethio Scholarship Telegram", "t.me/ethioscholarshipopportunity", "Telegram Scholarships", ethio_tg_count, "[bold green]● Active[/bold green]"),
+        ("Reporter Jobs (Ethiopia)", "ethiopianreporterjobs.com", "Local Professional Jobs", reporter_count, "[bold green]● Active[/bold green]"),
+        ("Elelan Jobs (Addis Ababa)", "elelanjobs.com", "Local Tech & Admin Jobs", elelan_count, "[bold green]● Active[/bold green]"),
+        ("RemoteOK Global Tech", "remoteok.com/api", "International Tech Jobs", remoteok_count, "[bold green]● Active[/bold green]"),
+        ("4-Day Week Job Cards", "4dayweek.io/remote-jobs", "Work-Life Remote Jobs", day4_count, "[bold green]● Active[/bold green]"),
+        ("WeWorkRemotely RSS", "weworkremotely.com/...rss", "Remote Tech & Gigs", wwr_count, "[bold green]● Active[/bold green]"),
+        ("Carraadesk Quality Gate", "carraadesk.com", "Dual Opps & Jobs", carraa_count, "[bold green]● Active[/bold green]"),
         ("Tech Grants & Accelerators", "YC, Techstars, Mozilla, EU", "Grants & Venture Capital", db.count_grants(), "[bold green]● Active[/bold green]"),
     ]
 
