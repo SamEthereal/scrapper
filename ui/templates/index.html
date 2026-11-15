@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>ScraperGalore — All-in-One Opportunity & Job Intelligence</title>
+  
+  <!-- ldrs modern animated grid loader web component -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/grid.js"></script>
   
   <!-- Modern Typography: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,6 +51,31 @@
   </script>
   
   <style>
+    /* Supported color scheme for native elements & form controls */
+    :root {
+      color-scheme: light dark;
+    }
+    html.dark {
+      color-scheme: dark;
+    }
+    
+    /* Native Select & Option dark mode styling (prevents white-on-white text) */
+    select {
+      color-scheme: light dark;
+    }
+    html.dark select {
+      color-scheme: dark;
+    }
+    select option {
+      background-color: #ffffff;
+      color: #0f172a;
+    }
+    html.dark select option,
+    .dark select option {
+      background-color: #161f30 !important;
+      color: #f1f5f9 !important;
+    }
+
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -469,7 +498,10 @@
 
           <!-- Cards Grid Container -->
           <div id="cards-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <!-- Dynamically injected opportunity cards -->
+            <div class="col-span-full py-20 flex flex-col items-center justify-center space-y-4 text-center">
+              <l-grid size="56" speed="1.5" color="#7c3aed"></l-grid>
+              <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading intelligence stream...</p>
+            </div>
           </div>
 
           <!-- Dense Table View Container (Toggled via view mode) -->
@@ -648,6 +680,10 @@
       </div>
 
       <div class="relative">
+        <div id="copilot-loading-overlay" class="absolute inset-0 bg-white/90 dark:bg-dark-card/95 backdrop-blur-xs rounded-2xl flex flex-col items-center justify-center space-y-3 z-10 hidden">
+          <l-grid size="52" speed="1.5" color="#7c3aed"></l-grid>
+          <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Crafting tailored document with AI Copilot...</p>
+        </div>
         <textarea id="copilot-text-area" rows="11" class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-3.5 sm:p-4 text-xs font-mono leading-relaxed text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500"></textarea>
       </div>
 
@@ -818,8 +854,9 @@
 
       <!-- Tab 3: Recommendations -->
       <div id="resume-tab-recs" class="hidden space-y-3">
-        <div id="recs-summary-box" class="p-3 bg-brand-50 dark:bg-brand-950/40 rounded-2xl border border-brand-200 dark:border-brand-900/50 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-          <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Loading recommendations...
+        <div id="recs-summary-box" class="p-4 bg-brand-50 dark:bg-brand-950/40 rounded-2xl border border-brand-200 dark:border-brand-900/50 text-xs text-slate-700 dark:text-slate-300 leading-relaxed flex items-center space-x-3">
+          <l-grid size="30" speed="1.5" color="#7c3aed"></l-grid>
+          <span class="font-bold text-slate-600 dark:text-slate-300">Loading AI recommendations...</span>
         </div>
         <div id="recs-list-container" class="space-y-3 max-h-[340px] overflow-y-auto pr-1"></div>
       </div>
@@ -1838,7 +1875,11 @@
     async function renderScrapersHub() {
       const grid = document.getElementById('scrapers-grid');
       if (!grid) return;
-      grid.innerHTML = '<div class="col-span-full py-12 text-center text-xs text-slate-400"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Querying engines...</div>';
+      grid.innerHTML = `
+        <div class="col-span-full py-16 flex flex-col items-center justify-center space-y-3 text-center">
+          <l-grid size="48" speed="1.5" color="#7c3aed"></l-grid>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Querying crawler engines & sources...</p>
+        </div>`;
 
       try {
         const res = await fetch('/api/sources');
@@ -1940,6 +1981,8 @@
       if (!activeCopilotItem) return;
       const tone = document.getElementById('copilot-tone-select').value;
       const textarea = document.getElementById('copilot-text-area');
+      const overlay = document.getElementById('copilot-loading-overlay');
+      if (overlay) overlay.classList.remove('hidden');
 
       try {
         const res = await fetch('/api/copilot/generate', {
@@ -1959,6 +2002,8 @@
         textarea.value = doc.markdown || doc.plain_text || 'Document generated successfully.';
       } catch (err) {
         textarea.value = 'Error generating application document: ' + err;
+      } finally {
+        if (overlay) overlay.classList.add('hidden');
       }
     }
 
@@ -2295,6 +2340,13 @@
       const summaryBox = document.getElementById('recs-summary-box');
       const container = document.getElementById('recs-list-container');
       if (!container) return;
+      if (summaryBox) {
+        summaryBox.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <l-grid size="30" speed="1.5" color="#7c3aed"></l-grid>
+            <span class="font-bold text-slate-600 dark:text-slate-300">Synthesizing personalized AI matches...</span>
+          </div>`;
+      }
 
       try {
         const res = await fetch('/api/resume/recommendations');
