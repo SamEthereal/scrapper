@@ -15,6 +15,7 @@ from scrapers.grant_scraper import GrantScraper
 from scrapers.universal_scraper import UniversalScraper
 from scrapers.local_jobs_scraper import LocalJobsScraper
 from scrapers.scholarship_directory_scraper import ScholarshipDirectoryScraper
+from scrapers.ohub_web_scraper import OHUBWebScraper
 from parsers.scholarship_parser import parse_post
 from storage.db import OpportunityDB
 from services.matcher import ProfileMatcher
@@ -118,27 +119,28 @@ def get_sources():
     wwr_count = sum(1 for j in all_jobs if j.get("source") == "WeWorkRemotely")
     day4_count = sum(1 for j in all_jobs if j.get("source") == "4dayweek.io")
     remoteok_count = sum(1 for j in all_jobs if j.get("source") == "RemoteOK")
-    reporter_count = sum(1 for j in all_jobs if j.get("source") == "Reporter Jobs")
+    ethiojobs_count = sum(1 for j in all_jobs if "Ethiojobs" in j.get("source", "") or "Reporter" in j.get("source", ""))
     elelan_count = sum(1 for j in all_jobs if j.get("source") == "Elelan Jobs")
 
     all_opps = db.get_all(limit=1000)
+    ohub_count = sum(1 for o in all_opps if "OHUB" in o.get("channel_name", ""))
     scholars4dev_count = sum(1 for o in all_opps if o.get("channel_name") == "Scholars4Dev")
     ethio_tg_count = sum(1 for o in all_opps if "ethioscholarship" in o.get("channel_name", "").lower())
     carraa_count = sum(1 for o in all_opps if o.get("channel_name") == "Carraadesk")
 
     return [
         {
-            "id": "telegram_scholarships",
-            "name": "Telegram Scholarships Radar",
-            "target": "https://t.me/OHUB4AllET",
-            "category": "Scholarships & Fellowships",
-            "count": db.count(),
+            "id": "ohub_portal",
+            "name": "OHUB Opportunities Web Portal",
+            "target": "https://opportunities.ohubet.com",
+            "category": "Scholarships, Fellowships & Internships",
+            "count": ohub_count or db.count(),
             "status": "online",
-            "mode": "Zero-Credential Public Preview",
-            "endpoint": "/api/scrape/scholarships",
-            "icon": "fa-telegram",
+            "mode": "Structured Web Portal Crawler",
+            "endpoint": "/api/scrape/ohub/all",
+            "icon": "fa-globe",
             "color": "indigo",
-            "desc": "Parses public channel previews for legitimate academic & fellowship openings."
+            "desc": "Direct web portal scraping verified Scholarships, Fellowships, Internships, and Jobs."
         },
         {
             "id": "scholars4dev",
@@ -167,17 +169,17 @@ def get_sources():
             "desc": "Verified Ethiopian student scholarship opportunities, fellowships, and entrance exams."
         },
         {
-            "id": "jobs_reporter",
-            "name": "Reporter Jobs (Ethiopia)",
-            "target": "https://www.ethiopianreporterjobs.com/jobs-in-ethiopia/",
+            "id": "jobs_ethiojobs",
+            "name": "Ethiojobs (Ethiopia #1 Board)",
+            "target": "https://www.ethiojobs.net/jobs",
             "category": "Local Ethiopian Jobs",
-            "count": reporter_count,
+            "count": ethiojobs_count,
             "status": "online",
-            "mode": "Structured Career-Level Feed",
-            "endpoint": "/api/scrape/curated/reporter",
+            "mode": "Structured Category Crawler",
+            "endpoint": "/api/scrape/curated/ethiojobs",
             "icon": "fa-briefcase",
             "color": "emerald",
-            "desc": "Ethiopia's premier professional job board with Senior, Mid, and Fresh Graduate filtering."
+            "desc": "Ethiopia's premier employment board with categorized tech, finance, and engineering openings."
         },
         {
             "id": "jobs_elelan",
@@ -638,8 +640,32 @@ def scrape_tech_grants():
 
 
 # =============================================================================
-# Curated Multi-Source Scrapers (Reporter, Elelan, RemoteOK, Scholars4Dev, etc.)
+# Curated Multi-Source Scrapers (OHUB Web, Ethiojobs, Elelan, RemoteOK, Scholars4Dev, etc.)
 # =============================================================================
+
+@app.post("/api/scrape/ohub/all")
+def scrape_ohub_all():
+    """Triggers scraping of all 4 categories on opportunities.ohubet.com."""
+    scraper = OHUBWebScraper(db)
+    result = scraper.scrape_all_categories(limit_per_cat=8)
+    return result
+
+
+@app.post("/api/scrape/ohub/{category}")
+def scrape_ohub_category(category: str):
+    """Triggers scraping of a specific category (scholarships, fellowships, internships, jobs) on OHUB."""
+    scraper = OHUBWebScraper(db)
+    result = scraper.scrape_category(category_key=category, limit=12)
+    return result
+
+
+@app.post("/api/scrape/curated/ethiojobs")
+def scrape_curated_ethiojobs():
+    """Triggers scraping of Ethiojobs premier listings."""
+    scraper = LocalJobsScraper(db)
+    result = scraper.scrape_ethiojobs(limit=15)
+    return result
+
 
 @app.post("/api/scrape/curated/reporter")
 def scrape_curated_reporter():

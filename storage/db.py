@@ -1,6 +1,7 @@
 """SQLite database layer for persisting and deduplicating opportunities."""
 
 import json
+import re
 import sqlite3
 from typing import Any, Dict, List, Optional
 from parsers.scholarship_parser import OpportunityItem
@@ -237,8 +238,50 @@ class OpportunityDB:
         academic_level = getattr(item, "academic_level", None) or "All Levels"
         funding_type = getattr(item, "funding_type", None) or "Fully Funded"
 
+        # Multi-level Deduplication:
+        # Check if an entry with the same non-generic apply_url, official_portal, or exact title already exists
+        clean_title = re.sub(r"[^\w\s]", "", item.title.lower()).strip() if item.title else ""
+        apply_url_clean = (item.apply_url or "").strip()
+        is_generic_url = not apply_url_clean or apply_url_clean.rstrip("/").endswith("/opportunities") or len(apply_url_clean) < 15
+
         with self._get_connection() as conn:
             cursor = conn.cursor()
+
+            existing = None
+            if not is_generic_url:
+                existing = cursor.execute(
+                    "SELECT id, official_portal, deadline_date FROM opportunities WHERE apply_url = ?;",
+                    (apply_url_clean,)
+                ).fetchone()
+
+            if not existing and official_portal and len(official_portal) > 15:
+                existing = cursor.execute(
+                    "SELECT id, official_portal, deadline_date FROM opportunities WHERE official_portal = ?;",
+                    (official_portal,)
+                ).fetchone()
+
+            if not existing and clean_title and len(clean_title) > 8:
+                existing = cursor.execute(
+                    "SELECT id, official_portal, deadline_date FROM opportunities WHERE LOWER(TRIM(title)) = ?;",
+                    (item.title.strip().lower(),)
+                ).fetchone()
+
+            if existing:
+                # Merge enriched fields if available
+                existing_id = existing["id"]
+                updates = []
+                u_params = []
+                if official_portal and not existing["official_portal"]:
+                    updates.append("official_portal = ?")
+                    u_params.append(official_portal)
+                if deadline_date and not existing["deadline_date"]:
+                    updates.append("deadline_date = ?")
+                    u_params.append(deadline_date)
+                if updates:
+                    u_params.append(existing_id)
+                    cursor.execute(f"UPDATE opportunities SET {', '.join(updates)} WHERE id = ?;", tuple(u_params))
+                return False  # Already exists, duplicate prevented!
+
             cursor.execute(
                 """
                 INSERT OR IGNORE INTO opportunities (

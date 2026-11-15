@@ -110,21 +110,60 @@
             <span id="badge-count-all" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-500 font-extrabold">0</span>
           </button>
 
-          <button onclick="switchMainTab('scholarships'); switchView('overview')" id="nav-item-scholarships" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all">
-            <div class="flex items-center space-x-2.5">
-              <i class="fa-solid fa-graduation-cap text-sm text-indigo-500 w-4"></i>
-              <span>Scholarships</span>
+          <!-- Scholarships & Fellowships Group (Interactive Subcategories) -->
+          <div class="space-y-0.5">
+            <button onclick="toggleSidebarGroup('scholarships')" id="nav-item-scholarships" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold">
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-graduation-cap text-sm text-indigo-500 w-4"></i>
+                <span>Scholarships</span>
+              </div>
+              <div class="flex items-center space-x-1.5">
+                <span id="badge-count-opps" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
+                <i id="arrow-scholarships" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform"></i>
+              </div>
+            </button>
+            <!-- Subcategories (Indented) -->
+            <div id="subnav-scholarships" class="hidden pl-7 pr-2 py-1 space-y-1">
+              <button onclick="switchSubCategory('scholarships', 'all')" id="subnav-sch-all" class="w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50/60 dark:bg-brand-950/30">
+                <span>All Academic</span>
+              </button>
+              <button onclick="switchSubCategory('scholarships', 'scholarships')" id="subnav-sch-sch" class="w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                <span>&gt;&gt; Scholarships</span>
+              </button>
+              <button onclick="switchSubCategory('scholarships', 'fellowships')" id="subnav-sch-fel" class="w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                <span>&gt;&gt; Fellowships</span>
+              </button>
             </div>
-            <span id="badge-count-opps" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
-          </button>
+          </div>
 
-          <button onclick="switchMainTab('jobs'); switchView('overview')" id="nav-item-jobs" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all">
-            <div class="flex items-center space-x-2.5">
-              <i class="fa-solid fa-briefcase text-sm text-emerald-500 w-4"></i>
-              <span>4-Day Remote Jobs</span>
+          <!-- Jobs & Contracts Group (Interactive Subcategories) -->
+          <div class="space-y-0.5">
+            <button onclick="toggleSidebarGroup('jobs')" id="nav-item-jobs" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold">
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-briefcase text-sm text-emerald-500 w-4"></i>
+                <span>Jobs &amp; Contracts</span>
+              </div>
+              <div class="flex items-center space-x-1.5">
+                <span id="badge-count-jobs" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
+                <i id="arrow-jobs" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform"></i>
+              </div>
+            </button>
+            <!-- Subcategories (Indented) -->
+            <div id="subnav-jobs" class="hidden pl-7 pr-2 py-1 space-y-1">
+              <button onclick="switchSubCategory('jobs', 'all')" id="subnav-job-all" class="w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50/60 dark:bg-brand-950/30">
+                <span>All Work Listings</span>
+              </button>
+              <button onclick="switchSubCategory('jobs', 'jobs')" id="subnav-job-jobs" class="w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                <span>&gt;&gt; Jobs</span>
+              </button>
+              <button onclick="switchSubCategory('jobs', 'internships')" id="subnav-job-intern" class="w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                <span>&gt;&gt; Internships</span>
+              </button>
+              <button onclick="switchSubCategory('jobs', 'fellowships')" id="subnav-job-fellow" class="w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                <span>&gt;&gt; Fellowships</span>
+              </button>
             </div>
-            <span id="badge-count-jobs" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
-          </button>
+          </div>
 
           <button onclick="switchMainTab('grants'); switchView('overview')" id="nav-item-grants" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all">
             <div class="flex items-center space-x-2.5">
@@ -297,7 +336,6 @@
             </div>
           </div>
 
-          <!-- Quick Filters Ribbon -->
           <!-- Quick Filters Ribbon & Granular Taxonomy Selectors -->
           <div class="space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -305,17 +343,26 @@
                 <button onclick="setFilterFlag('all')" id="flt-all" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-colors">
                   All (<span id="count-flt-all">0</span>)
                 </button>
-                <button onclick="setFilterFlag('remote')" id="flt-remote" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                  🌐 Remote Only
-                </button>
-                <button onclick="setFilterFlag('salary')" id="flt-salary" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                  💰 Verified Salary
-                </button>
-                <button onclick="setFilterFlag('worklife')" id="flt-worklife" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                  🌱 High Work-Life (85+)
-                </button>
+                
+                <!-- Job-Specific Quick Filters Group -->
+                <div id="quick-flt-job-group" class="inline-flex flex-wrap items-center gap-2">
+                  <button onclick="setFilterFlag('remote')" id="flt-remote" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                    🌐 Remote Only
+                  </button>
+                  <button onclick="setFilterFlag('salary')" id="flt-salary" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                    💰 Verified Salary
+                  </button>
+                  <button onclick="setFilterFlag('worklife')" id="flt-worklife" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                    🌱 High Work-Life (85+)
+                  </button>
+                </div>
+
+                <!-- Closing Soon & Fully Funded Group -->
                 <button onclick="setFilterFlag('closing')" id="flt-closing" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
-                  ⏰ Closing in 60 Days
+                  ⏰ Deadline &lt; 60 Days
+                </button>
+                <button onclick="setFilterFlag('funded')" id="flt-funded" class="hidden px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                  ✨ 100% Fully Funded
                 </button>
               </div>
 
@@ -324,11 +371,11 @@
 
             <!-- Granular Taxonomy Selectors (Seniority, Vertical, Destination, Academic Degree) -->
             <div class="flex flex-wrap items-center gap-2.5 pt-1 text-xs">
-              <!-- Seniority Selector -->
-              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <!-- Seniority Selector Container -->
+              <div id="filter-seniority-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
                 <i class="fa-solid fa-user-graduate text-sky-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Seniority:</label>
-                <select id="filter-seniority" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                <select id="filter-seniority" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                   <option value="all">All Seniorities</option>
                   <option value="junior">Junior / Fresh Grad</option>
                   <option value="mid">Mid-Level</option>
@@ -336,11 +383,11 @@
                 </select>
               </div>
 
-              <!-- Category / Vertical Selector -->
-              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <!-- Category / Vertical Selector Container -->
+              <div id="filter-category-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
                 <i class="fa-solid fa-layer-group text-purple-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Vertical:</label>
-                <select id="filter-category" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                <select id="filter-category" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                   <option value="all">All Verticals</option>
                   <option value="it">IT & Software</option>
                   <option value="data">Data & AI</option>
@@ -352,11 +399,11 @@
                 </select>
               </div>
 
-              <!-- Country / Destination Selector -->
-              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <!-- Country / Destination Selector Container -->
+              <div id="filter-country-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
                 <i class="fa-solid fa-earth-americas text-emerald-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Destination:</label>
-                <select id="filter-country" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                <select id="filter-country" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                   <option value="all">All Destinations</option>
                   <option value="ethiopia">Ethiopia / Local</option>
                   <option value="usa">USA</option>
@@ -369,11 +416,11 @@
                 </select>
               </div>
 
-              <!-- Academic Degree Level -->
-              <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <!-- Academic Degree Level Container -->
+              <div id="filter-degree-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
                 <i class="fa-solid fa-award text-amber-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Degree:</label>
-                <select id="filter-degree" onchange="renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                <select id="filter-degree" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                   <option value="all">All Degrees</option>
                   <option value="undergraduate">Undergraduate (BSc)</option>
                   <option value="master">Master's (MSc/MA)</option>
@@ -413,6 +460,16 @@
                   <!-- Dynamically injected table rows -->
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- Pagination Control Bar -->
+          <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2 border-t border-slate-200/80 dark:border-dark-border text-xs">
+            <span id="pagination-info" class="text-slate-500 dark:text-slate-400 font-bold">
+              Showing 0 of 0 listings
+            </span>
+            <div id="pagination-buttons" class="flex items-center space-x-1.5">
+              <!-- Dynamically rendered page navigation -->
             </div>
           </div>
 
@@ -900,6 +957,29 @@
     </div>
   </div>
 
+  <!-- Delete Confirmation Modal (Standard Blurred Backdrop) -->
+  <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="bg-white dark:bg-dark-surface rounded-3xl border border-slate-200 dark:border-dark-border shadow-2xl max-w-sm w-full p-6 space-y-4 text-center transform scale-100 transition-all">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shadow-xs">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Remove from Pipeline?</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Are you sure you want to remove <span id="delete-modal-title" class="font-extrabold text-slate-800 dark:text-slate-100">this item</span>? Your tracked stage and notes will be deleted.
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeDeleteConfirmModal()" class="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button id="delete-confirm-btn" onclick="executeConfirmedDelete()" class="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs shadow-md shadow-rose-600/20 transition-all cursor-pointer">
+          Yes, Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ========================================================================= -->
   <!-- 3. JAVASCRIPT LOGIC & REACTIVE STATE                                      -->
   <!-- ========================================================================= -->
@@ -913,9 +993,13 @@
     let currentCopilotDoc = null;
     let currentExtractedResume = null;
     let activeCategory = 'all'; // 'all', 'scholarships', 'jobs', 'grants'
+    let activeSubCategory = 'all'; // 'all', 'scholarships', 'fellowships', 'internships', 'jobs'
     let currentView = 'overview'; // 'overview', 'pipeline', 'scrapers'
     let currentViewMode = 'grid'; // 'grid', 'table'
-    let currentFilterFlag = 'all'; // 'all', 'remote', 'salary', 'worklife', 'closing'
+    let currentFilterFlag = 'all'; // 'all', 'remote', 'salary', 'worklife', 'closing', 'funded'
+    let currentPage = 1;
+    const pageSize = 12;
+    let pendingDeleteId = null;
 
     async function init() {
       // 1. Theme initialization
@@ -988,8 +1072,64 @@
       if (viewName === 'overview') renderActiveView();
     }
 
+    function toggleSidebarGroup(group) {
+      if (group === 'scholarships') {
+        const sub = document.getElementById('subnav-scholarships');
+        const arrow = document.getElementById('arrow-scholarships');
+        const isHidden = sub.classList.toggle('hidden');
+        if (arrow) arrow.classList.toggle('rotate-180', !isHidden);
+        switchMainTab('scholarships');
+      } else if (group === 'jobs') {
+        const sub = document.getElementById('subnav-jobs');
+        const arrow = document.getElementById('arrow-jobs');
+        const isHidden = sub.classList.toggle('hidden');
+        if (arrow) arrow.classList.toggle('rotate-180', !isHidden);
+        switchMainTab('jobs');
+      }
+      switchView('overview');
+    }
+
+    function switchSubCategory(parentCat, sub) {
+      activeCategory = parentCat;
+      activeSubCategory = sub;
+      currentPage = 1;
+
+      // Update Subcategory UI active state
+      if (parentCat === 'scholarships') {
+        ['all', 'scholarships', 'fellowships'].forEach(s => {
+          const id = s === 'all' ? 'subnav-sch-all' : (s === 'scholarships' ? 'subnav-sch-sch' : 'subnav-sch-fel');
+          const el = document.getElementById(id);
+          if (el) {
+            if (s === sub) {
+              el.className = 'w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/40';
+            } else {
+              el.className = 'w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200';
+            }
+          }
+        });
+      } else if (parentCat === 'jobs') {
+        ['all', 'jobs', 'internships', 'fellowships'].forEach(s => {
+          const id = s === 'all' ? 'subnav-job-all' : (s === 'jobs' ? 'subnav-job-jobs' : (s === 'internships' ? 'subnav-job-intern' : 'subnav-job-fellow'));
+          const el = document.getElementById(id);
+          if (el) {
+            if (s === sub) {
+              el.className = 'w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/40';
+            } else {
+              el.className = 'w-full flex items-center justify-between py-1 px-2 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200';
+            }
+          }
+        });
+      }
+
+      switchView('overview');
+      renderActiveView();
+    }
+
     function switchMainTab(category) {
       activeCategory = category;
+      activeSubCategory = 'all';
+      currentPage = 1;
+
       const navItems = ['all', 'scholarships', 'jobs', 'grants'];
       navItems.forEach(n => {
         const el = document.getElementById(`nav-item-${n}`);
@@ -1001,6 +1141,37 @@
           }
         }
       });
+
+      // Context-aware filters visibility
+      const jobGroup = document.getElementById('quick-flt-job-group');
+      const fundedBtn = document.getElementById('flt-funded');
+      const seniorityContainer = document.getElementById('filter-seniority-container');
+      const degreeContainer = document.getElementById('filter-degree-container');
+
+      if (category === 'scholarships') {
+        if (jobGroup) jobGroup.classList.add('hidden');
+        if (fundedBtn) fundedBtn.classList.remove('hidden');
+        if (seniorityContainer) seniorityContainer.classList.add('hidden');
+        if (degreeContainer) degreeContainer.classList.remove('hidden');
+        if (['remote', 'salary', 'worklife'].includes(currentFilterFlag)) {
+          setFilterFlag('all');
+        }
+      } else if (category === 'jobs') {
+        if (jobGroup) jobGroup.classList.remove('hidden');
+        if (fundedBtn) fundedBtn.classList.add('hidden');
+        if (seniorityContainer) seniorityContainer.classList.remove('hidden');
+        if (degreeContainer) degreeContainer.classList.add('hidden');
+        if (currentFilterFlag === 'funded') {
+          setFilterFlag('all');
+        }
+      } else {
+        // all or grants
+        if (jobGroup) jobGroup.classList.remove('hidden');
+        if (fundedBtn) fundedBtn.classList.remove('hidden');
+        if (seniorityContainer) seniorityContainer.classList.remove('hidden');
+        if (degreeContainer) degreeContainer.classList.remove('hidden');
+      }
+
       renderActiveView();
     }
 
@@ -1021,7 +1192,8 @@
 
     function setFilterFlag(flag) {
       currentFilterFlag = flag;
-      const flags = ['all', 'remote', 'salary', 'worklife', 'closing'];
+      currentPage = 1;
+      const flags = ['all', 'remote', 'salary', 'worklife', 'closing', 'funded'];
       flags.forEach(f => {
         const btn = document.getElementById(`flt-${f}`);
         if (btn) {
@@ -1036,10 +1208,12 @@
     }
 
     function handleGlobalSearch() {
+      currentPage = 1;
       renderActiveView();
     }
 
     function handleSortChange() {
+      currentPage = 1;
       renderActiveView();
     }
 
@@ -1053,6 +1227,42 @@
       }
       if (activeCategory === 'all' || activeCategory === 'grants') {
         list = list.concat(allGrants.map(g => ({ ...g, _kind: 'grant' })));
+      }
+
+      // Subcategory filtering
+      if (activeCategory === 'scholarships' && activeSubCategory !== 'all') {
+        if (activeSubCategory === 'scholarships') {
+          list = list.filter(i => {
+            const t = (i.title || '').toLowerCase();
+            const d = (i.academic_level || '').toLowerCase();
+            return !t.includes('fellowship') && !d.includes('fellowship');
+          });
+        } else if (activeSubCategory === 'fellowships') {
+          list = list.filter(i => {
+            const t = (i.title || '').toLowerCase();
+            const d = (i.academic_level || '').toLowerCase();
+            return t.includes('fellowship') || d.includes('fellowship') || t.includes('postdoc') || t.includes('researcher');
+          });
+        }
+      } else if (activeCategory === 'jobs' && activeSubCategory !== 'all') {
+        if (activeSubCategory === 'internships') {
+          list = list.filter(i => {
+            const t = (i.title || '').toLowerCase();
+            const e = (i.experience_level || '').toLowerCase();
+            return t.includes('intern') || e.includes('intern') || t.includes('trainee');
+          });
+        } else if (activeSubCategory === 'fellowships') {
+          list = list.filter(i => {
+            const t = (i.title || '').toLowerCase();
+            const c = (i.category || '').toLowerCase();
+            return t.includes('contract') || t.includes('fellowship') || c.includes('contract') || t.includes('freelance');
+          });
+        } else if (activeSubCategory === 'jobs') {
+          list = list.filter(i => {
+            const t = (i.title || '').toLowerCase();
+            return !t.includes('intern') && !t.includes('fellowship');
+          });
+        }
       }
 
       // 1. Text Search Filter
@@ -1074,7 +1284,20 @@
       } else if (currentFilterFlag === 'worklife') {
         list = list.filter(i => i.work_life_score && Number(i.work_life_score) >= 85);
       } else if (currentFilterFlag === 'closing') {
-        list = list.filter(i => Boolean(i.deadline_date));
+        // Strictly deadline within 0 to 60 days
+        const now = new Date();
+        list = list.filter(i => {
+          if (!i.deadline_date) return false;
+          const d = new Date(i.deadline_date);
+          if (isNaN(d.getTime())) return true;
+          const diffDays = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          return diffDays >= 0 && diffDays <= 60;
+        });
+      } else if (currentFilterFlag === 'funded') {
+        list = list.filter(i => {
+          const text = `${i.funding_amount || ''} ${i.title || ''} ${i.description || ''}`.toLowerCase();
+          return text.includes('full') || text.includes('100%') || text.includes('tuition');
+        });
       }
 
       // 3. Taxonomy Filters (Seniority, Vertical, Destination, Academic Degree)
@@ -1142,20 +1365,109 @@
       return list;
     }
 
+    function changePage(newPage) {
+      currentPage = newPage;
+      renderActiveView();
+      const scrollTarget = document.getElementById('overview-view');
+      if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     function renderActiveView() {
       const items = getFilteredItems();
-      document.getElementById('active-results-indicator').innerText = `Showing ${items.length} opportunities`;
+      const totalItems = items.length;
+      const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      document.getElementById('active-results-indicator').innerText = `Showing ${totalItems} opportunities`;
 
       // Update Spotlight with highest ranked item
-      if (items.length > 0) {
+      if (totalItems > 0) {
         renderSpotlight(items[0]);
       }
 
+      // Slice items for pagination
+      const startIdx = (currentPage - 1) * pageSize;
+      const endIdx = Math.min(startIdx + pageSize, totalItems);
+      const pagedItems = items.slice(startIdx, endIdx);
+
       if (currentViewMode === 'grid') {
-        renderCardsGrid(items);
+        renderCardsGrid(pagedItems);
       } else {
-        renderDenseTable(items);
+        renderDenseTable(pagedItems);
       }
+
+      renderPagination(totalItems, totalPages, startIdx, endIdx);
+    }
+
+    function renderPagination(totalItems, totalPages, startIdx, endIdx) {
+      const info = document.getElementById('pagination-info');
+      const buttons = document.getElementById('pagination-buttons');
+      if (!info || !buttons) return;
+
+      if (totalItems === 0) {
+        info.innerText = 'Showing 0 of 0 listings';
+        buttons.innerHTML = '';
+        return;
+      }
+
+      info.innerText = `Showing ${startIdx + 1}–${endIdx} of ${totalItems} listings`;
+
+      let btnsHtml = '';
+
+      // Prev Button
+      const prevDisabled = currentPage === 1;
+      btnsHtml += `
+        <button onclick="changePage(${currentPage - 1})" ${prevDisabled ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-dark-border text-xs font-bold ${prevDisabled ? 'opacity-40 cursor-not-allowed text-slate-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-hover cursor-pointer'}">
+          <i class="fa-solid fa-chevron-left text-[10px] mr-1"></i> Prev
+        </button>
+      `;
+
+      // Page numbers (smart window)
+      const maxButtons = 5;
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+      }
+
+      if (startPage > 1) {
+        btnsHtml += `
+          <button onclick="changePage(1)" class="w-8 h-8 rounded-xl border border-slate-200 dark:border-dark-border text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-hover cursor-pointer">1</button>
+        `;
+        if (startPage > 2) {
+          btnsHtml += `<span class="px-1 text-slate-400 font-bold">...</span>`;
+        }
+      }
+
+      for (let p = startPage; p <= endPage; p++) {
+        const isActive = p === currentPage;
+        btnsHtml += `
+          <button onclick="changePage(${p})" class="w-8 h-8 rounded-xl font-bold text-xs transition-colors cursor-pointer ${isActive ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs' : 'border border-slate-200 dark:border-dark-border text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-hover'}">
+            ${p}
+          </button>
+        `;
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          btnsHtml += `<span class="px-1 text-slate-400 font-bold">...</span>`;
+        }
+        btnsHtml += `
+          <button onclick="changePage(${totalPages})" class="w-8 h-8 rounded-xl border border-slate-200 dark:border-dark-border text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-hover cursor-pointer">${totalPages}</button>
+        `;
+      }
+
+      // Next Button
+      const nextDisabled = currentPage === totalPages;
+      btnsHtml += `
+        <button onclick="changePage(${currentPage + 1})" ${nextDisabled ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-dark-border text-xs font-bold ${nextDisabled ? 'opacity-40 cursor-not-allowed text-slate-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-hover cursor-pointer'}">
+          Next <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+        </button>
+      `;
+
+      buttons.innerHTML = btnsHtml;
     }
 
     function renderSpotlight(item) {
@@ -1344,11 +1656,15 @@
             return;
           }
 
-          col.innerHTML = items.map(i => `
+          col.innerHTML = items.map(i => {
+            const safeTitle = (i.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `
             <div class="bg-slate-50 dark:bg-dark-card rounded-xl border border-slate-200 dark:border-dark-border p-3 space-y-2 text-xs shadow-xs">
               <div class="flex items-start justify-between gap-1">
                 <h4 class="font-bold text-slate-900 dark:text-white line-clamp-2">${i.title}</h4>
-                <button onclick="deletePipelineItem(${i.id})" class="text-slate-400 hover:text-rose-500 text-[10px]"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="openDeleteModal(${i.id}, '${safeTitle}')" class="text-slate-400 hover:text-rose-500 text-[10px] cursor-pointer" title="Remove Application">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
               </div>
               <p class="text-[10px] text-slate-400">${i.subtitle || i.item_type}</p>
               
@@ -1364,7 +1680,8 @@
                 </a>
               </div>
             </div>
-          `).join('');
+            `;
+          }).join('');
         });
       } catch (err) {
         console.error('Failed to load pipeline:', err);
@@ -1423,15 +1740,35 @@
       }
     }
 
-    async function deletePipelineItem(id) {
-      if (!confirm('Remove item from pipeline?')) return;
+    function openDeleteModal(id, title) {
+      pendingDeleteId = id;
+      const titleEl = document.getElementById('delete-modal-title');
+      if (titleEl) titleEl.innerText = title ? `"${title}"` : 'this item';
+      const modal = document.getElementById('delete-confirm-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeDeleteConfirmModal() {
+      pendingDeleteId = null;
+      const modal = document.getElementById('delete-confirm-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function executeConfirmedDelete() {
+      if (!pendingDeleteId) return;
+      const id = pendingDeleteId;
+      closeDeleteConfirmModal();
       try {
         await fetch(`/api/pipeline/${id}`, { method: 'DELETE' });
-        showToast('Item removed from pipeline');
+        showToast('Application removed from pipeline');
         await renderPipelineBoard();
       } catch (err) {
         alert('Delete error: ' + err);
       }
+    }
+
+    async function deletePipelineItem(id) {
+      openDeleteModal(id, 'this application');
     }
 
     // =========================================================================

@@ -326,6 +326,14 @@ Build a dual **Web Scraper & Telegram Scraper** for:
     - Integrated multi-dimensional dropdowns (`Seniority`, `Vertical`, `Destination`, `Degree`) into the web dashboard header.
     - Added reactive Seniority and Country badges to all card grids and dense table rows.
 
+### Milestone 18: Multi-Stream Subcategories, Context-Aware Filtering, Pagination, OHUB Direct API & Ethiojobs
+- **Multi-Level Deduplication Engine (`storage/db.py`):** Prevents duplicate channel reposts across dates by matching on normalized canonical URLs (`apply_url`, `official_portal`) and normalized titles.
+- **OHUB Web Platform Direct API Integration (`scrapers/ohub_web_scraper.py`):** Interfaces with `https://api.ohubet.com/scholarships?categoryId=...` extracting verified scholarships, fellowships, internships, and jobs with 100% structured data, funding coverage, and direct application portals.
+- **Ethiojobs Integration (`scrapers/local_jobs_scraper.py`):** Directly parses Ethiopia's #1 premier jobs board (`ethiojobs.net`), extracting featured positions with sector, employer, and location metadata.
+- **Context-Aware Filtering (`ui/templates/index.html`):** When viewing Scholarships, hides job-specific filters (Remote Only, Verified Salary, Work-Life) and reveals "100% Fully Funded" and "Deadline < 60 Days" (strictly 0–60 days remaining); when viewing Jobs, reveals seniority and work style filters while hiding degree selectors.
+- **Client-Side Pagination & Subcategory Nav:** 12-item per page responsive pagination with smart windowing and interactive sidebar subcategory accordions (`>> Scholarships`, `>> Fellowships`, `>> Jobs`, `>> Internships`).
+- **Glassmorphic Deletion Modal:** Replaced native browser `confirm()` with a modern blurred-backdrop modal (`#delete-confirm-modal`) for removing pipeline applications.
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)
@@ -403,7 +411,7 @@ Open **`http://127.0.0.1:8000`** in your browser!
 >   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `grants`, `applications`, `user_profiles`, `settings`, and `custom_sources`.
 >   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server.
 >   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA.
-> - **Current Status:** Milestones 1 through 15 fully implemented, validated, and documented.
+> - **Current Status:** Milestones 1 through 18 fully implemented, validated, and documented.
 
 
 

@@ -7,6 +7,7 @@ Implements two-tier scraping with structured data extraction:
 - Strict quality gating (discard malformed or spam listings)
 """
 
+import json
 import logging
 import re
 from typing import Any, Dict, List, Optional
@@ -66,18 +67,17 @@ class LocalJobsScraper:
                 resp = client.get(url)
                 if resp.status_code != 200:
                     logger.warning("Reporter jobs returned HTTP %d", resp.status_code)
-                    return {"success": False, "scraped": 0, "new": 0, "error": f"HTTP {resp.status_code}"}
+                    # Fallback to ethiojobs if reporter jobs is unreachable or blocked
+                    return self.scrape_ethiojobs(limit=limit)
 
                 soup = BeautifulSoup(resp.text, "html.parser")
 
-            # Reporter jobs cards are usually articles or job listing containers
             cards = (
                 soup.find_all("div", class_=lambda c: c and "job-listing" in c)
                 or soup.find_all("article", class_=lambda c: c and "job" in c)
                 or soup.find_all("div", class_=lambda c: c and ("card" in c or "listing" in c or "loop" in c))
             )
 
-            # Fallback to finding all links matching job detail pattern
             if not cards:
                 cards = soup.find_all("a", href=lambda h: h and "/job/" in h)
 
@@ -100,7 +100,6 @@ class LocalJobsScraper:
                 if not title or len(title) < 5 or not detail_url:
                     continue
 
-                # Extract company if available in sub-elements
                 comp_tag = card.find(class_=lambda c: c and ("company" in c or "employer" in c or "author" in c))
                 if comp_tag:
                     company = comp_tag.get_text(strip=True)
@@ -135,7 +134,149 @@ class LocalJobsScraper:
             return {"success": True, "scraped": scraped, "new": new_count, "error": None}
 
         except Exception as e:
-            logger.error("Error scraping Reporter Jobs: %s", e)
+            logger.warning("Error scraping Reporter Jobs (%s), falling back to Ethiojobs...", e)
+            return self.scrape_ethiojobs(limit=limit)
+
+    # =========================================================================
+    # 2. Ethiojobs (Ethiopia's Premier Career Portal)
+    # =========================================================================
+    def scrape_ethiojobs(
+        self,
+        category_url: Optional[str] = None,
+        limit: int = 15,
+    ) -> Dict[str, Any]:
+        """
+        Scrapes Ethiojobs (https://www.ethiojobs.net/jobs).
+        Parses structured title, employer, experience, and deadlines.
+        """
+        url = category_url or "https://www.ethiojobs.net/browse-by-category/information-technology/"
+        source_name = "Ethiojobs"
+        scraped = 0
+        new_count = 0
+
+        try:
+            with httpx.Client(headers=DEFAULT_HEADERS, follow_redirects=True, timeout=20.0) as client:
+                resp = client.get("https://ethiojobs.net/jobs")
+                if resp.status_code != 200:
+                    resp = client.get(url)
+                    if resp.status_code != 200:
+                        return {"success": False, "scraped": 0, "new": 0, "error": f"HTTP {resp.status_code}"}
+
+                # Strategy 1: Check for embedded __NEXT_DATA__ JSON
+                next_match = re.search(r'<script id="__NEXT_DATA__" type="application/json">([^<]+)</script>', resp.text)
+                if next_match:
+                    try:
+                        next_json = json.loads(next_match.group(1))
+                        jobs_val = next_json.get("props", {}).get("pageProps", {}).get("jobs", {})
+                        job_list = jobs_val.get("data", []) if isinstance(jobs_val, dict) else (jobs_val if isinstance(jobs_val, list) else [])
+                        if job_list:
+                            for item in job_list[:limit]:
+                                title = (item.get("title") or "").strip()
+                                if not title or len(title) < 4:
+                                    continue
+                                slug = item.get("slug") or ""
+                                detail_url = f"https://ethiojobs.net/jobs/{slug}" if slug else "https://ethiojobs.net/jobs"
+                                comp_obj = item.get("company")
+                                comp_name = comp_obj.get("name") if isinstance(comp_obj, dict) else "Ethiopian Employer"
+                                state = item.get("state") or "Addis Ababa"
+                                location = f"{state}, Ethiopia"
+                                loc_type = str(item.get("location_type") or "").lower()
+                                is_remote = "remote" in loc_type or "remote" in title.lower()
+
+                                cats = item.get("catalogs") or []
+                                cat_str = cats[0].get("name") if (cats and isinstance(cats[0], dict)) else ""
+                                category = normalize_job_category(title, cat_str)
+                                exp_level = normalize_experience_level(title, cat_str)
+                                job_type = "Full-time"
+
+                                job = JobItem(
+                                    title=title,
+                                    company=comp_name,
+                                    location=location,
+                                    is_remote=is_remote,
+                                    salary="",
+                                    schedule="Full-time",
+                                    work_life_score=75,
+                                    url=detail_url,
+                                    source=source_name,
+                                    experience_level=exp_level,
+                                    category=category,
+                                    job_type=job_type,
+                                )
+                                if self.db.save_job(job):
+                                    new_count += 1
+                                scraped += 1
+
+                            if scraped > 0:
+                                return {"success": True, "scraped": scraped, "new": new_count, "error": None}
+                    except Exception as e:
+                        logger.warning(f"Failed parsing Ethiojobs __NEXT_DATA__: {e}")
+
+                soup = BeautifulSoup(resp.text, "html.parser")
+
+            cards = (
+                soup.find_all("div", class_=lambda c: c and ("listing" in c or "job-item" in c or "single-job" in c))
+                or soup.find_all("div", id=lambda i: i and "job" in i)
+                or soup.find_all("article")
+            )
+
+            if not cards:
+                cards = soup.find_all("a", href=lambda h: h and ("/display-job/" in h or "/jobs/" in h))
+
+            for card in cards[:limit]:
+                title = ""
+                detail_url = ""
+                company = "Ethiopian Employer"
+                location = "Addis Ababa, Ethiopia"
+                card_text = card.get_text(separator=" ", strip=True)
+
+                if card.name == "a":
+                    title = card_text
+                    detail_url = urljoin(url, card.get("href", ""))
+                else:
+                    a_tag = card.find("a", href=lambda h: h and ("/display-job/" in h or "/job/" in h)) or card.find("a", href=True)
+                    if a_tag:
+                        title = a_tag.get_text(strip=True)
+                        detail_url = urljoin(url, a_tag.get("href", ""))
+
+                if not title or len(title) < 5 or not detail_url:
+                    continue
+
+                comp_tag = card.find(class_=lambda c: c and ("company" in c or "employer" in c))
+                if comp_tag:
+                    company = comp_tag.get_text(strip=True)
+
+                loc_tag = card.find(class_=lambda c: c and ("location" in c or "city" in c))
+                if loc_tag:
+                    location = loc_tag.get_text(strip=True)
+
+                exp_level = normalize_experience_level(title, card_text)
+                category = normalize_job_category(title, card_text)
+                job_type = normalize_job_type(title, card_text, is_remote="remote" in location.lower())
+
+                job = JobItem(
+                    title=title,
+                    company=company,
+                    location=location,
+                    is_remote="remote" in location.lower(),
+                    salary=extract_salary(card_text.split()),
+                    schedule=None,
+                    work_life_score=75,
+                    url=detail_url,
+                    source=source_name,
+                    experience_level=exp_level,
+                    category=category,
+                    job_type=job_type,
+                )
+
+                if self.db.save_job(job):
+                    new_count += 1
+                scraped += 1
+
+            return {"success": True, "scraped": scraped, "new": new_count, "error": None}
+
+        except Exception as e:
+            logger.error("Error scraping Ethiojobs: %s", e)
             return {"success": False, "scraped": 0, "new": 0, "error": str(e)}
 
     # =========================================================================
