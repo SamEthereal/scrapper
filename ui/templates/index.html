@@ -53,6 +53,9 @@
     ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.7); }
     
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     .glass-panel {
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -63,10 +66,13 @@
 <body class="h-full bg-slate-50 dark:bg-dark-bg text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
   <div class="flex h-full overflow-hidden">
 
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs hidden transition-opacity lg:hidden" aria-hidden="true"></div>
+
     <!-- ========================================================================= -->
-    <!-- 1. LEFT SIDEBAR NAVIGATION CONTROL RAIL                                    -->
+    <!-- 1. LEFT SIDEBAR NAVIGATION CONTROL RAIL (Responsive Drawer on Mobile)      -->
     <!-- ========================================================================= -->
-    <aside class="w-64 bg-white dark:bg-dark-surface border-r border-slate-200 dark:border-dark-border flex flex-col justify-between shrink-0 z-30 transition-all duration-300">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-dark-surface border-r border-slate-200 dark:border-dark-border flex flex-col justify-between shrink-0 transform -translate-x-full lg:translate-x-0 lg:static lg:w-64 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none">
       
       <!-- Brand & Status -->
       <div class="p-5 space-y-4">
@@ -80,10 +86,15 @@
               <span class="text-[10px] font-semibold text-brand-600 dark:text-brand-500 uppercase tracking-wider">Intelligence OS</span>
             </div>
           </div>
-          <span class="flex h-2 w-2 relative" title="Crawler Radar Active">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
+          <div class="flex items-center space-x-2">
+            <span class="flex h-2 w-2 relative" title="Crawler Radar Active">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <button onclick="toggleMobileSidebar()" class="lg:hidden w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs" aria-label="Close navigation">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
         </div>
 
         <!-- KPI Metrics Capsule -->
@@ -223,58 +234,62 @@
     <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/50 dark:bg-dark-bg">
       
       <!-- Top Workspace Bar: Search, Quick Filters & System Actions -->
-      <header class="h-16 px-6 bg-white dark:bg-dark-surface border-b border-slate-200 dark:border-dark-border flex items-center justify-between gap-4 shrink-0 z-20">
+      <header class="h-16 px-3 sm:px-6 bg-white dark:bg-dark-surface border-b border-slate-200 dark:border-dark-border flex items-center justify-between gap-2.5 sm:gap-4 shrink-0 z-20">
         
-        <!-- Search & Quick Filter Pills -->
-        <div class="flex items-center space-x-3 flex-1 max-w-2xl">
-          <div class="relative w-full max-w-md">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <!-- Mobile Sidebar Hamburger & Search Bar -->
+        <div class="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0 max-w-2xl">
+          <button onclick="toggleMobileSidebar()" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 hover:bg-slate-200 dark:hover:bg-dark-hover transition-colors cursor-pointer" aria-label="Open Navigation">
+            <i class="fa-solid fa-bars text-sm"></i>
+          </button>
+
+          <div class="relative flex-1 min-w-0 max-w-md">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
             <input 
               type="text" 
               id="global-search" 
               oninput="handleGlobalSearch()"
-              placeholder="Search by role, company, skill, or keyword (e.g. Python, Caltech, Remote)..." 
-              class="w-full bg-slate-100 dark:bg-dark-card border border-transparent focus:border-brand-500 dark:focus:border-brand-500 rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none transition-all"
+              placeholder="Search opportunities, roles, skills..." 
+              class="w-full bg-slate-100 dark:bg-dark-card border border-transparent focus:border-brand-500 dark:focus:border-brand-500 rounded-xl pl-8 sm:pl-9 pr-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none transition-all truncate"
             />
           </div>
 
-          <!-- Sort Select -->
-          <select id="sort-selector" onchange="handleSortChange()" class="bg-slate-100 dark:bg-dark-card border border-transparent focus:border-brand-500 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
-            <option value="match">✨ Best Match Score</option>
-            <option value="deadline">⏰ Closing Soonest</option>
+          <!-- Sort Select (Desktop & Tablet) -->
+          <select id="sort-selector" onchange="handleSortChange()" class="hidden sm:block bg-slate-100 dark:bg-dark-card border border-transparent focus:border-brand-500 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer shrink-0">
+            <option value="match">✨ Best Match</option>
+            <option value="deadline">⏰ Closing Soon</option>
             <option value="salary">💰 Salary / Funding</option>
             <option value="newest">⚡ Recently Added</option>
           </select>
         </div>
 
         <!-- Header Actions: View Switcher, Telegram, Dark Mode -->
-        <div class="flex items-center space-x-2.5 shrink-0">
+        <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
           
           <!-- Grid / Table View Mode Toggle -->
           <div class="bg-slate-100 dark:bg-dark-card p-1 rounded-xl flex items-center space-x-1 border border-slate-200/60 dark:border-dark-border">
-            <button onclick="setViewMode('grid')" id="view-mode-grid" class="w-7 h-7 rounded-lg bg-white dark:bg-dark-surface text-brand-600 dark:text-brand-500 shadow-xs flex items-center justify-center text-xs" title="Card Grid View">
+            <button onclick="setViewMode('grid')" id="view-mode-grid" class="w-7 h-7 rounded-lg bg-white dark:bg-dark-surface text-brand-600 dark:text-brand-500 shadow-xs flex items-center justify-center text-xs cursor-pointer" title="Card Grid View">
               <i class="fa-solid fa-grip"></i>
             </button>
-            <button onclick="setViewMode('table')" id="view-mode-table" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center text-xs" title="Dense Table View">
+            <button onclick="setViewMode('table')" id="view-mode-table" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center text-xs cursor-pointer" title="Dense Table View">
               <i class="fa-solid fa-list"></i>
             </button>
           </div>
 
           <!-- Telegram Phone Alerts Capsule -->
-          <button onclick="openTelegramModal()" id="tg-header-btn" class="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200/60 dark:border-dark-border text-xs font-bold transition-all cursor-pointer" title="Manage Telegram Phone Radar">
+          <button onclick="openTelegramModal()" id="tg-header-btn" class="flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200/60 dark:border-dark-border text-xs font-bold transition-all cursor-pointer" title="Manage Telegram Phone Radar">
             <i class="fa-brands fa-telegram text-sky-500 text-sm"></i>
             <span class="hidden md:inline text-slate-700 dark:text-slate-300 text-[11px]">Phone Radar</span>
             <span id="tg-header-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           </button>
 
           <!-- Sync All Scrapers -->
-          <button onclick="triggerSyncAll()" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover border border-slate-200/60 dark:border-dark-border text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer" title="Scrape & Sync All Feeds">
+          <button onclick="triggerSyncAll()" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover border border-slate-200/60 dark:border-dark-border text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer" title="Scrape & Sync All Feeds">
             <i class="fa-solid fa-rotate text-xs"></i>
             <span class="hidden lg:inline text-[11px]">Sync Feeds</span>
           </button>
 
           <!-- Dark / Light Mode Toggle -->
-          <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 transition-transform" title="Toggle Dark/Light Mode">
+          <button onclick="toggleDarkMode()" class="w-8 sm:w-9 h-8 sm:h-9 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 transition-transform cursor-pointer" title="Toggle Dark/Light Mode">
             <i id="theme-icon" class="fa-regular fa-moon text-xs"></i>
           </button>
 
@@ -282,26 +297,26 @@
 
       </header>
 
-      <!-- Scrollable Main Workspace Content -->
-      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+      <!-- Scrollable Main Workspace Content (Responsive Padding) -->
+      <div class="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6">
 
         <!-- ===================================================================== -->
         <!-- VIEW A: OVERVIEW & STREAM VIEW                                        -->
         <!-- ===================================================================== -->
-        <div id="overview-view" class="space-y-6">
+        <div id="overview-view" class="space-y-4 sm:space-y-6">
           
           <!-- Top Executive Spotlight Banner (#1 Matched Recommendation) -->
-          <div id="spotlight-banner" class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-xl border border-indigo-900/40 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div id="spotlight-banner" class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-indigo-900/40 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
             <div class="space-y-2 max-w-2xl">
-              <div class="flex items-center space-x-2">
+              <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-500 text-white">Top AI Match</span>
                 <span id="spotlight-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-200">Featured Opportunity</span>
                 <span id="spotlight-score-pill" class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">98% Fit</span>
               </div>
-              <h2 id="spotlight-title" class="text-xl font-black text-white tracking-tight leading-snug">Caltech SURF 2027 Paid Research Fellowship</h2>
+              <h2 id="spotlight-title" class="text-lg sm:text-xl font-black text-white tracking-tight leading-snug">Caltech SURF 2027 Paid Research Fellowship</h2>
               <p id="spotlight-desc" class="text-xs text-slate-300 leading-relaxed line-clamp-2">Direct university portal offering full funding, faculty mentorship, and cutting-edge laboratory research in Pasadena, California.</p>
               
-              <div class="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-300">
+              <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1 text-xs text-slate-300">
                 <div class="flex items-center space-x-1.5">
                   <i class="fa-solid fa-building text-slate-400 text-xs"></i>
                   <span id="spotlight-org" class="font-bold">California Institute of Technology</span>
@@ -317,62 +332,78 @@
               </div>
             </div>
 
-            <!-- Spotlight Quick Action Buttons -->
-            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0 w-full lg:w-auto">
-              <button onclick="openCopilotForSpotlight()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer">
+            <!-- Spotlight Quick Action Buttons (Grid on Mobile, Row on Desktop) -->
+            <div class="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 shrink-0 w-full lg:w-auto">
+              <button onclick="openCopilotForSpotlight()" class="col-span-2 sm:col-span-1 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer">
                 <i class="fa-solid fa-pen-nib text-xs"></i>
                 <span>1-Click Tailor</span>
               </button>
-              <button onclick="sendCurrentSpotlightToPhone()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer" title="Push alert to your phone via Telegram">
+              <button onclick="sendCurrentSpotlightToPhone()" class="px-3.5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-1.5 transition-all cursor-pointer" title="Push alert to your phone via Telegram">
                 <i class="fa-solid fa-paper-plane text-xs"></i>
-                <span>Push to Phone</span>
+                <span>Push Phone</span>
               </button>
-              <button onclick="saveSpotlightToPipeline()" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all cursor-pointer" title="Save to Application Pipeline">
+              <button onclick="saveSpotlightToPipeline()" class="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer" title="Save to Application Pipeline">
                 <i class="fa-solid fa-bookmark"></i>
+                <span class="sm:hidden">Save</span>
               </button>
-              <a id="spotlight-link" href="#" target="_blank" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all flex items-center justify-center" title="Open Official Application Portal">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <a id="spotlight-link" href="#" target="_blank" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all flex items-center justify-center col-span-2 sm:col-span-1" title="Open Official Application Portal">
+                <i class="fa-solid fa-arrow-up-right-from-square mr-1 sm:mr-0"></i>
+                <span class="sm:hidden">Open Portal</span>
               </a>
             </div>
           </div>
 
           <!-- Quick Filters Ribbon & Granular Taxonomy Selectors -->
-          <div class="space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div class="flex flex-wrap items-center gap-2">
-                <button onclick="setFilterFlag('all')" id="flt-all" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-colors">
+          <div class="space-y-2.5 sm:space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+              <!-- Scrollable Quick Filter Pills on Mobile -->
+              <div class="flex items-center gap-2 overflow-x-auto pb-1 max-w-full sm:flex-wrap text-xs no-scrollbar">
+                <button onclick="setFilterFlag('all')" id="flt-all" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-colors shrink-0">
                   All (<span id="count-flt-all">0</span>)
                 </button>
                 
                 <!-- Job-Specific Quick Filters Group -->
-                <div id="quick-flt-job-group" class="inline-flex flex-wrap items-center gap-2">
-                  <button onclick="setFilterFlag('remote')" id="flt-remote" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                <div id="quick-flt-job-group" class="inline-flex items-center gap-2 shrink-0 sm:shrink sm:flex-wrap">
+                  <button onclick="setFilterFlag('remote')" id="flt-remote" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors whitespace-nowrap">
                     🌐 Remote Only
                   </button>
-                  <button onclick="setFilterFlag('salary')" id="flt-salary" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                  <button onclick="setFilterFlag('salary')" id="flt-salary" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors whitespace-nowrap">
                     💰 Verified Salary
                   </button>
-                  <button onclick="setFilterFlag('worklife')" id="flt-worklife" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                  <button onclick="setFilterFlag('worklife')" id="flt-worklife" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors whitespace-nowrap">
                     🌱 High Work-Life (85+)
                   </button>
                 </div>
 
                 <!-- Closing Soon & Fully Funded Group -->
-                <button onclick="setFilterFlag('closing')" id="flt-closing" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                <button onclick="setFilterFlag('closing')" id="flt-closing" class="px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors whitespace-nowrap shrink-0">
                   ⏰ Deadline &lt; 60 Days
                 </button>
-                <button onclick="setFilterFlag('funded')" id="flt-funded" class="hidden px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors">
+                <button onclick="setFilterFlag('funded')" id="flt-funded" class="hidden px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors whitespace-nowrap shrink-0">
                   ✨ 100% Fully Funded
                 </button>
               </div>
 
-              <span id="active-results-indicator" class="text-slate-400 font-semibold text-xs">Showing 0 matching opportunities</span>
+              <span id="active-results-indicator" class="text-slate-400 font-semibold text-xs whitespace-nowrap">Showing 0 matching opportunities</span>
             </div>
 
-            <!-- Granular Taxonomy Selectors (Seniority, Vertical, Destination, Academic Degree) -->
-            <div class="flex flex-wrap items-center gap-2.5 pt-1 text-xs">
+            <!-- Granular Taxonomy Selectors (Scrollable on small screens, wrap on desktop) -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 max-w-full sm:flex-wrap pt-1 text-xs no-scrollbar">
+              
+              <!-- Mobile Sort Selector -->
+              <div class="sm:hidden flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border shrink-0">
+                <i class="fa-solid fa-arrow-down-wide-short text-brand-500 text-[11px]"></i>
+                <label class="text-[10px] font-extrabold uppercase text-slate-400">Sort:</label>
+                <select id="mobile-sort-selector" onchange="document.getElementById('sort-selector').value = this.value; handleSortChange()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                  <option value="match">Best Match</option>
+                  <option value="deadline">Closing Soon</option>
+                  <option value="salary">Salary/Funding</option>
+                  <option value="newest">Recently Added</option>
+                </select>
+              </div>
+
               <!-- Seniority Selector Container -->
-              <div id="filter-seniority-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <div id="filter-seniority-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border shrink-0">
                 <i class="fa-solid fa-user-graduate text-sky-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Seniority:</label>
                 <select id="filter-seniority" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
@@ -384,7 +415,7 @@
               </div>
 
               <!-- Category / Vertical Selector Container -->
-              <div id="filter-category-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <div id="filter-category-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border shrink-0">
                 <i class="fa-solid fa-layer-group text-purple-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Vertical:</label>
                 <select id="filter-category" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
@@ -400,7 +431,7 @@
               </div>
 
               <!-- Country / Destination Selector Container -->
-              <div id="filter-country-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <div id="filter-country-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border shrink-0">
                 <i class="fa-solid fa-earth-americas text-emerald-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Destination:</label>
                 <select id="filter-country" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
@@ -417,7 +448,7 @@
               </div>
 
               <!-- Academic Degree Level Container -->
-              <div id="filter-degree-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border">
+              <div id="filter-degree-container" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-dark-card px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-dark-border shrink-0">
                 <i class="fa-solid fa-award text-amber-500 text-[11px]"></i>
                 <label class="text-[10px] font-extrabold uppercase text-slate-400">Degree:</label>
                 <select id="filter-degree" onchange="currentPage=1; renderActiveView()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
@@ -430,7 +461,7 @@
               </div>
 
               <!-- Reset Filters -->
-              <button onclick="resetGranularFilters()" class="px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-rose-500 font-bold text-[11px] transition-colors" title="Reset all taxonomy filters">
+              <button onclick="resetGranularFilters()" class="px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-rose-500 font-bold text-[11px] transition-colors shrink-0" title="Reset all taxonomy filters">
                 <i class="fa-solid fa-filter-circle-xmark mr-1"></i> Reset
               </button>
             </div>
@@ -442,9 +473,9 @@
           </div>
 
           <!-- Dense Table View Container (Toggled via view mode) -->
-          <div id="table-view-container" class="hidden bg-white dark:bg-dark-surface rounded-3xl border border-slate-200 dark:border-dark-border overflow-hidden shadow-sm">
+          <div id="table-view-container" class="hidden bg-white dark:bg-dark-surface rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-dark-border overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
+              <table class="w-full text-left text-xs min-w-[680px]">
                 <thead class="bg-slate-100/70 dark:bg-dark-card border-b border-slate-200 dark:border-dark-border text-[11px] font-black uppercase tracking-wider text-slate-400">
                   <tr>
                     <th class="py-3 px-4">Opportunity & Entity</th>
@@ -587,24 +618,24 @@
   <!-- ========================================================================= -->
   <!-- MODAL 1: 1-CLICK APPLICATION COPILOT                                      -->
   <!-- ========================================================================= -->
-  <div id="copilot-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-dark-surface rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+  <div id="copilot-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl sm:rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-2xl w-full p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-dark-border">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-lg font-bold">
+          <div class="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-lg font-bold shrink-0">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
-          <div>
-            <h3 class="text-sm font-black text-slate-900 dark:text-white" id="copilot-modal-title">Application Document Generator</h3>
-            <p class="text-[11px] text-slate-400">Tailored to your candidate background, verified GPA & target requirements</p>
+          <div class="min-w-0">
+            <h3 class="text-sm font-black text-slate-900 dark:text-white truncate" id="copilot-modal-title">Application Document Generator</h3>
+            <p class="text-[11px] text-slate-400 truncate">Tailored to your candidate background, verified GPA & target requirements</p>
           </div>
         </div>
-        <button onclick="closeCopilotModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-dark-card text-slate-500 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+        <button onclick="closeCopilotModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-dark-card text-slate-500 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer shrink-0">
           <i class="fa-solid fa-xmark text-xs"></i>
         </button>
       </div>
 
-      <div class="flex items-center justify-between text-xs">
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
         <div class="flex items-center space-x-2">
           <label class="font-bold text-slate-500">Tone:</label>
           <select id="copilot-tone-select" onchange="regenerateCopilotDoc()" class="bg-slate-100 dark:bg-dark-card border border-transparent rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -617,15 +648,15 @@
       </div>
 
       <div class="relative">
-        <textarea id="copilot-text-area" rows="12" class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-4 text-xs font-mono leading-relaxed text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500"></textarea>
+        <textarea id="copilot-text-area" rows="11" class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-3.5 sm:p-4 text-xs font-mono leading-relaxed text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500"></textarea>
       </div>
 
-      <div class="flex items-center justify-end space-x-2 pt-2">
-        <button onclick="copyCopilotDoc()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center space-x-1.5 transition-colors">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-1">
+        <button onclick="copyCopilotDoc()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center space-x-1.5 transition-colors cursor-pointer">
           <i class="fa-solid fa-copy text-xs"></i>
           <span>Copy to Clipboard</span>
         </button>
-        <button onclick="downloadCopilotDoc()" class="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold text-xs flex items-center space-x-1.5 hover:opacity-90 transition-opacity">
+        <button onclick="downloadCopilotDoc()" class="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold text-xs flex items-center justify-center space-x-1.5 hover:opacity-90 transition-opacity cursor-pointer">
           <i class="fa-solid fa-download text-xs"></i>
           <span>Download .MD</span>
         </button>
@@ -636,8 +667,8 @@
   <!-- ========================================================================= -->
   <!-- MODAL 2: CANDIDATE PROFILE MODAL                                          -->
   <!-- ========================================================================= -->
-  <div id="profile-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-dark-surface rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+  <div id="profile-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl sm:rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-lg w-full p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-dark-border">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-lg font-bold">
@@ -701,8 +732,8 @@
   <!-- ========================================================================= -->
   <!-- MODAL 3: AI RESUME & RECOMMENDATIONS STUDIO                               -->
   <!-- ========================================================================= -->
-  <div id="resume-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-dark-surface rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+  <div id="resume-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl sm:rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-2xl w-full p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-dark-border">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-fuchsia-600 text-white flex items-center justify-center text-lg font-bold">
@@ -842,8 +873,8 @@
   <!-- ========================================================================= -->
   <!-- MODAL 4: TELEGRAM ALERT RADAR                                             -->
   <!-- ========================================================================= -->
-  <div id="telegram-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-dark-surface rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-lg w-full p-6 space-y-4">
+  <div id="telegram-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl sm:rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-lg w-full p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-dark-border">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-lg font-bold">
@@ -894,8 +925,8 @@
   <!-- ========================================================================= -->
   <!-- MODAL 5: UNIVERSAL FEED STUDIO                                            -->
   <!-- ========================================================================= -->
-  <div id="feed-studio-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-dark-surface rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+  <div id="feed-studio-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl sm:rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-xl w-full p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-dark-border">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-fuchsia-600 text-white flex items-center justify-center text-lg font-bold">
@@ -958,8 +989,8 @@
   </div>
 
   <!-- Delete Confirmation Modal (Standard Blurred Backdrop) -->
-  <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-    <div class="bg-white dark:bg-dark-surface rounded-3xl border border-slate-200 dark:border-dark-border shadow-2xl max-w-sm w-full p-6 space-y-4 text-center transform scale-100 transition-all">
+  <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-dark-border shadow-2xl max-w-sm w-full p-4 sm:p-6 space-y-4 text-center transform scale-100 transition-all">
       <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shadow-xs">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
@@ -1061,8 +1092,37 @@
       }
     }
 
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (!sidebar) return;
+      const isClosed = sidebar.classList.contains('-translate-x-full');
+      if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop?.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop?.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
+
+    function dismissMobileSidebarIfOpen() {
+      if (window.innerWidth < 1024) {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+          sidebar.classList.add('-translate-x-full');
+          backdrop?.classList.add('hidden');
+          document.body.classList.remove('overflow-hidden');
+        }
+      }
+    }
+
     function switchView(viewName) {
       currentView = viewName;
+      dismissMobileSidebarIfOpen();
       document.getElementById('overview-view').classList.toggle('hidden', viewName !== 'overview');
       document.getElementById('pipeline-view').classList.toggle('hidden', viewName !== 'pipeline');
       document.getElementById('scrapers-view').classList.toggle('hidden', viewName !== 'scrapers');
@@ -1567,20 +1627,20 @@
             </div>
 
             <!-- Actions Bar -->
-            <div class="pt-3 border-t border-slate-100 dark:border-dark-border flex items-center justify-between gap-2">
-              <div class="flex items-center space-x-1">
-                <button onclick="saveItemToPipeline('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors" title="Save to Application Pipeline">
+            <div class="pt-3 border-t border-slate-100 dark:border-dark-border flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+              <div class="flex items-center space-x-1 shrink-0">
+                <button onclick="saveItemToPipeline('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Save to Application Pipeline">
                   <i class="fa-solid fa-bookmark"></i>
                 </button>
-                <button onclick="sendItemToTelegram('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-sky-50 hover:text-sky-500 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors" title="Push to Telegram Phone">
+                <button onclick="sendItemToTelegram('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-sky-50 hover:text-sky-500 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Push to Telegram Phone">
                   <i class="fa-brands fa-telegram"></i>
                 </button>
-                <a href="${portalUrl}" target="_blank" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors" title="Open Portal">
+                <a href="${portalUrl}" target="_blank" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Open Portal">
                   <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 </a>
               </div>
 
-              <button onclick="openCopilotModal('${item._kind}', ${item.id})" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-[11px] flex items-center justify-center space-x-1.5 hover:opacity-90 transition-opacity">
+              <button onclick="openCopilotModal('${item._kind}', ${item.id})" class="flex-1 min-w-[100px] py-1.5 px-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-[11px] flex items-center justify-center space-x-1.5 hover:opacity-90 transition-opacity cursor-pointer">
                 <i class="fa-solid fa-pen-nib text-[10px]"></i>
                 <span>1-Click Tailor</span>
               </button>
@@ -1891,11 +1951,12 @@
             tone: tone
           })
         });
-        const doc = await res.json();
+        const resData = await res.json();
+        const doc = resData.document || resData;
         currentCopilotDoc = doc;
-        document.getElementById('copilot-modal-title').innerText = doc.title;
+        document.getElementById('copilot-modal-title').innerText = doc.title || 'Tailored Application Document';
         document.getElementById('copilot-meta-match').innerText = `${doc.score || 95}% Fit Alignment`;
-        textarea.value = doc.markdown;
+        textarea.value = doc.markdown || doc.plain_text || 'Document generated successfully.';
       } catch (err) {
         textarea.value = 'Error generating application document: ' + err;
       }

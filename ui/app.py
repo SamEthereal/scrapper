@@ -405,7 +405,14 @@ def generate_application_copilot(req: CopilotGenerateRequest):
         item_type=req.item_type,
         tone=req.tone,
     )
-    return {"success": True, "document": document}
+    return {
+        "success": True,
+        "document": document,
+        "title": document.get("title"),
+        "markdown": document.get("markdown"),
+        "plain_text": document.get("plain_text"),
+        "score": document.get("score"),
+    }
 
 
 @app.get("/api/pipeline")
