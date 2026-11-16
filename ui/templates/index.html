@@ -383,7 +383,7 @@
       <!-- Brand & Status -->
       <div class="p-5 space-y-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchMainTab('all'); switchView('overview')">
+          <div class="flex items-center space-x-2.5 cursor-pointer" onclick="handleBrandClick()">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-fuchsia-600 text-white flex items-center justify-center font-black text-base shadow-sm">
               <i class="fa-solid fa-radar"></i>
             </div>
@@ -407,7 +407,7 @@
         <div class="grid grid-cols-2 gap-2 p-2.5 rounded-2xl bg-slate-100/70 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border text-center">
           <div class="p-1">
             <span id="kpi-total-records" class="text-sm font-black text-slate-900 dark:text-white">0</span>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Indexed</p>
+            <p id="kpi-total-label" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Indexed</p>
           </div>
           <div class="p-1 border-l border-slate-200 dark:border-dark-border">
             <span id="kpi-pipeline-count" class="text-sm font-black text-brand-600 dark:text-brand-500">0</span>
@@ -419,20 +419,20 @@
         <nav class="space-y-1 text-xs font-semibold">
           <p class="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Opportunity Streams</p>
           
-          <button onclick="switchMainTab('all'); switchView('overview')" id="nav-item-all" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-500 font-bold transition-all">
+          <button onclick="handleAllNavClick()" id="nav-item-all" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-500 font-bold transition-all">
             <div class="flex items-center space-x-2.5">
-              <i class="fa-solid fa-layer-group text-sm w-4"></i>
-              <span>All Opportunities</span>
+              <i id="nav-item-all-icon" class="fa-solid fa-layer-group text-sm w-4"></i>
+              <span id="nav-item-all-label">All Opportunities</span>
             </div>
             <span id="badge-count-all" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-500 font-extrabold">0</span>
           </button>
 
           <!-- Scholarships & Fellowships Group (Interactive Subcategories) -->
-          <div class="space-y-0.5">
+          <div id="nav-group-scholarships" class="space-y-0.5">
             <button onclick="toggleSidebarGroup('scholarships')" id="nav-item-scholarships" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold">
               <div class="flex items-center space-x-2.5">
                 <i class="fa-solid fa-graduation-cap text-sm text-indigo-500 w-4"></i>
-                <span>Scholarships</span>
+                <span id="nav-item-scholarships-label">Scholarships</span>
               </div>
               <div class="flex items-center space-x-1.5">
                 <span id="badge-count-opps" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
@@ -454,11 +454,11 @@
           </div>
 
           <!-- Jobs & Contracts Group (Interactive Subcategories) -->
-          <div class="space-y-0.5">
+          <div id="nav-group-jobs" class="space-y-0.5">
             <button onclick="toggleSidebarGroup('jobs')" id="nav-item-jobs" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold">
               <div class="flex items-center space-x-2.5">
                 <i class="fa-solid fa-briefcase text-sm text-emerald-500 w-4"></i>
-                <span>Jobs &amp; Contracts</span>
+                <span id="nav-item-jobs-label">Jobs &amp; Contracts</span>
               </div>
               <div class="flex items-center space-x-1.5">
                 <span id="badge-count-jobs" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
@@ -483,6 +483,12 @@
           </div>
 
           <button onclick="switchMainTab('grants'); switchView('overview')" id="nav-item-grants" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all">
+            <div class="flex items-center space-x-2.5">
+              <i class="fa-solid fa-rocket text-sm text-amber-500 w-4"></i>
+              <span id="nav-item-grants-label">Grants & Capital</span>
+            </div>
+            <span id="badge-count-grants" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
+          </button>
             <div class="flex items-center space-x-2.5">
               <i class="fa-solid fa-rocket text-sm text-amber-500 w-4"></i>
               <span>Grants & Capital</span>
@@ -701,7 +707,7 @@
               <!-- Scrollable Quick Filter Pills on Mobile -->
               <div class="flex items-center gap-2 overflow-x-auto pb-1 max-w-full sm:flex-wrap text-xs no-scrollbar">
                 <button onclick="setFilterFlag('all')" id="flt-all" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-colors shrink-0">
-                  All (<span id="count-flt-all">0</span>)
+                  <span id="flt-all-label">All</span> (<span id="count-flt-all">0</span>)
                 </button>
                 
                 <!-- Job-Specific Quick Filters Group -->
@@ -1606,22 +1612,59 @@
     }
 
     function updateCounters() {
-      const total = allOpportunities.length + allJobs.length + allGrants.length;
-      document.getElementById('kpi-total-records').innerText = total;
-      document.getElementById('kpi-pipeline-count').innerText = pipelineItems.length;
+      let total = 0;
+      if (currentPersona === 'student') {
+        total = allOpportunities.length + allGrants.length;
+        const kpi = document.getElementById('kpi-total-records');
+        if (kpi) kpi.innerText = total;
+        const kLabel = document.getElementById('kpi-total-label');
+        if (kLabel) kLabel.innerText = 'Scholarships';
+        const fltLabel = document.getElementById('count-flt-all');
+        if (fltLabel) fltLabel.innerText = total;
+        const badgeAll = document.getElementById('badge-count-all');
+        if (badgeAll) badgeAll.innerText = total;
+      } else if (currentPersona === 'job_seeker') {
+        total = allJobs.length;
+        const kpi = document.getElementById('kpi-total-records');
+        if (kpi) kpi.innerText = total;
+        const kLabel = document.getElementById('kpi-total-label');
+        if (kLabel) kLabel.innerText = 'Jobs Active';
+        const fltLabel = document.getElementById('count-flt-all');
+        if (fltLabel) fltLabel.innerText = total;
+        const badgeAll = document.getElementById('badge-count-all');
+        if (badgeAll) badgeAll.innerText = total;
+      } else {
+        total = allOpportunities.length + allJobs.length + allGrants.length;
+        const kpi = document.getElementById('kpi-total-records');
+        if (kpi) kpi.innerText = total;
+        const kLabel = document.getElementById('kpi-total-label');
+        if (kLabel) kLabel.innerText = 'Indexed';
+        const fltLabel = document.getElementById('count-flt-all');
+        if (fltLabel) fltLabel.innerText = total;
+        const badgeAll = document.getElementById('badge-count-all');
+        if (badgeAll) badgeAll.innerText = total;
+      }
 
-      document.getElementById('badge-count-all').innerText = total;
-      document.getElementById('badge-count-opps').innerText = allOpportunities.length;
-      document.getElementById('badge-count-jobs').innerText = allJobs.length;
-      document.getElementById('badge-count-grants').innerText = allGrants.length;
-      document.getElementById('badge-count-pipe').innerText = pipelineItems.length;
-      document.getElementById('count-flt-all').innerText = total;
+      const pipeKpi = document.getElementById('kpi-pipeline-count');
+      if (pipeKpi) pipeKpi.innerText = pipelineItems.length;
+
+      const badgeOpps = document.getElementById('badge-count-opps');
+      if (badgeOpps) badgeOpps.innerText = allOpportunities.length;
+      const badgeJobs = document.getElementById('badge-count-jobs');
+      if (badgeJobs) badgeJobs.innerText = allJobs.length;
+      const badgeGrants = document.getElementById('badge-count-grants');
+      if (badgeGrants) badgeGrants.innerText = allGrants.length;
+      const badgePipe = document.getElementById('badge-count-pipe');
+      if (badgePipe) badgePipe.innerText = pipelineItems.length;
 
       if (userProfile && userProfile.full_name) {
-        document.getElementById('user-name-display').innerText = userProfile.full_name.split(' ')[0] || userProfile.full_name;
-        document.getElementById('user-title-display').innerText = userProfile.title || 'Candidate';
+        const nameEl = document.getElementById('user-name-display');
+        if (nameEl) nameEl.innerText = userProfile.full_name.split(' ')[0] || userProfile.full_name;
+        const titleEl = document.getElementById('user-title-display');
+        if (titleEl) titleEl.innerText = userProfile.title || 'Candidate';
         const initials = userProfile.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-        document.getElementById('user-avatar-badge').innerText = initials;
+        const badgeEl = document.getElementById('user-avatar-badge');
+        if (badgeEl) badgeEl.innerText = initials;
       }
     }
 
@@ -1718,7 +1761,27 @@
       renderActiveView();
     }
 
+    function handleBrandClick() {
+      if (currentPersona === 'student') switchMainTab('scholarships');
+      else if (currentPersona === 'job_seeker') switchMainTab('jobs');
+      else switchMainTab('all');
+      switchView('overview');
+    }
+
+    function handleAllNavClick() {
+      if (currentPersona === 'student') switchMainTab('scholarships');
+      else if (currentPersona === 'job_seeker') switchMainTab('jobs');
+      else switchMainTab('all');
+      switchView('overview');
+    }
+
     function switchMainTab(category) {
+      if (currentPersona === 'student' && category === 'jobs') {
+        category = 'scholarships';
+      } else if (currentPersona === 'job_seeker' && category === 'scholarships') {
+        category = 'jobs';
+      }
+
       activeCategory = category;
       activeSubCategory = 'all';
       currentPage = 1;
@@ -1727,7 +1790,9 @@
       navItems.forEach(n => {
         const el = document.getElementById(`nav-item-${n}`);
         if (el) {
-          if (n === category) {
+          const isActive = (n === category) || 
+            (n === 'all' && ((category === 'scholarships' && currentPersona === 'student') || (category === 'jobs' && currentPersona === 'job_seeker')));
+          if (isActive) {
             el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-500 font-bold transition-all';
           } else {
             el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold';
@@ -1741,7 +1806,7 @@
       const seniorityContainer = document.getElementById('filter-seniority-container');
       const degreeContainer = document.getElementById('filter-degree-container');
 
-      if (category === 'scholarships') {
+      if (category === 'scholarships' || currentPersona === 'student') {
         if (jobGroup) jobGroup.classList.add('hidden');
         if (fundedBtn) fundedBtn.classList.remove('hidden');
         if (seniorityContainer) seniorityContainer.classList.add('hidden');
@@ -1749,7 +1814,7 @@
         if (['remote', 'salary', 'worklife'].includes(currentFilterFlag)) {
           setFilterFlag('all');
         }
-      } else if (category === 'jobs') {
+      } else if (category === 'jobs' || currentPersona === 'job_seeker') {
         if (jobGroup) jobGroup.classList.remove('hidden');
         if (fundedBtn) fundedBtn.classList.add('hidden');
         if (seniorityContainer) seniorityContainer.classList.remove('hidden');
@@ -1758,7 +1823,7 @@
           setFilterFlag('all');
         }
       } else {
-        // all or grants
+        // all or grants in Total Package
         if (jobGroup) jobGroup.classList.remove('hidden');
         if (fundedBtn) fundedBtn.classList.remove('hidden');
         if (seniorityContainer) seniorityContainer.classList.remove('hidden');
@@ -1812,14 +1877,33 @@
 
     function getFilteredItems() {
       let list = [];
-      if (activeCategory === 'all' || activeCategory === 'scholarships') {
+      if (currentPersona === 'student') {
+        // STRICT ACADEMIC TRACK: Under NO condition include jobs!
         list = list.concat(allOpportunities.map(o => ({ ...o, _kind: 'opportunity' })));
-      }
-      if (activeCategory === 'all' || activeCategory === 'jobs') {
+        if (activeCategory === 'grants') {
+          list = allGrants.map(g => ({ ...g, _kind: 'grant' }));
+        } else if (activeCategory === 'all') {
+          list = list.concat(allGrants.map(g => ({ ...g, _kind: 'grant' })));
+        }
+      } else if (currentPersona === 'job_seeker') {
+        // STRICT CAREER TRACK: Under NO condition include scholarships!
         list = list.concat(allJobs.map(j => ({ ...j, _kind: 'job' })));
-      }
-      if (activeCategory === 'all' || activeCategory === 'grants') {
-        list = list.concat(allGrants.map(g => ({ ...g, _kind: 'grant' })));
+        if (activeCategory === 'grants') {
+          list = allGrants.map(g => ({ ...g, _kind: 'grant' }));
+        } else if (activeCategory === 'all') {
+          list = list.concat(allGrants.map(g => ({ ...g, _kind: 'grant' })));
+        }
+      } else {
+        // Total Package (all): Both streams accessible
+        if (activeCategory === 'all' || activeCategory === 'scholarships') {
+          list = list.concat(allOpportunities.map(o => ({ ...o, _kind: 'opportunity' })));
+        }
+        if (activeCategory === 'all' || activeCategory === 'jobs') {
+          list = list.concat(allJobs.map(j => ({ ...j, _kind: 'job' })));
+        }
+        if (activeCategory === 'all' || activeCategory === 'grants') {
+          list = list.concat(allGrants.map(g => ({ ...g, _kind: 'grant' })));
+        }
       }
 
       // Subcategory filtering
@@ -2064,6 +2148,15 @@
     }
 
     function renderSpotlight(item) {
+      if (!item) return;
+
+      // Ensure spotlight matches active persona track
+      if (currentPersona === 'student' && item._kind === 'job') {
+        item = allOpportunities[0] || item;
+      } else if (currentPersona === 'job_seeker' && item._kind === 'opportunity') {
+        item = allJobs[0] || item;
+      }
+
       currentSpotlight = item;
       document.getElementById('spotlight-title').innerText = item.title;
       document.getElementById('spotlight-org').innerText = item.company || item.organization || item.channel_name || 'Organization';
@@ -2380,7 +2473,16 @@
       try {
         const res = await fetch('/api/sources');
         const sources = await res.json();
-        grid.innerHTML = sources.map(s => `
+
+        // Filter crawler engines by active persona
+        let visibleSources = sources;
+        if (currentPersona === 'student') {
+          visibleSources = sources.filter(s => s.id === 'ohub_portal' || s.id === 'scholars4dev' || s.id === 'carraadesk' || (s.category && (s.category.toLowerCase().includes('scholarship') || s.category.toLowerCase().includes('fellowship'))));
+        } else if (currentPersona === 'job_seeker') {
+          visibleSources = sources.filter(s => s.id !== 'scholars4dev' && s.id !== 'carraadesk' && (!s.category || !s.category.toLowerCase().includes('scholarship')));
+        }
+
+        grid.innerHTML = visibleSources.map(s => `
           <div class="bg-white dark:bg-dark-surface rounded-2xl border border-slate-200 dark:border-dark-border p-5 space-y-3 flex flex-col justify-between">
             <div class="space-y-2">
               <div class="flex items-center justify-between">
@@ -3013,8 +3115,8 @@
               };
               hideAuthGate();
               updateAuthUI();
-              setPersonaMode(currentUser.persona, false);
               await loadData();
+              setPersonaMode(currentUser.persona, false);
               await loadTelegramStatus();
               await loadResumeStatus();
             } else if (event === 'SIGNED_OUT') {
@@ -3109,8 +3211,8 @@
 
         hideAuthGate();
         updateAuthUI();
-        setPersonaMode(currentUser.persona || 'all', false);
         await loadData();
+        setPersonaMode(currentUser.persona || 'all', false);
         await loadTelegramStatus();
         await loadResumeStatus();
         showToast(`👋 Welcome back, ${currentUser.full_name || 'Member'}!`);
@@ -3174,8 +3276,8 @@
 
         hideAuthGate();
         updateAuthUI();
-        setPersonaMode(persona, false);
         await loadData();
+        setPersonaMode(persona, false);
         await loadTelegramStatus();
         await loadResumeStatus();
         showToast(`🎉 Welcome to ScraperGalore, ${currentUser.full_name}!`);
@@ -3278,8 +3380,8 @@
         closeAuthModal();
         hideAuthGate();
         updateAuthUI();
-        setPersonaMode(currentUser.persona || 'all', false);
         await loadData();
+        setPersonaMode(currentUser.persona || 'all', false);
         await loadTelegramStatus();
         await loadResumeStatus();
         showToast(`👋 Welcome back, ${currentUser.full_name || 'Member'}!`);
@@ -3344,8 +3446,8 @@
         closeAuthModal();
         hideAuthGate();
         updateAuthUI();
-        setPersonaMode(currentUser.persona || persona, false);
         await loadData();
+        setPersonaMode(currentUser.persona || persona, false);
         await loadTelegramStatus();
         await loadResumeStatus();
         showToast(`🎉 Account created! Welcome, ${currentUser.full_name}!`);
@@ -3386,8 +3488,8 @@
             };
             hideAuthGate();
             updateAuthUI();
-            setPersonaMode(currentUser.persona, false);
             await loadData();
+            setPersonaMode(currentUser.persona, false);
             await loadTelegramStatus();
             await loadResumeStatus();
             return;
@@ -3405,8 +3507,8 @@
           currentUser = data.user;
           hideAuthGate();
           updateAuthUI();
-          setPersonaMode(currentUser.persona || 'all', false);
           await loadData();
+          setPersonaMode(currentUser.persona || 'all', false);
           await loadTelegramStatus();
           await loadResumeStatus();
           return;
@@ -3447,7 +3549,7 @@
     async function setPersonaMode(persona, shouldPersist = true) {
       currentPersona = persona;
 
-      // Update Top Persona Buttons
+      // 1. Update Top Persona Buttons
       const btnStudent = document.getElementById('btn-persona-student');
       const btnJobs = document.getElementById('btn-persona-job_seeker');
       const btnAll = document.getElementById('btn-persona-all');
@@ -3458,7 +3560,7 @@
       if (btnJobs) btnJobs.className = persona === 'job_seeker' ? activeClass : inactiveClass;
       if (btnAll) btnAll.className = persona === 'all' ? activeClass : inactiveClass;
 
-      // Update Persona Tag in Sidebar
+      // 2. Update Persona Tag in Sidebar
       const personaTag = document.getElementById('user-persona-tag');
       if (personaTag) {
         if (persona === 'student') personaTag.innerText = '🎓 Student';
@@ -3466,71 +3568,118 @@
         else personaTag.innerText = '🌐 All-in-One';
       }
 
-      // Configure Filters & Tab Visibility based on Persona
+      // 3. Configure Sidebar Navigation Groups & Labels
+      const groupJobs = document.getElementById('nav-group-jobs');
+      const groupSch = document.getElementById('nav-group-scholarships');
+      const navAllLabel = document.getElementById('nav-item-all-label');
+      const navAllIcon = document.getElementById('nav-item-all-icon');
+      const navGrantsLabel = document.getElementById('nav-item-grants-label');
+      const fltAllLabel = document.getElementById('flt-all-label');
+      const kpiLabel = document.getElementById('kpi-total-label');
+      const searchInput = document.getElementById('global-search');
+
+      // 4. Configure Filter Dropdowns & Quick Filter Buttons
       const seniorityBox = document.getElementById('filter-seniority-container');
       const categoryBox = document.getElementById('filter-category-container');
       const countryBox = document.getElementById('filter-country-container');
       const degreeBox = document.getElementById('filter-degree-container');
-      const fltRemote = document.getElementById('flt-remote');
-      const fltSalary = document.getElementById('flt-salary');
-      const fltWlb = document.getElementById('flt-wlb');
+      const jobGroup = document.getElementById('quick-flt-job-group');
       const fltClosing = document.getElementById('flt-closing');
       const fltFunded = document.getElementById('flt-funded');
       const copilotTone = document.getElementById('copilot-tone-select');
 
       if (persona === 'student') {
+        if (groupJobs) groupJobs.classList.add('hidden');
+        if (groupSch) groupSch.classList.remove('hidden');
+
+        if (navAllLabel) navAllLabel.innerText = 'Academic Streams';
+        if (navAllIcon) navAllIcon.className = 'fa-solid fa-graduation-cap text-sm text-indigo-500 w-4';
+        if (navGrantsLabel) navGrantsLabel.innerText = 'Research Grants';
+        if (fltAllLabel) fltAllLabel.innerText = 'All Academic';
+        if (kpiLabel) kpiLabel.innerText = 'Scholarships';
+        if (searchInput) searchInput.placeholder = 'Search scholarships, universities, study fields, degree programs...';
+
         if (seniorityBox) seniorityBox.classList.add('hidden');
         if (categoryBox) categoryBox.classList.add('hidden');
         if (countryBox) countryBox.classList.remove('hidden');
         if (degreeBox) degreeBox.classList.remove('hidden');
-        if (fltRemote) fltRemote.classList.add('hidden');
-        if (fltSalary) fltSalary.classList.add('hidden');
-        if (fltWlb) fltWlb.classList.add('hidden');
+        if (jobGroup) jobGroup.classList.add('hidden');
         if (fltClosing) fltClosing.classList.remove('hidden');
         if (fltFunded) fltFunded.classList.remove('hidden');
         if (copilotTone) copilotTone.value = 'academic';
-        if (activeCategory !== 'scholarships') {
-          switchMainTab('scholarships');
-        }
+
+        activeCategory = 'scholarships';
       } else if (persona === 'job_seeker') {
+        if (groupJobs) groupJobs.classList.remove('hidden');
+        if (groupSch) groupSch.classList.add('hidden');
+
+        if (navAllLabel) navAllLabel.innerText = 'All Career Listings';
+        if (navAllIcon) navAllIcon.className = 'fa-solid fa-briefcase text-sm text-emerald-500 w-4';
+        if (navGrantsLabel) navGrantsLabel.innerText = 'Tech & Project Grants';
+        if (fltAllLabel) fltAllLabel.innerText = 'All Jobs';
+        if (kpiLabel) kpiLabel.innerText = 'Jobs Active';
+        if (searchInput) searchInput.placeholder = 'Search remote jobs, seniorities, engineering roles, tech stacks...';
+
         if (seniorityBox) seniorityBox.classList.remove('hidden');
         if (categoryBox) categoryBox.classList.remove('hidden');
         if (countryBox) countryBox.classList.remove('hidden');
         if (degreeBox) degreeBox.classList.add('hidden');
-        if (fltRemote) fltRemote.classList.remove('hidden');
-        if (fltSalary) fltSalary.classList.remove('hidden');
-        if (fltWlb) fltWlb.classList.remove('hidden');
+        if (jobGroup) jobGroup.classList.remove('hidden');
         if (fltClosing) fltClosing.classList.remove('hidden');
         if (fltFunded) fltFunded.classList.add('hidden');
         if (copilotTone) copilotTone.value = 'professional';
-        if (activeCategory !== 'jobs') {
-          switchMainTab('jobs');
-        }
+
+        activeCategory = 'jobs';
       } else {
-        // All-in-One: restore standard context-aware state based on activeCategory
+        // Total Package (all)
+        if (groupJobs) groupJobs.classList.remove('hidden');
+        if (groupSch) groupSch.classList.remove('hidden');
+
+        if (navAllLabel) navAllLabel.innerText = 'All Opportunities';
+        if (navAllIcon) navAllIcon.className = 'fa-solid fa-layer-group text-sm w-4';
+        if (navGrantsLabel) navGrantsLabel.innerText = 'Grants & Capital';
+        if (fltAllLabel) fltAllLabel.innerText = 'All';
+        if (kpiLabel) kpiLabel.innerText = 'Indexed';
+        if (searchInput) searchInput.placeholder = 'Search opportunities, roles, scholarships, degree programs...';
+
         if (countryBox) countryBox.classList.remove('hidden');
+        if (categoryBox) categoryBox.classList.remove('hidden');
+        if (fltClosing) fltClosing.classList.remove('hidden');
+
         if (activeCategory === 'scholarships') {
           if (degreeBox) degreeBox.classList.remove('hidden');
           if (fltFunded) fltFunded.classList.remove('hidden');
           if (seniorityBox) seniorityBox.classList.add('hidden');
-          if (fltRemote) fltRemote.classList.add('hidden');
-          if (fltSalary) fltSalary.classList.add('hidden');
-          if (fltWlb) fltWlb.classList.add('hidden');
+          if (jobGroup) jobGroup.classList.add('hidden');
         } else if (activeCategory === 'jobs') {
           if (degreeBox) degreeBox.classList.add('hidden');
           if (fltFunded) fltFunded.classList.add('hidden');
           if (seniorityBox) seniorityBox.classList.remove('hidden');
-          if (fltRemote) fltRemote.classList.remove('hidden');
-          if (fltSalary) fltSalary.classList.remove('hidden');
-          if (fltWlb) fltWlb.classList.remove('hidden');
+          if (jobGroup) jobGroup.classList.remove('hidden');
         } else {
           if (degreeBox) degreeBox.classList.remove('hidden');
           if (seniorityBox) seniorityBox.classList.remove('hidden');
-          if (categoryBox) categoryBox.classList.remove('hidden');
-          if (fltClosing) fltClosing.classList.remove('hidden');
+          if (jobGroup) jobGroup.classList.remove('hidden');
           if (fltFunded) fltFunded.classList.remove('hidden');
         }
       }
+
+      // Update Nav button highlighting
+      const navItems = ['all', 'scholarships', 'jobs', 'grants'];
+      navItems.forEach(n => {
+        const el = document.getElementById(`nav-item-${n}`);
+        if (el) {
+          const isActive = (n === activeCategory) || 
+            (n === 'all' && ((activeCategory === 'scholarships' && persona === 'student') || (activeCategory === 'jobs' && persona === 'job_seeker')));
+          if (isActive) {
+            el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-500 font-bold transition-all';
+          } else {
+            el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold';
+          }
+        }
+      });
+
+      updateCounters();
 
       if (shouldPersist && currentUser) {
         try {
