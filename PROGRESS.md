@@ -345,15 +345,36 @@ Build a dual **Web Scraper & Telegram Scraper** for:
 - **Application Copilot Serialization Fix (`ui/app.py` & `ui/templates/index.html`):**
   - Resolved `undefined` display bug by flattening `title`, `markdown`, `plain_text`, and `score` in the `/api/copilot/generate` backend payload and safely unwrapping `const doc = resData.document || resData;` on the client.
 
+### Milestone 20: Phase 1 Self-Hosted Authentication & 3-Persona Workspace Personalization
+- **Backend Auth Architecture (`services/auth.py`, `storage/db.py`, `ui/app.py`):**
+  - Built zero-cost self-hosted authentication using `bcrypt` password hashing (12 rounds) and signed `pyjwt` session tokens.
+  - Implemented secure `HttpOnly; SameSite=Lax` cookie sessions (7-day validity) with Bearer token fallback.
+  - Added `users` table in SQLite with `email`, `hashed_password`, `full_name`, `persona` (`student`, `job_seeker`, `all`), `role`, and timestamps.
+  - Seeded initial admin/demo credentials (`sami.aseffa@gmail.com` / `password123`).
+  - Endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, `PUT /api/auth/persona`.
+- **Frontend Auth Modal & Onboarding Flow (`#auth-modal` in `ui/templates/index.html`):**
+  - Semantic dialog with tabbed Sign In and Create Account forms.
+  - Includes an accessible 3-Persona intent selector group (`🎓 Student`, `💼 Job Seeker`, `🌐 Total Package`) with instant demo sign-in.
+  - Standardized form semantics with explicit labels, `autocomplete`, `autocapitalize="none"`, and submit validation.
+- **Top-Nav 3-Persona Switcher & Dynamic Layout Adaptation:**
+  - Segmented control in the top header (`[ 🎓 Student | 💼 Jobs | 🌐 All-in-One ]`) enabling 1-click persona switching anytime.
+  - *Student Persona*: Focuses on Scholarships & Fellowships, reveals 100% Fully Funded and Degree selectors, hides corporate work-life and 4-day salary metrics, defaults Copilot to Academic SOP.
+  - *Job Seeker Persona*: Focuses on Local Ethiopian & Global 4-Day Remote Jobs, reveals Seniority, Verticals, and Salary filters, hides degree selectors, defaults Copilot to Professional Cover Letter.
+  - *All-in-One*: Restores full unified intelligence streams and all filter options.
+- **Dark Mode Dropdown Option Styling & `<l-grid>` Loader (`ui/templates/index.html`):**
+  - Fixed white-on-white text bug in dark mode native `<select>` dropdowns by enforcing explicit dark surface tokens (`#161f30` background, `#f1f5f9` text) and `color-scheme: dark`.
+  - Replaced spinners with animated `<l-grid size="..." speed="1.5" color="#7c3aed">` across initial feed loads, scrapers hub queries, and AI Copilot document drafting.
+
 ---
 
 ## 4. Architectural Expansion Roadmap (Next Steps)
 
-1. **Milestone 20: AI-Powered Semantic Search & Hybrid Vector Ranking:**
+1. **Phase 2 Auth Expansion (Google & GitHub 1-Click OAuth):**
+   - Integrate Google Identity Services (GIS) / GitHub OAuth for zero-friction sign-in.
+2. **Milestone 21: AI-Powered Semantic Search & Hybrid Vector Ranking:**
    - Integrate vector embeddings for natural-language query matching across listings.
-2. **Milestone 21: User Authentication & Multi-Tenancy:**
-   - Add FastAPI Auth (JWT or OAuth2 / GitHub login).
-   - Per-user preferences: Saved search alerts, starred items in SQLite user table, and resume uploads.
+3. **Milestone 22: PostgreSQL Migration & Background Celery/APScheduler Workers:**
+   - Migrate from SQLite to managed PostgreSQL (e.g. Neon/Supabase) and decouple crawlers from the web request loop.
 
 ---
 
@@ -409,6 +430,7 @@ Open **`http://127.0.0.1:8000`** in your browser!
 > - **Project:** All-in-One Opportunity & Job Intelligence Platform ("ScraperGalore") with Dual Telegram/Web Crawlers, Interactive Bento-Grid SPA, 4-Stage Kanban Application Pipeline, Candidate AI Profile Matcher, 1-Click Application Copilot, Free Telegram Bot Alerts, Universal Feed Studio, and AI Resume & Recommendation Engine.
 > - **Active Tech Stack:** Python 3.10+, `uv`, `httpx`, `beautifulsoup4`, `fastapi`, `uvicorn`, `sqlite3`, `pydantic`, `schedule`, `pypdf`, Tailwind CSS, FontAwesome.
 > - **Architecture & Key Files:**
+>   - [`services/auth.py`](file:///services/auth.py): Zero-cost authentication service with bcrypt password hashing and PyJWT HttpOnly cookie session management.
 >   - [`services/ai_resume.py`](file:///services/ai_resume.py): Zero-cost AI resume parser (Gemini Free API + Offline Heuristic NLP), grade extractor, and dynamic recommendation engine.
 >   - [`services/matcher.py`](file:///services/matcher.py): Multi-dimensional profile matching engine computing fit scores and academic merit bonuses.
 >   - [`services/copilot.py`](file:///services/copilot.py): Tailored cover letter and statement of purpose generator with GPA and project weaving.
@@ -419,10 +441,10 @@ Open **`http://127.0.0.1:8000`** in your browser!
 >   - [`scrapers/grant_scraper.py`](file:///scrapers/grant_scraper.py): Tech Grants & Startup Accelerators indexer ($50k-$2.5M capital programs).
 >   - [`scrapers/universal_scraper.py`](file:///scrapers/universal_scraper.py): Universal Feed Studio engine for custom user-defined RSS feeds, Telegram channels, and webpages.
 >   - [`services/telegram_bot.py`](file:///services/telegram_bot.py): Telegram alert dispatcher linked to `@ScraperGaloreBot`.
->   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `opportunities`, `jobs`, `grants`, `applications`, `user_profiles`, `settings`, and `custom_sources`.
+>   - [`storage/db.py`](file:///storage/db.py): SQLite layer (`opportunities.db`) with `users`, `opportunities`, `jobs`, `grants`, `applications`, `user_profiles`, `settings`, and `custom_sources`.
 >   - [`ui/app.py`](file:///ui/app.py): FastAPI REST API and SPA server.
 >   - [`ui/templates/index.html`](file:///ui/templates/index.html): Responsive Bento-Grid SPA.
-> - **Current Status:** Milestones 1 through 19 fully implemented, validated, and documented.
+> - **Current Status:** Milestones 1 through 20 fully implemented, validated, and documented.
 
 
 

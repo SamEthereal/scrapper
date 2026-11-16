@@ -241,17 +241,32 @@
         </nav>
       </div>
 
-      <!-- User Profile & Footer Capsule -->
-      <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-        <div onclick="openProfileModal()" class="flex items-center space-x-3 p-2 rounded-2xl bg-slate-100/60 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border hover:border-brand-500 transition-colors cursor-pointer" title="Edit Profile & Preferences">
-          <div id="user-avatar-badge" class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
-            SA
+      <!-- User Profile & Auth Footer Capsule -->
+      <div class="p-4 border-t border-slate-200 dark:border-dark-border space-y-2">
+        <!-- Logged In Capsule -->
+        <div id="sidebar-user-capsule" class="flex items-center space-x-2.5 p-2 rounded-2xl bg-slate-100/60 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border">
+          <div onclick="openProfileModal()" class="flex items-center space-x-2.5 flex-1 min-w-0 cursor-pointer" title="Edit Profile & Preferences">
+            <div id="user-avatar-badge" class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+              SA
+            </div>
+            <div class="min-w-0 flex-1 leading-tight">
+              <p id="user-name-display" class="text-xs font-extrabold text-slate-900 dark:text-white truncate">Samuel Aseffa</p>
+              <div class="flex items-center space-x-1">
+                <span id="user-persona-tag" class="text-[9px] uppercase font-black text-brand-600 dark:text-brand-400">All-in-One</span>
+              </div>
+            </div>
           </div>
-          <div class="min-w-0 flex-1 leading-tight">
-            <p id="user-name-display" class="text-xs font-extrabold text-slate-900 dark:text-white truncate">Samuel Aseffa</p>
-            <p id="user-title-display" class="text-[10px] text-slate-400 truncate">Software Engineer</p>
-          </div>
-          <i class="fa-solid fa-gear text-slate-400 text-xs"></i>
+          <button type="button" onclick="handleLogout()" class="w-7 h-7 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Sign Out">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+
+        <!-- Logged Out Prompt -->
+        <div id="sidebar-guest-capsule" class="hidden">
+          <button type="button" onclick="openAuthModal()" class="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-extrabold text-xs shadow-md shadow-brand-500/20 flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
+            <i class="fa-solid fa-user-plus text-xs"></i>
+            <span>Sign In / Register</span>
+          </button>
         </div>
       </div>
 
@@ -291,11 +306,27 @@
           </select>
         </div>
 
-        <!-- Header Actions: View Switcher, Telegram, Dark Mode -->
+        <!-- Header Actions: Persona Switcher, View Switcher, Telegram, Dark Mode, Auth -->
         <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
           
+          <!-- 3-Persona Workspace Switcher -->
+          <div id="persona-switcher-bar" class="flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border text-[11px] font-extrabold shrink-0" role="radiogroup" aria-label="Workspace Persona Filter">
+            <button type="button" onclick="setPersonaMode('student')" id="btn-persona-student" class="px-2 sm:px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer flex items-center space-x-1" title="Student Persona — Scholarships, Fellowships & University Grants">
+              <span>🎓</span>
+              <span class="hidden md:inline">Student</span>
+            </button>
+            <button type="button" onclick="setPersonaMode('job_seeker')" id="btn-persona-job_seeker" class="px-2 sm:px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer flex items-center space-x-1" title="Job Seeker Persona — 4-Day Remote & Local Ethiopian Jobs">
+              <span>💼</span>
+              <span class="hidden md:inline">Jobs</span>
+            </button>
+            <button type="button" onclick="setPersonaMode('all')" id="btn-persona-all" class="px-2 sm:px-2.5 py-1 rounded-lg bg-white dark:bg-dark-surface text-brand-600 dark:text-brand-400 shadow-xs transition-all cursor-pointer flex items-center space-x-1" title="Total Package — All Streams Unlocked">
+              <span>🌐</span>
+              <span class="hidden md:inline">All-in-One</span>
+            </button>
+          </div>
+
           <!-- Grid / Table View Mode Toggle -->
-          <div class="bg-slate-100 dark:bg-dark-card p-1 rounded-xl flex items-center space-x-1 border border-slate-200/60 dark:border-dark-border">
+          <div class="hidden sm:flex bg-slate-100 dark:bg-dark-card p-1 rounded-xl items-center space-x-1 border border-slate-200/60 dark:border-dark-border">
             <button onclick="setViewMode('grid')" id="view-mode-grid" class="w-7 h-7 rounded-lg bg-white dark:bg-dark-surface text-brand-600 dark:text-brand-500 shadow-xs flex items-center justify-center text-xs cursor-pointer" title="Card Grid View">
               <i class="fa-solid fa-grip"></i>
             </button>
@@ -307,19 +338,24 @@
           <!-- Telegram Phone Alerts Capsule -->
           <button onclick="openTelegramModal()" id="tg-header-btn" class="flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200/60 dark:border-dark-border text-xs font-bold transition-all cursor-pointer" title="Manage Telegram Phone Radar">
             <i class="fa-brands fa-telegram text-sky-500 text-sm"></i>
-            <span class="hidden md:inline text-slate-700 dark:text-slate-300 text-[11px]">Phone Radar</span>
+            <span class="hidden lg:inline text-slate-700 dark:text-slate-300 text-[11px]">Phone Radar</span>
             <span id="tg-header-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           </button>
 
           <!-- Sync All Scrapers -->
-          <button onclick="triggerSyncAll()" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover border border-slate-200/60 dark:border-dark-border text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer" title="Scrape & Sync All Feeds">
+          <button onclick="triggerSyncAll()" class="hidden md:flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover border border-slate-200/60 dark:border-dark-border text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer" title="Scrape & Sync All Feeds">
             <i class="fa-solid fa-rotate text-xs"></i>
-            <span class="hidden lg:inline text-[11px]">Sync Feeds</span>
+            <span class="hidden xl:inline text-[11px]">Sync Feeds</span>
           </button>
 
           <!-- Dark / Light Mode Toggle -->
           <button onclick="toggleDarkMode()" class="w-8 sm:w-9 h-8 sm:h-9 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 transition-transform cursor-pointer" title="Toggle Dark/Light Mode">
             <i id="theme-icon" class="fa-regular fa-moon text-xs"></i>
+          </button>
+
+          <!-- Header Login / Join Action -->
+          <button type="button" onclick="openAuthModal()" id="header-auth-btn" class="hidden px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-extrabold text-xs shadow-xs hover:opacity-90 transition-opacity cursor-pointer">
+            Sign In
           </button>
 
         </div>
@@ -645,6 +681,175 @@
   <div id="toast-notification" class="fixed bottom-6 right-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center space-x-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
     <i class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
     <span id="toast-message">Notification</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 0: AUTHENTICATION & 3-PERSONA ONBOARDING                            -->
+  <!-- ========================================================================= -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl sm:rounded-[28px] border border-slate-200 dark:border-dark-border shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-dark-border">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shadow-xs">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <div>
+            <h3 id="auth-modal-title" class="text-sm font-black text-slate-900 dark:text-white">Workspace Access</h3>
+            <p class="text-[11px] text-slate-400">Sign in or register with your personalized persona</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-dark-card text-slate-500 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer" aria-label="Close dialog">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Auth Mode Tabs (Sign In vs Register) -->
+      <div class="flex p-1 bg-slate-100 dark:bg-dark-card rounded-xl text-xs font-bold">
+        <button type="button" id="tab-auth-login" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-lg bg-white dark:bg-dark-surface text-slate-900 dark:text-white shadow-xs transition-all cursor-pointer">
+          Sign In
+        </button>
+        <button type="button" id="tab-auth-register" onclick="switchAuthTab('register')" class="flex-1 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Error / Alert Banner -->
+      <div id="auth-error-banner" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-medium"></div>
+
+      <!-- FORM 1: LOGIN -->
+      <form id="form-auth-login" onsubmit="handleLoginSubmit(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label for="login-email" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+          <input 
+            type="email" 
+            id="login-email" 
+            name="email"
+            autocomplete="email" 
+            autocapitalize="none" 
+            spellcheck="false" 
+            required
+            placeholder="you@example.com" 
+            class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+          >
+        </div>
+
+        <div>
+          <label for="login-password" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+          <input 
+            type="password" 
+            id="login-password" 
+            name="password"
+            autocomplete="current-password" 
+            required
+            placeholder="••••••••" 
+            class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+          >
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-extrabold text-xs shadow-md shadow-brand-500/20 hover:opacity-90 transition-opacity cursor-pointer">
+          Sign In to Workspace
+        </button>
+
+        <div class="pt-2 border-t border-slate-100 dark:border-dark-border">
+          <button type="button" onclick="fillDemoCredentialsAndLogin()" class="w-full py-2 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-700 dark:text-slate-300 font-bold text-[11px] flex items-center justify-center space-x-1.5 transition-colors cursor-pointer">
+            <span>⚡ Quick Demo Sign In (Samuel Aseffa)</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- FORM 2: REGISTER WITH 3 PERSONAS -->
+      <form id="form-auth-register" onsubmit="handleRegisterSubmit(event)" class="hidden space-y-3.5 text-xs">
+        <div>
+          <label for="reg-fullname" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+          <input 
+            type="text" 
+            id="reg-fullname" 
+            name="full_name"
+            autocomplete="name" 
+            required
+            placeholder="e.g. Samuel Aseffa" 
+            class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+          >
+        </div>
+
+        <div>
+          <label for="reg-email" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+          <input 
+            type="email" 
+            id="reg-email" 
+            name="email"
+            autocomplete="email" 
+            autocapitalize="none" 
+            spellcheck="false" 
+            required
+            placeholder="you@example.com" 
+            class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+          >
+        </div>
+
+        <div>
+          <label for="reg-password" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Password (min 6 characters)</label>
+          <input 
+            type="password" 
+            id="reg-password" 
+            name="password"
+            autocomplete="new-password" 
+            minlength="6"
+            required
+            placeholder="••••••••" 
+            class="w-full bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+          >
+        </div>
+
+        <!-- 3-Persona Intent Selector Card Group -->
+        <fieldset class="space-y-2 pt-1">
+          <legend class="font-extrabold text-slate-800 dark:text-slate-200 text-xs mb-1.5">Select Your Primary Goal:</legend>
+          
+          <!-- Card Option 1: Student -->
+          <label class="persona-card flex items-start space-x-3 p-2.5 rounded-xl border border-slate-200 dark:border-dark-border hover:border-brand-500 cursor-pointer transition-colors bg-slate-50/50 dark:bg-dark-card/50">
+            <input type="radio" name="reg-persona" value="student" class="mt-0.5 text-brand-600 focus:ring-brand-500 cursor-pointer">
+            <div class="leading-tight">
+              <span class="font-bold text-slate-900 dark:text-white text-xs flex items-center space-x-1.5">
+                <span>🎓</span>
+                <span>Student / Academic</span>
+              </span>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Scholarships, PhD/Master's grants, fellowships, and university admissions</p>
+            </div>
+          </label>
+
+          <!-- Card Option 2: Job Seeker -->
+          <label class="persona-card flex items-start space-x-3 p-2.5 rounded-xl border border-slate-200 dark:border-dark-border hover:border-brand-500 cursor-pointer transition-colors bg-slate-50/50 dark:bg-dark-card/50">
+            <input type="radio" name="reg-persona" value="job_seeker" class="mt-0.5 text-brand-600 focus:ring-brand-500 cursor-pointer">
+            <div class="leading-tight">
+              <span class="font-bold text-slate-900 dark:text-white text-xs flex items-center space-x-1.5">
+                <span>💼</span>
+                <span>Job Seeker / Professional</span>
+              </span>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Local Ethiopian jobs, global 4-day week vacancies, and remote gigs</p>
+            </div>
+          </label>
+
+          <!-- Card Option 3: Total Package -->
+          <label class="persona-card flex items-start space-x-3 p-2.5 rounded-xl border border-brand-500 bg-brand-50/40 dark:bg-brand-950/20 cursor-pointer transition-colors">
+            <input type="radio" name="reg-persona" value="all" checked class="mt-0.5 text-brand-600 focus:ring-brand-500 cursor-pointer">
+            <div class="leading-tight">
+              <span class="font-bold text-slate-900 dark:text-white text-xs flex items-center space-x-1.5">
+                <span>🌐</span>
+                <span>Total Package (Jobs + Scholarships)</span>
+              </span>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Everything unlocked — full intelligence streams and cross-category radars</p>
+            </div>
+          </label>
+        </fieldset>
+
+        <button type="submit" id="btn-reg-submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-extrabold text-xs shadow-md shadow-brand-500/20 hover:opacity-90 transition-opacity cursor-pointer">
+          Create Account & Personalize Workspace
+        </button>
+      </form>
+
+    </div>
   </div>
 
   <!-- ========================================================================= -->
@@ -1057,6 +1262,8 @@
     let allGrants = [];
     let pipelineItems = [];
     let userProfile = null;
+    let currentUser = null;
+    let currentPersona = 'all'; // 'student', 'job_seeker', 'all'
     let currentSpotlight = null;
     let currentCopilotDoc = null;
     let currentExtractedResume = null;
@@ -1076,6 +1283,7 @@
         document.getElementById('theme-icon').className = 'fa-regular fa-sun text-xs';
       }
 
+      await checkAuthStatus();
       await loadData();
       await loadTelegramStatus();
       await loadResumeStatus();
@@ -2487,6 +2695,295 @@
         renderCustomSources();
         renderScrapersHub();
       } catch (err) { alert('Delete error: ' + err); }
+    }
+
+    // =========================================================================
+    // AUTHENTICATION & 3-PERSONA MANAGEMENT
+    // =========================================================================
+
+    function openAuthModal(defaultTab = 'login') {
+      const modal = document.getElementById('auth-modal');
+      const errBanner = document.getElementById('auth-error-banner');
+      if (errBanner) errBanner.classList.add('hidden');
+      switchAuthTab(defaultTab);
+      modal.classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+
+    function switchAuthTab(tab) {
+      const tabLogin = document.getElementById('tab-auth-login');
+      const tabReg = document.getElementById('tab-auth-register');
+      const formLogin = document.getElementById('form-auth-login');
+      const formReg = document.getElementById('form-auth-register');
+      const errBanner = document.getElementById('auth-error-banner');
+      if (errBanner) errBanner.classList.add('hidden');
+
+      if (tab === 'login') {
+        tabLogin.className = 'flex-1 py-1.5 rounded-lg bg-white dark:bg-dark-surface text-slate-900 dark:text-white shadow-xs transition-all cursor-pointer';
+        tabReg.className = 'flex-1 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+        formLogin.classList.remove('hidden');
+        formReg.classList.add('hidden');
+      } else {
+        tabReg.className = 'flex-1 py-1.5 rounded-lg bg-white dark:bg-dark-surface text-slate-900 dark:text-white shadow-xs transition-all cursor-pointer';
+        tabLogin.className = 'flex-1 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+        formReg.classList.remove('hidden');
+        formLogin.classList.add('hidden');
+      }
+    }
+
+    function fillDemoCredentialsAndLogin() {
+      document.getElementById('login-email').value = 'sami.aseffa@gmail.com';
+      document.getElementById('login-password').value = 'password123';
+      document.getElementById('btn-login-submit').click();
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const errBanner = document.getElementById('auth-error-banner');
+      const submitBtn = document.getElementById('btn-login-submit');
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Verifying credentials...';
+      errBanner.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          errBanner.innerText = data.detail || data.error || 'Failed to authenticate.';
+          errBanner.classList.remove('hidden');
+          return;
+        }
+
+        currentUser = data.user;
+        closeAuthModal();
+        updateAuthUI();
+        setPersonaMode(currentUser.persona || 'all', false);
+        showToast(`👋 Welcome back, ${currentUser.full_name || 'Member'}!`);
+      } catch (err) {
+        errBanner.innerText = 'Network connection error: ' + err;
+        errBanner.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Sign In to Workspace';
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const errBanner = document.getElementById('auth-error-banner');
+      const submitBtn = document.getElementById('btn-reg-submit');
+      const full_name = document.getElementById('reg-fullname').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const personaRadios = document.getElementsByName('reg-persona');
+      let persona = 'all';
+      for (const r of personaRadios) {
+        if (r.checked) {
+          persona = r.value;
+          break;
+        }
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Creating personalized account...';
+      errBanner.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name, email, password, persona })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          errBanner.innerText = data.detail || data.error || 'Registration failed.';
+          errBanner.classList.remove('hidden');
+          return;
+        }
+
+        currentUser = data.user;
+        closeAuthModal();
+        updateAuthUI();
+        setPersonaMode(currentUser.persona || persona, false);
+        showToast(`🎉 Account created! Welcome, ${currentUser.full_name}!`);
+      } catch (err) {
+        errBanner.innerText = 'Network error during registration: ' + err;
+        errBanner.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Create Account & Personalize Workspace';
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
+      currentUser = null;
+      updateAuthUI();
+      setPersonaMode('all', false);
+      showToast('🔒 Logged out of workspace.');
+    }
+
+    async function checkAuthStatus() {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          currentUser = data.user;
+          updateAuthUI();
+          setPersonaMode(currentUser.persona || 'all', false);
+        } else {
+          currentUser = null;
+          updateAuthUI();
+          setPersonaMode('all', false);
+        }
+      } catch (err) {
+        console.error('Failed to verify session:', err);
+        currentUser = null;
+        updateAuthUI();
+      }
+    }
+
+    function updateAuthUI() {
+      const userCapsule = document.getElementById('sidebar-user-capsule');
+      const guestCapsule = document.getElementById('sidebar-guest-capsule');
+      const headerAuthBtn = document.getElementById('header-auth-btn');
+
+      if (currentUser) {
+        if (userCapsule) userCapsule.classList.remove('hidden');
+        if (guestCapsule) guestCapsule.classList.add('hidden');
+        if (headerAuthBtn) headerAuthBtn.classList.add('hidden');
+
+        const nameEl = document.getElementById('user-name-display');
+        const badgeEl = document.getElementById('user-avatar-badge');
+        if (nameEl) nameEl.innerText = currentUser.full_name || 'Member';
+        if (badgeEl) {
+          const initials = (currentUser.full_name || 'Member').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+          badgeEl.innerText = initials;
+        }
+      } else {
+        if (userCapsule) userCapsule.classList.add('hidden');
+        if (guestCapsule) guestCapsule.classList.remove('hidden');
+        if (headerAuthBtn) headerAuthBtn.classList.remove('hidden');
+      }
+    }
+
+    async function setPersonaMode(persona, shouldPersist = true) {
+      currentPersona = persona;
+
+      // Update Top Persona Buttons
+      const btnStudent = document.getElementById('btn-persona-student');
+      const btnJobs = document.getElementById('btn-persona-job_seeker');
+      const btnAll = document.getElementById('btn-persona-all');
+      const inactiveClass = 'px-2 sm:px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer flex items-center space-x-1';
+      const activeClass = 'px-2 sm:px-2.5 py-1 rounded-lg bg-white dark:bg-dark-surface text-brand-600 dark:text-brand-400 shadow-xs transition-all cursor-pointer flex items-center space-x-1';
+
+      if (btnStudent) btnStudent.className = persona === 'student' ? activeClass : inactiveClass;
+      if (btnJobs) btnJobs.className = persona === 'job_seeker' ? activeClass : inactiveClass;
+      if (btnAll) btnAll.className = persona === 'all' ? activeClass : inactiveClass;
+
+      // Update Persona Tag in Sidebar
+      const personaTag = document.getElementById('user-persona-tag');
+      if (personaTag) {
+        if (persona === 'student') personaTag.innerText = '🎓 Student';
+        else if (persona === 'job_seeker') personaTag.innerText = '💼 Job Seeker';
+        else personaTag.innerText = '🌐 All-in-One';
+      }
+
+      // Configure Filters & Tab Visibility based on Persona
+      const seniorityBox = document.getElementById('filter-seniority-container');
+      const categoryBox = document.getElementById('filter-category-container');
+      const countryBox = document.getElementById('filter-country-container');
+      const degreeBox = document.getElementById('filter-degree-container');
+      const fltRemote = document.getElementById('flt-remote');
+      const fltSalary = document.getElementById('flt-salary');
+      const fltWlb = document.getElementById('flt-wlb');
+      const fltClosing = document.getElementById('flt-closing');
+      const fltFunded = document.getElementById('flt-funded');
+      const copilotTone = document.getElementById('copilot-tone-select');
+
+      if (persona === 'student') {
+        if (seniorityBox) seniorityBox.classList.add('hidden');
+        if (categoryBox) categoryBox.classList.add('hidden');
+        if (countryBox) countryBox.classList.remove('hidden');
+        if (degreeBox) degreeBox.classList.remove('hidden');
+        if (fltRemote) fltRemote.classList.add('hidden');
+        if (fltSalary) fltSalary.classList.add('hidden');
+        if (fltWlb) fltWlb.classList.add('hidden');
+        if (fltClosing) fltClosing.classList.remove('hidden');
+        if (fltFunded) fltFunded.classList.remove('hidden');
+        if (copilotTone) copilotTone.value = 'academic';
+        if (activeCategory !== 'scholarships') {
+          switchMainTab('scholarships');
+        }
+      } else if (persona === 'job_seeker') {
+        if (seniorityBox) seniorityBox.classList.remove('hidden');
+        if (categoryBox) categoryBox.classList.remove('hidden');
+        if (countryBox) countryBox.classList.remove('hidden');
+        if (degreeBox) degreeBox.classList.add('hidden');
+        if (fltRemote) fltRemote.classList.remove('hidden');
+        if (fltSalary) fltSalary.classList.remove('hidden');
+        if (fltWlb) fltWlb.classList.remove('hidden');
+        if (fltClosing) fltClosing.classList.remove('hidden');
+        if (fltFunded) fltFunded.classList.add('hidden');
+        if (copilotTone) copilotTone.value = 'professional';
+        if (activeCategory !== 'jobs') {
+          switchMainTab('jobs');
+        }
+      } else {
+        // All-in-One: restore standard context-aware state based on activeCategory
+        if (countryBox) countryBox.classList.remove('hidden');
+        if (activeCategory === 'scholarships') {
+          if (degreeBox) degreeBox.classList.remove('hidden');
+          if (fltFunded) fltFunded.classList.remove('hidden');
+          if (seniorityBox) seniorityBox.classList.add('hidden');
+          if (fltRemote) fltRemote.classList.add('hidden');
+          if (fltSalary) fltSalary.classList.add('hidden');
+          if (fltWlb) fltWlb.classList.add('hidden');
+        } else if (activeCategory === 'jobs') {
+          if (degreeBox) degreeBox.classList.add('hidden');
+          if (fltFunded) fltFunded.classList.add('hidden');
+          if (seniorityBox) seniorityBox.classList.remove('hidden');
+          if (fltRemote) fltRemote.classList.remove('hidden');
+          if (fltSalary) fltSalary.classList.remove('hidden');
+          if (fltWlb) fltWlb.classList.remove('hidden');
+        } else {
+          if (degreeBox) degreeBox.classList.remove('hidden');
+          if (seniorityBox) seniorityBox.classList.remove('hidden');
+          if (categoryBox) categoryBox.classList.remove('hidden');
+          if (fltClosing) fltClosing.classList.remove('hidden');
+          if (fltFunded) fltFunded.classList.remove('hidden');
+        }
+      }
+
+      if (shouldPersist && currentUser) {
+        try {
+          await fetch('/api/auth/persona', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ persona })
+          });
+          showToast(`🎯 Workspace tailored to ${persona === 'student' ? 'Scholarships & Academic' : (persona === 'job_seeker' ? 'Jobs & Career' : 'All-in-One')} mode`);
+        } catch (err) {
+          console.error('Failed to persist persona:', err);
+        }
+      }
+
+      currentPage = 1;
+      renderActiveView();
     }
 
     // Toast helper

@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-from fastapi import FastAPI, HTTPException, Query, Response, UploadFile, File
+from fastapi import FastAPI, HTTPException, Query, Response, UploadFile, File, Request, status
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -22,6 +22,14 @@ from services.matcher import ProfileMatcher
 from services.copilot import ApplicationCopilot
 from services.telegram_bot import TelegramAlertDispatcher
 from services.ai_resume import AIResumeService
+from services.auth import (
+    COOKIE_NAME,
+    hash_password,
+    verify_password,
+    create_access_token,
+    decode_access_token,
+    extract_token_from_request,
+)
 
 
 class PipelineItemCreate(BaseModel):
@@ -84,6 +92,23 @@ class ResumeApplyRequest(BaseModel):
 class GeminiKeyRequest(BaseModel):
     api_key: str
 
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    persona: str = "all"  # 'student', 'job_seeker', 'all'
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class PersonaUpdateRequest(BaseModel):
+    persona: str
+
+
 app = FastAPI(
     title="Opportunity & Job Scraper API",
     description="REST API and Interactive Web Dashboard for Scholarships and 4-Day Remote Jobs",
@@ -110,6 +135,164 @@ def get_stats():
         "grants_count": db.count_grants(),
         "pipeline_count": len(db.get_pipeline()),
     }
+
+
+# =========================================================================
+# Phase 1: Authentication & 3-Persona Management Endpoints
+# =========================================================================
+
+@app.post("/api/auth/register")
+def register_user(req: RegisterRequest, response: Response):
+    """Registers a new user and issues a secure HttpOnly JWT session cookie."""
+    email = req.email.strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="A valid email address is required")
+    if len(req.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
+    if not req.full_name.strip():
+        raise HTTPException(status_code=400, detail="Full name is required")
+
+    valid_personas = {"student", "job_seeker", "all"}
+    persona = req.persona if req.persona in valid_personas else "all"
+
+    existing = db.get_user_by_email(email)
+    if existing:
+        raise HTTPException(status_code=400, detail="An account with this email already exists")
+
+    hashed = hash_password(req.password)
+    user = db.create_user(
+        email=email,
+        hashed_password=hashed,
+        full_name=req.full_name,
+        persona=persona,
+    )
+
+    token = create_access_token({
+        "sub": str(user["id"]),
+        "email": user["email"],
+        "persona": user["persona"],
+    })
+
+    # Set secure HttpOnly session cookie (7-day validity)
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=7 * 24 * 3600,
+        secure=False,
+    )
+
+    return {
+        "success": True,
+        "user": user,
+        "token": token,
+        "message": "Account created successfully",
+    }
+
+
+@app.post("/api/auth/login")
+def login_user(req: LoginRequest, response: Response):
+    """Authenticates user credentials and issues an HttpOnly session cookie."""
+    email = req.email.strip().lower()
+    user = db.get_user_by_email(email)
+    if not user or not verify_password(req.password, user.get("hashed_password", "")):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    db.update_user_last_login(user["id"])
+
+    user_clean = {
+        "id": user["id"],
+        "email": user["email"],
+        "full_name": user["full_name"],
+        "persona": user["persona"],
+        "role": user["role"],
+        "created_at": user.get("created_at"),
+    }
+
+    token = create_access_token({
+        "sub": str(user["id"]),
+        "email": user["email"],
+        "persona": user["persona"],
+    })
+
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=7 * 24 * 3600,
+        secure=False,
+    )
+
+    return {
+        "success": True,
+        "user": user_clean,
+        "token": token,
+        "message": "Signed in successfully",
+    }
+
+
+@app.post("/api/auth/logout")
+def logout_user(response: Response):
+    """Clears the authentication session cookie."""
+    response.delete_cookie(key=COOKIE_NAME, httponly=True, samesite="lax")
+    return {"success": True, "message": "Logged out successfully"}
+
+
+@app.get("/api/auth/me")
+def get_current_user(request: Request):
+    """Returns the authenticated user info or unauthenticated status."""
+    token = extract_token_from_request(request)
+    if not token:
+        return {"authenticated": False, "user": None}
+
+    payload = decode_access_token(token)
+    if not payload or "sub" not in payload:
+        return {"authenticated": False, "user": None}
+
+    try:
+        user_id = int(payload["sub"])
+        user = db.get_user_by_id(user_id)
+        if not user:
+            return {"authenticated": False, "user": None}
+        return {"authenticated": True, "user": user}
+    except Exception:
+        return {"authenticated": False, "user": None}
+
+
+@app.put("/api/auth/persona")
+def update_persona(req: PersonaUpdateRequest, request: Request, response: Response):
+    """Updates user persona preference and re-issues an updated JWT cookie."""
+    valid_personas = {"student", "job_seeker", "all"}
+    if req.persona not in valid_personas:
+        raise HTTPException(status_code=400, detail="Invalid persona choice")
+
+    token = extract_token_from_request(request)
+    user = None
+    if token:
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            user = db.get_user_by_id(int(payload["sub"]))
+
+    if user:
+        db.update_user_persona(user["id"], req.persona)
+        user["persona"] = req.persona
+        new_token = create_access_token({
+            "sub": str(user["id"]),
+            "email": user["email"],
+            "persona": req.persona,
+        })
+        response.set_cookie(
+            key=COOKIE_NAME,
+            value=new_token,
+            httponly=True,
+            samesite="lax",
+            max_age=7 * 24 * 3600,
+            secure=False,
+        )
+
+    return {"success": True, "persona": req.persona}
 
 
 @app.get("/api/sources")

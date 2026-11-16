@@ -221,6 +221,35 @@ class OpportunityDB:
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_csources_url ON custom_sources(url);")
 
+            # Create users table for Phase 1 Authentication & 3-Persona Model
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT NOT NULL UNIQUE,
+                    hashed_password TEXT NOT NULL,
+                    full_name TEXT NOT NULL,
+                    persona TEXT NOT NULL DEFAULT 'all',
+                    role TEXT NOT NULL DEFAULT 'user',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
+
+            # Seed demo user if no users exist
+            user_cnt = conn.execute("SELECT COUNT(*) FROM users;").fetchone()
+            if user_cnt and user_cnt[0] == 0:
+                demo_hash = "$2b$12$5xGdOR9PDlpczbM/O7Qwru8ns1RO30Wo155jRaC/DPj6BFWPmTEla"
+                conn.execute(
+                    """
+                    INSERT INTO users (email, hashed_password, full_name, persona, role)
+                    VALUES ('sami.aseffa@gmail.com', ?, 'Samuel Aseffa', 'all', 'admin');
+                    """,
+                    (demo_hash,),
+                )
+
     def save_opportunity(
         self,
         item: OpportunityItem,
@@ -1025,3 +1054,78 @@ class OpportunityDB:
                 (items_count, source_id),
             )
             conn.commit()
+
+    # =========================================================================
+    # Phase 1: Authentication & User Accounts (3-Persona Model)
+    # =========================================================================
+
+    def create_user(
+        self,
+        email: str,
+        hashed_password: str,
+        full_name: str,
+        persona: str = "all",
+        role: str = "user",
+    ) -> Dict[str, Any]:
+        """Creates a new user record. Returns dictionary representation of the user."""
+        email_clean = email.strip().lower()
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO users (email, hashed_password, full_name, persona, role)
+                VALUES (?, ?, ?, ?, ?);
+                """,
+                (email_clean, hashed_password, full_name.strip(), persona, role),
+            )
+            user_id = cursor.lastrowid
+            conn.commit()
+            row = conn.execute("SELECT * FROM users WHERE id = ?;", (user_id,)).fetchone()
+            user_dict = dict(row)
+            user_dict.pop("hashed_password", None)
+            return user_dict
+
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Retrieves a user by email address, including hashed_password for validation."""
+        if not email:
+            return None
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM users WHERE email = ?;",
+                (email.strip().lower(),),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """Retrieves a user by ID without returning hashed_password."""
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT id, email, full_name, persona, role, created_at, last_login FROM users WHERE id = ?;",
+                (user_id,),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def update_user_persona(self, user_id: int, persona: str) -> bool:
+        """Updates the user's active persona preference ('student', 'job_seeker', 'all')."""
+        valid_personas = {"student", "job_seeker", "all"}
+        if persona not in valid_personas:
+            return False
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET persona = ? WHERE id = ?;",
+                (persona, user_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def update_user_last_login(self, user_id: int) -> bool:
+        """Updates the last_login timestamp for a user."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?;",
+                (user_id,),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
