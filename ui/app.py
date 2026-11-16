@@ -1,11 +1,15 @@
 """FastAPI web application and REST API for Opportunity & Job Scraper."""
 
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Response, UploadFile, File, Request, status
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+
+load_dotenv()
 
 from scrapers.job_scraper import JobScraper
 from scrapers.telegram_scraper import TelegramScraper
@@ -138,8 +142,20 @@ def get_stats():
 
 
 # =========================================================================
-# Phase 1: Authentication & 3-Persona Management Endpoints
+# Phase 1 & Option A: Authentication, Supabase Config & 3-Persona Management
 # =========================================================================
+
+@app.get("/api/auth/config")
+def get_auth_config():
+    """Returns frontend authentication configuration (Supabase public credentials)."""
+    supabase_url = os.getenv("SUPABASE_URL", "").strip()
+    supabase_key = os.getenv("SUPABASE_ANON_KEY", "").strip()
+    return {
+        "supabase_url": supabase_url,
+        "supabase_anon_key": supabase_key,
+        "has_supabase": bool(supabase_url and supabase_key),
+    }
+
 
 @app.post("/api/auth/register")
 def register_user(req: RegisterRequest, response: Response):

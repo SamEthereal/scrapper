@@ -13,6 +13,7 @@ dependencies = [
     "pydantic>=2.14.1",
     "pyjwt>=2.15.1",
     "pypdf>=7.0.1",
+    "python-dotenv>=1.2.4",
     "python-multipart>=0.0.32",
     "rich>=15.0.0",
     "schedule>=1.2.2",
