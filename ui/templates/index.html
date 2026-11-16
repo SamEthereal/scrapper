@@ -929,29 +929,171 @@
         <!-- VIEW C: SCRAPERS CONTROL HUB                                          -->
         <!-- ===================================================================== -->
         <div id="scrapers-view" class="hidden space-y-6">
-          <div class="flex items-center justify-between">
+          
+          <!-- Top Title Bar -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 class="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
-                <span>Multi-Vertical Scraping Engines</span>
-                <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Live Radar</span>
+                <span>Autonomous Sweeper & Radar Station</span>
+                <span id="radar-live-pill" class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Autonomous Active</span>
+                </span>
               </h2>
-              <p class="text-xs text-slate-400">Monitor active crawler engines, check response latencies, and trigger on-demand syncs</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Background crawler sweeps all 11 feeds hands-free and dispatches instant phone radar alerts via Telegram.</p>
             </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="openFeedStudio()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-fuchsia-600 text-white font-extrabold text-xs shadow-sm flex items-center space-x-2 hover:opacity-90 transition-opacity cursor-pointer">
-                <i class="fa-solid fa-satellite-dish text-xs"></i>
-                <span>Universal Feed Studio</span>
+            <div class="flex items-center flex-wrap gap-2">
+              <button onclick="triggerAutonomousCrawlNow()" id="btn-radar-scan-now" class="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-extrabold text-xs shadow-md shadow-brand-500/20 flex items-center space-x-2 hover:opacity-95 transition-all cursor-pointer">
+                <i id="btn-radar-scan-icon" class="fa-solid fa-radar text-xs"></i>
+                <span id="btn-radar-scan-text">Run Radar Scan Now</span>
               </button>
-              <button onclick="switchView('overview')" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-dark-hover transition-colors">
-                ← Back to Stream
+              <button onclick="toggleScheduler()" id="btn-toggle-scheduler" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-dark-card text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-dark-hover transition-colors cursor-pointer flex items-center space-x-1.5">
+                <i class="fa-solid fa-pause text-[11px]"></i>
+                <span id="btn-toggle-scheduler-text">Pause Radar</span>
+              </button>
+              <button onclick="openFeedStudio()" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-dark-card text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-dark-hover transition-colors cursor-pointer flex items-center space-x-1.5">
+                <i class="fa-solid fa-satellite-dish text-xs text-brand-500"></i>
+                <span>Feed Studio</span>
+              </button>
+              <button onclick="switchView('overview')" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-dark-card text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-dark-hover transition-colors cursor-pointer">
+                ← Stream
               </button>
             </div>
           </div>
 
-          <!-- 4 Crawler Engine Cards Grid -->
-          <div id="scrapers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Injected by renderScrapersHub() -->
+          <!-- Radar Automation & KPI Hero Card -->
+          <div class="bg-white dark:bg-dark-surface rounded-2xl border border-slate-200 dark:border-dark-border p-5 space-y-5 shadow-sm">
+            
+            <!-- Controls & Tuning Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-slate-100 dark:border-dark-border">
+              
+              <!-- Frequency Selector -->
+              <div class="space-y-1.5">
+                <label for="sched-interval-select" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Sweep Interval</label>
+                <div class="relative">
+                  <select id="sched-interval-select" onchange="handleIntervalChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-slate-900 dark:[&>option]:text-slate-100">
+                    <option value="1">Every 1 Hour (Ultra-High Frequency)</option>
+                    <option value="3">Every 3 Hours (Recommended)</option>
+                    <option value="6" selected>Every 6 Hours (Standard Radar)</option>
+                    <option value="12">Every 12 Hours (Twice Daily)</option>
+                    <option value="24">Every 24 Hours (Daily Digest)</option>
+                  </select>
+                </div>
+                <p id="sched-next-run-txt" class="text-[10px] text-slate-400 font-medium">Next run: Calculating...</p>
+              </div>
+
+              <!-- Telegram Alerts Toggle -->
+              <div class="space-y-1.5">
+                <label class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Phone Radar Alerts</label>
+                <div class="flex items-center space-x-3 p-2 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-dark-border">
+                  <input type="checkbox" id="sched-telegram-toggle" onchange="handleAutoTelegramToggle(this.checked)" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 cursor-pointer">
+                  <label for="sched-telegram-toggle" class="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center space-x-1.5">
+                    <i class="fa-brands fa-telegram text-sky-500"></i>
+                    <span>Auto-Dispatch to Telegram</span>
+                  </label>
+                </div>
+                <p class="text-[10px] text-slate-400 font-medium">Pushes opportunities matching your profile directly to your phone.</p>
+              </div>
+
+              <!-- Match Score Filter -->
+              <div class="space-y-1.5">
+                <label for="sched-threshold-select" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Alert Fit Threshold</label>
+                <div class="relative">
+                  <select id="sched-threshold-select" onchange="handleScoreThresholdChange(this.value)" class="w-full text-xs font-bold px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-slate-900 dark:[&>option]:text-slate-100">
+                    <option value="70">≥ 70% Match (Broad Radar)</option>
+                    <option value="80">≥ 80% Match (Strong Fit)</option>
+                    <option value="85" selected>≥ 85% Match (High Confidence)</option>
+                    <option value="90">≥ 90% Match (Elite Opportunities Only)</option>
+                    <option value="95">≥ 95% Match (Near-Perfect Match)</option>
+                  </select>
+                </div>
+                <p class="text-[10px] text-slate-400 font-medium">Only listings scoring above this trigger instant mobile alerts.</p>
+              </div>
+
+            </div>
+
+            <!-- 4 KPI Metrics -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-dark-border/50">
+                <span class="text-[10px] font-extrabold uppercase text-slate-400">Total Sweeps Executed</span>
+                <p id="stat-radar-runs" class="text-xl font-black text-slate-900 dark:text-white mt-0.5">0</p>
+                <span class="text-[10px] text-slate-400">Autonomous + Manual</span>
+              </div>
+              <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-dark-border/50">
+                <span class="text-[10px] font-extrabold uppercase text-slate-400">Hands-Free Discovered</span>
+                <p id="stat-radar-discovered" class="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">0</p>
+                <span class="text-[10px] text-slate-400">New listings indexed</span>
+              </div>
+              <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-dark-border/50">
+                <span class="text-[10px] font-extrabold uppercase text-slate-400">Crawler Reliability</span>
+                <p id="stat-radar-reliability" class="text-xl font-black text-brand-600 dark:text-brand-400 mt-0.5">100%</p>
+                <span class="text-[10px] text-slate-400">Successful crawl ratio</span>
+              </div>
+              <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-dark-border/50">
+                <span class="text-[10px] font-extrabold uppercase text-slate-400">Avg Crawl Latency</span>
+                <p id="stat-radar-latency" class="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-0.5">0s</p>
+                <span class="text-[10px] text-slate-400">Across 11 feed engines</span>
+              </div>
+            </div>
+
           </div>
+
+          <!-- Section: Active Crawling Engines Grid -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <span>Feed Scraping Engines</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-card text-slate-600 dark:text-slate-300">11 Feeds + Custom</span>
+                </h3>
+                <p class="text-[11px] text-slate-400">Engines swept automatically on each cycle or testable on demand</p>
+              </div>
+            </div>
+            
+            <div id="scrapers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Injected by renderScrapersHub() -->
+            </div>
+          </div>
+
+          <!-- Section: Crawl History Audit Trail Table -->
+          <div class="bg-white dark:bg-dark-surface rounded-2xl border border-slate-200 dark:border-dark-border p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <i class="fa-solid fa-clock-rotate-left text-brand-500 text-xs"></i>
+                  <span>Crawl Execution Audit Trail</span>
+                </h3>
+                <p class="text-[11px] text-slate-400">Structured telemetry logs of past crawler sweeps, latencies, and discovered opportunities</p>
+              </div>
+              <button onclick="loadCrawlAuditLog()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-dark-card text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-dark-hover transition-colors cursor-pointer flex items-center space-x-1.5">
+                <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                <span>Refresh Log</span>
+              </button>
+            </div>
+
+            <!-- Audit Trail Table -->
+            <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-dark-border">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-dark-border text-slate-500 dark:text-slate-400 font-extrabold uppercase text-[10px] tracking-wider">
+                    <th class="py-3 px-4">Trigger</th>
+                    <th class="py-3 px-4">Started At</th>
+                    <th class="py-3 px-4">Duration</th>
+                    <th class="py-3 px-4">Scraped</th>
+                    <th class="py-3 px-4">New Added</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="crawl-audit-tbody" class="divide-y divide-slate-100 dark:divide-dark-border">
+                  <tr>
+                    <td colspan="7" class="py-8 text-center text-slate-400">Loading audit history...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -1606,6 +1748,7 @@
 
         updateCounters();
         renderActiveView();
+        loadSchedulerState();
       } catch (err) {
         console.error('Failed to load application data:', err);
       }
@@ -2462,6 +2605,10 @@
     // =========================================================================
 
     async function renderScrapersHub() {
+      // Refresh background scheduler status and audit trail
+      loadSchedulerState();
+      loadCrawlAuditLog();
+
       const grid = document.getElementById('scrapers-grid');
       if (!grid) return;
       grid.innerHTML = `
@@ -2546,6 +2693,288 @@
         await loadData();
       } catch (err) {
         alert('Sync failed: ' + err);
+      }
+    }
+
+    // =========================================================================
+    // AUTONOMOUS RADAR & AUDIT LOG CONTROLS
+    // =========================================================================
+
+    let isPollingCrawl = false;
+
+    async function loadSchedulerState() {
+      try {
+        const res = await fetch('/api/scheduler/status');
+        const data = await res.json();
+
+        // Update status pill & pulse
+        const pill = document.getElementById('radar-live-pill');
+        const toggleBtnTxt = document.getElementById('btn-toggle-scheduler-text');
+        const intervalSelect = document.getElementById('sched-interval-select');
+        const telegramToggle = document.getElementById('sched-telegram-toggle');
+        const thresholdSelect = document.getElementById('sched-threshold-select');
+        const nextRunTxt = document.getElementById('sched-next-run-txt');
+
+        if (pill) {
+          if (data.is_crawling) {
+            pill.className = 'text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 flex items-center gap-1.5';
+            pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span><span>Sweeping All Feeds...</span>';
+          } else if (data.enabled) {
+            pill.className = 'text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1.5';
+            pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Autonomous Active</span>';
+          } else {
+            pill.className = 'text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 flex items-center gap-1.5';
+            pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Radar Paused</span>';
+          }
+        }
+
+        if (toggleBtnTxt) {
+          toggleBtnTxt.innerText = data.enabled ? 'Pause Radar' : 'Activate Radar';
+        }
+
+        if (intervalSelect && !intervalSelect.matches(':focus')) {
+          intervalSelect.value = String(data.interval_hours || 6);
+        }
+
+        if (telegramToggle && !telegramToggle.matches(':focus')) {
+          telegramToggle.checked = Boolean(data.auto_telegram);
+        }
+
+        if (thresholdSelect && !thresholdSelect.matches(':focus')) {
+          thresholdSelect.value = String(data.min_score_threshold || 85);
+        }
+
+        const nextRunTime = data.next_run_at || data.next_run;
+        if (nextRunTxt) {
+          if (!data.enabled) {
+            nextRunTxt.innerText = 'Radar is currently paused';
+          } else if (nextRunTime) {
+            const nextDate = new Date(nextRunTime);
+            nextRunTxt.innerText = `Next run: ${nextDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${data.interval_hours}h cycle)`;
+          } else {
+            nextRunTxt.innerText = `Scheduled every ${data.interval_hours}h`;
+          }
+        }
+
+        // Update KPIs
+        const stats = data.stats || {};
+        const runsEl = document.getElementById('stat-radar-runs');
+        const discEl = document.getElementById('stat-radar-discovered');
+        const relEl = document.getElementById('stat-radar-reliability');
+        const latEl = document.getElementById('stat-radar-latency');
+
+        if (runsEl) runsEl.innerText = stats.total_runs || 0;
+        if (discEl) discEl.innerText = (stats.total_new_discovered !== undefined) ? stats.total_new_discovered : (stats.total_new_inserted || 0);
+        if (relEl) {
+          if (stats.success_rate !== undefined) {
+            relEl.innerText = `${Math.round(stats.success_rate)}%`;
+          } else {
+            const total = stats.total_runs || 0;
+            const successful = stats.successful_runs || 0;
+            const relPct = total > 0 ? Math.round((successful / total) * 100) : 100;
+            relEl.innerText = `${relPct}%`;
+          }
+        }
+        if (latEl) {
+          let durMs = stats.avg_duration_ms;
+          if (!durMs && data.last_summary && data.last_summary.duration_ms) {
+            durMs = data.last_summary.duration_ms;
+          }
+          const avgSec = durMs ? (durMs > 100000 ? (durMs / 1000000).toFixed(1) : (durMs / 1000).toFixed(1)) : '0';
+          latEl.innerText = `${avgSec}s`;
+        }
+
+        // Scanning button state
+        const scanBtn = document.getElementById('btn-radar-scan-now');
+        const scanIcon = document.getElementById('btn-radar-scan-icon');
+        const scanTxt = document.getElementById('btn-radar-scan-text');
+
+        if (scanBtn && scanIcon && scanTxt) {
+          if (data.is_crawling) {
+            scanBtn.disabled = true;
+            scanBtn.classList.add('opacity-75');
+            scanIcon.className = 'fa-solid fa-spinner fa-spin text-xs';
+            scanTxt.innerText = 'Sweeping Feeds...';
+          } else {
+            scanBtn.disabled = false;
+            scanBtn.classList.remove('opacity-75');
+            scanIcon.className = 'fa-solid fa-radar text-xs';
+            scanTxt.innerText = 'Run Radar Scan Now';
+          }
+        }
+
+      } catch (err) {
+        console.error('Failed to load scheduler state:', err);
+      }
+    }
+
+    async function toggleScheduler() {
+      try {
+        const res = await fetch('/api/scheduler/toggle', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.enabled ? '⚡ Autonomous Radar Activated' : '⏸️ Autonomous Radar Paused');
+          await loadSchedulerState();
+        }
+      } catch (err) {
+        alert('Failed to toggle autonomous radar: ' + err);
+      }
+    }
+
+    async function handleIntervalChange(val) {
+      try {
+        const hours = parseInt(val, 10);
+        const res = await fetch('/api/scheduler/config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ interval_hours: hours })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`⏱️ Radar sweep interval set to every ${hours} hours`);
+          await loadSchedulerState();
+        }
+      } catch (err) {
+        alert('Failed to update sweep interval: ' + err);
+      }
+    }
+
+    async function handleAutoTelegramToggle(checked) {
+      try {
+        const res = await fetch('/api/scheduler/config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auto_telegram: checked })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(checked ? '📲 Instant Telegram alerts enabled!' : '🔕 Telegram alerts muted');
+          await loadSchedulerState();
+        }
+      } catch (err) {
+        alert('Failed to update Telegram alert config: ' + err);
+      }
+    }
+
+    async function handleScoreThresholdChange(val) {
+      try {
+        const score = parseInt(val, 10);
+        const res = await fetch('/api/scheduler/config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ min_score_threshold: score })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🎯 Alert threshold tuned to ≥ ${score}% fit`);
+          await loadSchedulerState();
+        }
+      } catch (err) {
+        alert('Failed to update threshold: ' + err);
+      }
+    }
+
+    async function triggerAutonomousCrawlNow() {
+      if (isPollingCrawl) return;
+      try {
+        showToast('🛰️ Initiating full sweep across all 11 scraping feeds...');
+        const res = await fetch('/api/scheduler/run-now', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.status === 'already_running') {
+          showToast('⏳ Crawler sweep is already actively running!');
+          return;
+        }
+
+        isPollingCrawl = true;
+        await loadSchedulerState();
+
+        // Poll every 2.5s until crawl finishes
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusRes = await fetch('/api/scheduler/status');
+            const statusData = await statusRes.json();
+            if (!statusData.is_crawling) {
+              clearInterval(pollInterval);
+              isPollingCrawl = false;
+              showToast('🎉 Autonomous radar sweep completed!');
+              await loadData();
+              await loadSchedulerState();
+              await loadCrawlAuditLog();
+            } else {
+              await loadSchedulerState();
+            }
+          } catch (e) {
+            clearInterval(pollInterval);
+            isPollingCrawl = false;
+          }
+        }, 2500);
+
+      } catch (err) {
+        alert('Failed to initiate sweep: ' + err);
+        isPollingCrawl = false;
+      }
+    }
+
+    async function loadCrawlAuditLog() {
+      const tbody = document.getElementById('crawl-audit-tbody');
+      if (!tbody) return;
+
+      try {
+        const res = await fetch('/api/scheduler/history?limit=20');
+        const history = await res.json();
+
+        if (!history || history.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-6 text-center text-slate-400">
+                No crawl logs recorded yet. Run a scan above to view live telemetry!
+              </td>
+            </tr>`;
+          return;
+        }
+
+        tbody.innerHTML = history.map(item => {
+          const isManual = (item.triggered_by || item.trigger_type || '').includes('manual');
+          const triggerBadge = isManual
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">Manual Scan</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-950 dark:text-fuchsia-300">Autonomous</span>`;
+
+          const isSuccess = item.status === 'success';
+          const statusBadge = isSuccess
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1 w-fit"><i class="fa-solid fa-check text-[9px]"></i> Success</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 flex items-center gap-1 w-fit"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Failed</span>`;
+
+          const startedDate = item.started_at ? new Date(item.started_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
+          const durationSec = item.duration_ms ? (item.duration_ms / 1000).toFixed(1) + 's' : '-';
+          const newCount = (item.new_inserted !== undefined) ? item.new_inserted : (item.new_items_inserted || 0);
+          const newAdded = newCount > 0
+            ? `<span class="font-extrabold text-emerald-600 dark:text-emerald-400">+${newCount} new</span>`
+            : `<span class="text-slate-400">0</span>`;
+
+          const notes = item.error_message
+            ? `<span class="text-rose-500 font-mono text-[10px] truncate max-w-xs block" title="${item.error_message}">${item.error_message}</span>`
+            : `<span class="text-slate-600 dark:text-slate-300 text-[11px] font-medium">${item.engine_name || '11 Feeds Sweep'}</span>`;
+
+          return `
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/40 transition-colors">
+              <td class="py-3 px-4">${triggerBadge}</td>
+              <td class="py-3 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-300">${startedDate}</td>
+              <td class="py-3 px-4 font-mono text-slate-700 dark:text-slate-300">${durationSec}</td>
+              <td class="py-3 px-4 font-bold text-slate-800 dark:text-slate-200">${item.items_scraped || 0}</td>
+              <td class="py-3 px-4">${newAdded}</td>
+              <td class="py-3 px-4">${statusBadge}</td>
+              <td class="py-3 px-4">${notes}</td>
+            </tr>`;
+        }).join('');
+
+      } catch (err) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-6 text-center text-rose-500 text-xs">
+              Failed to load audit history: ${err}
+            </td>
+          </tr>`;
       }
     }
 

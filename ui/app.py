@@ -26,6 +26,7 @@ from services.matcher import ProfileMatcher
 from services.copilot import ApplicationCopilot
 from services.telegram_bot import TelegramAlertDispatcher
 from services.ai_resume import AIResumeService
+from services.scheduler import AutonomousScheduler
 from services.auth import (
     COOKIE_NAME,
     hash_password,
@@ -113,6 +114,16 @@ class PersonaUpdateRequest(BaseModel):
     persona: str
 
 
+class SchedulerToggleRequest(BaseModel):
+    enabled: Optional[bool] = None
+
+
+class SchedulerConfigRequest(BaseModel):
+    interval_hours: Optional[int] = None
+    auto_telegram: Optional[bool] = None
+    min_score_threshold: Optional[int] = None
+
+
 app = FastAPI(
     title="Opportunity & Job Scraper API",
     description="REST API and Interactive Web Dashboard for Scholarships and 4-Day Remote Jobs",
@@ -120,7 +131,20 @@ app = FastAPI(
 )
 
 db = OpportunityDB()
+scheduler_service = AutonomousScheduler(db)
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+
+@app.on_event("startup")
+def startup_event():
+    """Starts background autonomous radar scheduler."""
+    scheduler_service.start()
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    """Cleanly stops background autonomous radar scheduler."""
+    scheduler_service.stop()
 
 
 @app.get("/")
@@ -757,6 +781,64 @@ def send_telegram_alert(payload: TelegramSendRequest):
     profile = db.get_user_profile()
     match = ProfileMatcher.match_item(profile, item, item_type=payload.item_type)
     return telegram_dispatcher.send_opportunity_card(item, item_type=payload.item_type, match=match)
+
+
+# =============================================================================
+# Option 2: Autonomous Scheduler & Crawl Audit History API
+# =============================================================================
+
+@app.get("/api/scheduler/status")
+def get_scheduler_status():
+    """Returns runtime state, scheduled intervals, and performance metrics."""
+    return scheduler_service.get_status()
+
+
+@app.post("/api/scheduler/toggle")
+def toggle_scheduler(payload: Optional[SchedulerToggleRequest] = None):
+    """Enables or pauses autonomous background recurring crawling."""
+    if payload is not None and payload.enabled is not None:
+        scheduler_service.enabled = payload.enabled
+    else:
+        scheduler_service.enabled = not scheduler_service.enabled
+    db.set_setting("scheduler_enabled", "true" if scheduler_service.enabled else "false")
+    return {
+        "success": True,
+        "enabled": scheduler_service.enabled,
+        "message": f"Autonomous scheduler {'activated' if scheduler_service.enabled else 'paused'}.",
+    }
+
+
+@app.put("/api/scheduler/config")
+def update_scheduler_config(payload: SchedulerConfigRequest):
+    """Updates crawl interval and automated Telegram radar threshold."""
+    if payload.interval_hours is not None:
+        scheduler_service.interval_hours = payload.interval_hours
+        db.set_setting("scheduler_interval_hours", str(payload.interval_hours))
+    if payload.auto_telegram is not None:
+        scheduler_service.auto_telegram = payload.auto_telegram
+        db.set_setting("scheduler_auto_telegram", "true" if payload.auto_telegram else "false")
+    if payload.min_score_threshold is not None:
+        scheduler_service.min_score_threshold = payload.min_score_threshold
+        db.set_setting("scheduler_min_score", str(payload.min_score_threshold))
+    return {
+        "success": True,
+        "interval_hours": scheduler_service.interval_hours,
+        "auto_telegram": scheduler_service.auto_telegram,
+        "min_score_threshold": scheduler_service.min_score_threshold,
+    }
+
+
+@app.post("/api/scheduler/run-now")
+def trigger_scheduler_run_now():
+    """Triggers an immediate autonomous radar scan across all configured feeds."""
+    result = scheduler_service.trigger_now(triggered_by="manual_ui")
+    return result
+
+
+@app.get("/api/scheduler/history")
+def get_scheduler_history(limit: int = Query(default=50, ge=1, le=200)):
+    """Returns execution history log of recent crawler runs."""
+    return db.get_crawl_history(limit=limit)
 
 
 @app.post("/api/scrape/jobs")

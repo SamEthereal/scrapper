@@ -238,6 +238,26 @@ class OpportunityDB:
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
 
+            # Create crawl_history table for Autonomous Scheduling & Radar Audit metrics
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS crawl_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    engine_id TEXT NOT NULL,
+                    engine_name TEXT NOT NULL,
+                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    duration_ms INTEGER DEFAULT 0,
+                    items_scraped INTEGER DEFAULT 0,
+                    new_inserted INTEGER DEFAULT 0,
+                    status TEXT DEFAULT 'success',
+                    error_message TEXT,
+                    triggered_by TEXT DEFAULT 'autonomous'
+                );
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_crawl_history_started ON crawl_history(started_at DESC);")
+
             # Seed demo user if no users exist
             user_cnt = conn.execute("SELECT COUNT(*) FROM users;").fetchone()
             if user_cnt and user_cnt[0] == 0:
@@ -1129,3 +1149,105 @@ class OpportunityDB:
             )
             conn.commit()
             return cursor.rowcount > 0
+
+    # =========================================================================
+    # Option 2: Autonomous Scheduler & Crawl Audit History
+    # =========================================================================
+
+    def log_crawl(
+        self,
+        engine_id: str,
+        engine_name: str,
+        started_at: str,
+        completed_at: str,
+        duration_ms: int,
+        items_scraped: int,
+        new_inserted: int,
+        status: str = "success",
+        error_message: Optional[str] = None,
+        triggered_by: str = "autonomous",
+    ) -> int:
+        """Logs a single crawler execution into crawl_history."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO crawl_history (
+                    engine_id, engine_name, started_at, completed_at,
+                    duration_ms, items_scraped, new_inserted, status,
+                    error_message, triggered_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    engine_id,
+                    engine_name,
+                    started_at,
+                    completed_at,
+                    duration_ms,
+                    items_scraped,
+                    new_inserted,
+                    status,
+                    error_message,
+                    triggered_by,
+                ),
+            )
+            conn.commit()
+            return cursor.lastrowid
+
+    def get_crawl_history(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Retrieves recent crawler execution history sorted newest first."""
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM crawl_history ORDER BY started_at DESC LIMIT ?;",
+                (limit,),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def get_crawl_stats(self) -> Dict[str, Any]:
+        """Returns summary metrics of autonomous crawling performance."""
+        with self._get_connection() as conn:
+            total_runs_row = conn.execute("SELECT COUNT(*) FROM crawl_history;").fetchone()
+            total_runs = total_runs_row[0] if total_runs_row else 0
+
+            successful_runs_row = conn.execute("SELECT COUNT(*) FROM crawl_history WHERE status = 'success';").fetchone()
+            successful_runs = successful_runs_row[0] if successful_runs_row else 0
+
+            total_new_row = conn.execute("SELECT COALESCE(SUM(new_inserted), 0) FROM crawl_history;").fetchone()
+            total_new = total_new_row[0] if total_new_row else 0
+
+            last_run_row = conn.execute("SELECT * FROM crawl_history ORDER BY started_at DESC LIMIT 1;").fetchone()
+            last_run = dict(last_run_row) if last_run_row else None
+
+            success_rate = round((successful_runs / total_runs * 100), 1) if total_runs > 0 else 100.0
+
+            return {
+                "total_runs": total_runs,
+                "successful_runs": successful_runs,
+                "failed_runs": total_runs - successful_runs,
+                "success_rate": success_rate,
+                "total_new_discovered": total_new,
+                "last_run": last_run,
+            }
+
+    def get_recent_new_items(self, since_iso: str) -> Dict[str, List[Dict[str, Any]]]:
+        """Retrieves opportunities, jobs, and grants created since a given ISO timestamp."""
+        with self._get_connection() as conn:
+            opps = [
+                dict(r) for r in conn.execute(
+                    "SELECT * FROM opportunities WHERE created_at >= ? ORDER BY id DESC;",
+                    (since_iso,),
+                ).fetchall()
+            ]
+            jobs = [
+                dict(r) for r in conn.execute(
+                    "SELECT * FROM jobs WHERE created_at >= ? ORDER BY id DESC;",
+                    (since_iso,),
+                ).fetchall()
+            ]
+            grants = [
+                dict(r) for r in conn.execute(
+                    "SELECT * FROM grants WHERE created_at >= ? ORDER BY id DESC;",
+                    (since_iso,),
+                ).fetchall()
+            ]
+            return {"opportunities": opps, "jobs": jobs, "grants": grants}
