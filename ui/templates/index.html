@@ -36,9 +36,14 @@
               50: '#f5f3ff',
               100: '#ede9fe',
               200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
               500: '#8b5cf6',
               600: '#7c3aed',
               700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+              950: '#2e1065',
             },
             dark: {
               bg: '#090d16',
@@ -1357,13 +1362,15 @@
       </div>
 
       <!-- First-Time Onboarding Welcome Banner -->
-      <div id="prof-onboarding-banner" class="hidden p-3.5 rounded-2xl bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-900/60 text-xs text-brand-800 dark:text-brand-300 flex items-start space-x-3">
-        <div class="w-7 h-7 rounded-xl bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0 mt-0.5">
-          <i class="fa-solid fa-graduation-cap"></i>
+      <div id="prof-onboarding-banner" class="hidden p-4 rounded-2xl bg-indigo-50/80 dark:bg-dark-card border border-indigo-200/80 dark:border-dark-border flex items-start space-x-3.5 shadow-xs transition-colors">
+        <div class="w-9 h-9 rounded-xl bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0 mt-0.5">
+          <i class="fa-solid fa-graduation-cap text-base"></i>
         </div>
-        <div>
-          <span class="font-bold text-slate-900 dark:text-white">Welcome! Complete your Academic & Career Profile.</span>
-          <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">Please tell us your field of study or degree (e.g. Journalism, Accounting, Sports, Electrical Engineering, Business) so we can rank and tailor opportunities directly to your field.</p>
+        <div class="space-y-1">
+          <h4 class="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white">Welcome! Set up your Academic & Career Profile</h4>
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            Please select your field of study or degree (e.g. Journalism, Accounting, Medicine, Engineering) so ScraperGalore can filter and rank opportunities specifically for your profession.
+          </p>
         </div>
       </div>
 
@@ -2012,6 +2019,88 @@
       switchView('overview');
     }
 
+    function formatLocation(item) {
+      if (!item) return 'Global';
+      const loc = (item.location || '').trim();
+      const text = `${item.title || ''} ${item.category || ''} ${loc}`.toLowerCase();
+      
+      // Inherently in-person disciplines (clinical, hospital, surgery, nursing, civil construction site, sports)
+      const isInherentlyOnsite = text.includes('health') || text.includes('medic') || text.includes('nurse') || 
+                                 text.includes('doctor') || text.includes('clinic') || text.includes('hospital') || 
+                                 text.includes('surgeon') || text.includes('dental') || text.includes('pharmacy') || 
+                                 text.includes('site engineer') || text.includes('construction') || text.includes('athletic coach');
+      
+      if (isInherentlyOnsite) {
+        if (loc && loc.toLowerCase() !== 'remote') return loc;
+        return item.country && item.country !== 'Global' ? `${item.country} (On-site)` : 'On-site / In-person';
+      }
+
+      if (loc && loc.toLowerCase() !== 'remote') {
+        return loc;
+      }
+      
+      if (item.is_remote) {
+        return 'Remote';
+      }
+
+      if (item._kind === 'opportunity') {
+        return item.country || 'International';
+      }
+
+      return 'On-site / In-person';
+    }
+
+    function updateContextualFilterVisibility() {
+      const isJobsView = (currentPersona === 'job_seeker') || (activeCategory === 'jobs');
+      const isStudentView = (currentPersona === 'student') || (activeCategory === 'scholarships');
+      const userField = (userProfile?.field_of_study || '').toLowerCase();
+      const selectedCat = (document.getElementById('filter-category')?.value || '').toLowerCase();
+      
+      // Inherently in-person disciplines where "Remote Only" makes no sense (Medicine, Healthcare, Nursing, Sports, Civil Construction)
+      const isInherentlyOnsite = userField.includes('health') || userField.includes('medic') || 
+                                 userField.includes('nurs') || userField.includes('sport') || 
+                                 userField.includes('civil') || selectedCat === 'healthcare' || 
+                                 selectedCat === 'engineering';
+
+      // 1. Fully Funded button: strictly for scholarships/academic, NEVER for jobs or job seekers
+      const fundedBtn = document.getElementById('flt-funded');
+      if (fundedBtn) {
+        if (isJobsView || currentPersona === 'job_seeker') {
+          fundedBtn.classList.add('hidden');
+          if (currentFilterFlag === 'funded') setFilterFlag('all');
+        } else {
+          fundedBtn.classList.remove('hidden');
+        }
+      }
+
+      // 2. Job quick filters group (Remote, Salary, Work-life)
+      const jobGroup = document.getElementById('quick-flt-job-group');
+      if (jobGroup) {
+        if (isStudentView) {
+          jobGroup.classList.add('hidden');
+        } else {
+          jobGroup.classList.remove('hidden');
+        }
+      }
+
+      // 3. Remote Only button: hide when looking at in-person fields like Medicine/Healthcare
+      const remoteBtn = document.getElementById('flt-remote');
+      if (remoteBtn) {
+        if (isInherentlyOnsite || isStudentView) {
+          remoteBtn.classList.add('hidden');
+          if (currentFilterFlag === 'remote') setFilterFlag('all');
+        } else {
+          remoteBtn.classList.remove('hidden');
+        }
+      }
+
+      // 4. Seniority & Degree granular filter dropdowns
+      const seniorityContainer = document.getElementById('filter-seniority-container');
+      const degreeContainer = document.getElementById('filter-degree-container');
+      if (seniorityContainer) seniorityContainer.classList.toggle('hidden', isStudentView);
+      if (degreeContainer) degreeContainer.classList.toggle('hidden', isJobsView);
+    }
+
     function switchMainTab(category) {
       if (currentPersona === 'student' && category === 'jobs') {
         category = 'scholarships';
@@ -2037,36 +2126,7 @@
         }
       });
 
-      // Context-aware filters visibility
-      const jobGroup = document.getElementById('quick-flt-job-group');
-      const fundedBtn = document.getElementById('flt-funded');
-      const seniorityContainer = document.getElementById('filter-seniority-container');
-      const degreeContainer = document.getElementById('filter-degree-container');
-
-      if (category === 'scholarships' || currentPersona === 'student') {
-        if (jobGroup) jobGroup.classList.add('hidden');
-        if (fundedBtn) fundedBtn.classList.remove('hidden');
-        if (seniorityContainer) seniorityContainer.classList.add('hidden');
-        if (degreeContainer) degreeContainer.classList.remove('hidden');
-        if (['remote', 'salary', 'worklife'].includes(currentFilterFlag)) {
-          setFilterFlag('all');
-        }
-      } else if (category === 'jobs' || currentPersona === 'job_seeker') {
-        if (jobGroup) jobGroup.classList.remove('hidden');
-        if (fundedBtn) fundedBtn.classList.add('hidden');
-        if (seniorityContainer) seniorityContainer.classList.remove('hidden');
-        if (degreeContainer) degreeContainer.classList.add('hidden');
-        if (currentFilterFlag === 'funded') {
-          setFilterFlag('all');
-        }
-      } else {
-        // all or grants in Total Package
-        if (jobGroup) jobGroup.classList.remove('hidden');
-        if (fundedBtn) fundedBtn.classList.remove('hidden');
-        if (seniorityContainer) seniorityContainer.classList.remove('hidden');
-        if (degreeContainer) degreeContainer.classList.remove('hidden');
-      }
-
+      updateContextualFilterVisibility();
       renderActiveView();
     }
 
@@ -2308,6 +2368,7 @@
     }
 
     function renderActiveView() {
+      updateContextualFilterVisibility();
       const items = getFilteredItems();
       const totalItems = items.length;
       const totalPages = Math.ceil(totalItems / pageSize) || 1;
@@ -2418,7 +2479,7 @@
       currentSpotlight = item;
       document.getElementById('spotlight-title').innerText = item.title;
       document.getElementById('spotlight-org').innerText = item.company || item.organization || item.channel_name || 'Organization';
-      document.getElementById('spotlight-loc').innerText = item.location || 'Remote / Global';
+      document.getElementById('spotlight-loc').innerText = formatLocation(item);
       document.getElementById('spotlight-compensation').innerText = item.salary || item.funding_amount || (item.deadline_date ? `Deadline: ${item.deadline_date}` : 'Active Listing');
       
       const portalUrl = item.official_portal || item.apply_url || item.url || '#';
@@ -2503,7 +2564,7 @@
               <!-- Meta pills (Location, Comp, Seniority, Category, Country) -->
               <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
                 <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-dark-card text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[150px]">
-                  <i class="fa-solid fa-location-dot text-slate-400 mr-1 text-[9px]"></i>${item.location || 'Remote'}
+                  <i class="fa-solid fa-location-dot text-slate-400 mr-1 text-[9px]"></i>${formatLocation(item)}
                 </span>
                 <span class="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold">
                   ${comp}
@@ -2572,7 +2633,7 @@
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300">${item._kind}</span>
               ${tagBadge}
             </td>
-            <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${item.location || 'Remote'}</td>
+            <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${formatLocation(item)}</td>
             <td class="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">${comp}</td>
             <td class="py-3 px-4 text-slate-500 dark:text-slate-400">${item.deadline_date || '—'}</td>
             <td class="py-3 px-4">
@@ -4352,6 +4413,9 @@
           if (fltFunded) fltFunded.classList.remove('hidden');
         }
       }
+
+      // Enforce unified contextual filter rules (medicine = no remote, jobs = no funded)
+      updateContextualFilterVisibility();
 
       // Update Nav button highlighting
       const navItems = ['all', 'scholarships', 'jobs', 'grants'];

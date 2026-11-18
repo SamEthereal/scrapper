@@ -98,20 +98,43 @@ def normalize_experience_level(title: str, text: str = "") -> str:
 
 
 def normalize_job_category(title: str, text: str = "") -> str:
-    """Classifies job into standard vertical categories."""
+    """Classifies job into standard vertical categories with strict domain prioritization."""
     combined = f"{title} {text}".lower()
 
-    # IT & Software
+    # 1. Healthcare & Medical (Check first so medical/health roles aren't misclassified)
     if re.search(
-        r"\b(developer|software|engineer|frontend|backend|fullstack|full-stack|devops|cloud|"
-        r"mobile|flutter|react|python|java|javascript|typescript|golang|rust|node|c\+\+|c#|"
-        r"qa|tester|system admin|sysadmin|network|cybersecurity|security|ict|it specialist|"
-        r"web designer|ui/ux|ui designer|ux designer|product designer|tech support|webmaster)\b",
+        r"\b(doctor|physician|nurse|nursing|pharmacist|pharmacy|clinical|medical|medicine|hospital|laboratory|"
+        r"radiologist|midwife|health officer|public health|epidemiologist|biomedical|therapist|surgeon|dental|dentist)\b",
         combined,
     ):
-        return "IT & Software"
+        return "Healthcare & Medical"
 
-    # Data & AI
+    # 2. Engineering & Architecture (Check before IT so Civil/Electrical/Mechanical engineers aren't labeled as software)
+    if re.search(
+        r"\b(civil|structural|mechanical|electrical|electronics|electromechanical|architect|architecture|"
+        r"construction|surveyor|surveying|draftsman|drafting|site engineer|autocad|solidworks|hvac|"
+        r"plumbing|sanitary engineer|irrigation|hydrology|geotechnical|piping|plant engineer)\b",
+        combined,
+    ):
+        return "Engineering"
+
+    # 3. Finance & Accounting
+    if re.search(
+        r"\b(accountant|accounting|finance|financial|auditor|audit|banker|banking|cashier|"
+        r"credit|treasury|tax|payroll|economist|economics|cpa|accas?|bookkeeper|cost accounting)\b",
+        combined,
+    ):
+        return "Finance & Accounting"
+
+    # 4. Journalism, Media & Communications
+    if re.search(
+        r"\b(journalist|journalism|reporter|news|editorial|editor|copy editor|broadcast|"
+        r"media officer|press|communications officer|correspondent)\b",
+        combined,
+    ):
+        return "Journalism & Media"
+
+    # 5. Data & AI
     if re.search(
         r"\b(data scientist|data analyst|machine learning|deep learning|ai engineer|mlops|"
         r"artificial intelligence|bi analyst|business intelligence|data engineer|database|"
@@ -120,31 +143,18 @@ def normalize_job_category(title: str, text: str = "") -> str:
     ):
         return "Data & AI"
 
-    # Finance & Accounting
+    # 6. IT & Software (Specific tech patterns, avoiding broad generic 'engineer')
     if re.search(
-        r"\b(accountant|accounting|finance|financial|auditor|audit|banker|banking|cashier|"
-        r"credit|treasury|tax|payroll|economist|economics)\b",
+        r"\b(developer|software|frontend|backend|fullstack|full-stack|devops|cloud|"
+        r"mobile|flutter|react|python|java|javascript|typescript|golang|rust|node|c\+\+|c#|"
+        r"qa|tester|system admin|sysadmin|network|cybersecurity|security|ict|it specialist|"
+        r"web designer|ui/ux|ui designer|ux designer|product designer|tech support|webmaster|"
+        r"software engineer|systems engineer|network engineer|cloud engineer|devops engineer)\b",
         combined,
     ):
-        return "Finance & Accounting"
+        return "IT & Software"
 
-    # Engineering & Architecture (non-software)
-    if re.search(
-        r"\b(civil engineer|mechanical engineer|electrical engineer|architect|construction|"
-        r"surveyor|draftsman|structural engineer|site engineer|autocad)\b",
-        combined,
-    ):
-        return "Engineering"
-
-    # Healthcare & Medical
-    if re.search(
-        r"\b(doctor|physician|nurse|pharmacist|pharmacy|clinical|medical|hospital|laboratory|"
-        r"radiologist|midwife|health officer|public health)\b",
-        combined,
-    ):
-        return "Healthcare & Medical"
-
-    # Marketing & Sales
+    # 7. Marketing & Sales
     if re.search(
         r"\b(marketing|sales|business development|seo|sem|social media|copywriter|content creator|"
         r"account executive|brand manager|public relations|pr officer)\b",
@@ -152,7 +162,7 @@ def normalize_job_category(title: str, text: str = "") -> str:
     ):
         return "Marketing & Sales"
 
-    # HR & Operations
+    # 8. HR & Operations
     if re.search(
         r"\b(human resources|hr|recruiter|talent acquisition|operations manager|logistics|"
         r"supply chain|procurement|administrative|admin assistant|secretary|receptionist)\b",
@@ -173,6 +183,9 @@ def normalize_job_type(title: str, text: str = "", is_remote: bool = False) -> s
         return "Contract / Freelance"
     if re.search(r"\b(part[- ]?time|half[- ]?day)\b", combined):
         return "Part-time"
+    # Inherently in-person roles (clinical, surgical, nursing, site construction, athletics) cannot be remote
+    if re.search(r"\b(doctor|physician|nurse|nursing|surgeon|pharmacist|pharmacy|clinical|hospital|site engineer|construction|surveyor|athletic coach)\b", combined):
+        return "Full-time"
     if is_remote or "remote" in combined or "work from home" in combined:
         return "Remote"
 
