@@ -38,27 +38,39 @@ class ApplicationCopilot:
         job: Dict[str, Any],
         tone: str = "professional",
     ) -> Dict[str, Any]:
-        """Generates a tailored Cover Letter for a job listing."""
+        """Generates a tailored Cover Letter for a job listing aligned with candidate's actual field and degree."""
         candidate_name = profile.get("full_name") or "Applicant"
         candidate_email = profile.get("email") or "applicant@example.com"
-        candidate_title = profile.get("title") or "Software Engineer"
+        field_of_study = profile.get("field_of_study") or ""
+        candidate_degree = profile.get("degree") or (f"Degree in {field_of_study}" if field_of_study else "University Degree")
+        candidate_title = profile.get("title") or (f"{field_of_study} Specialist" if field_of_study else "Professional Candidate")
         candidate_bio = profile.get("bio") or ""
-        experience_years = profile.get("experience_years") or 3
+        experience_years = profile.get("experience_years") or 2
 
         job_title = job.get("title") or "the advertised role"
         company = job.get("company") or "your company"
         location = job.get("location") or "Remote"
         salary = job.get("salary")
-        schedule = job.get("schedule") or "4-Day Work Week"
+        schedule = job.get("schedule") or "Flexible Schedule"
         work_life = job.get("work_life_score")
         candidate_grades = profile.get("gpa_grades") or ""
 
         # Compute skill overlap for deep tailoring
         match_info = ProfileMatcher.match_item(profile, job, item_type="job")
         matched_skills = match_info.get("matched_skills") or []
-        primary_skills = ", ".join(matched_skills[:3]) if matched_skills else "distributed systems and modern application engineering"
+        user_skills_raw = profile.get("skills") or ""
+        user_skills_list = [s.strip() for s in user_skills_raw.split(",") if s.strip()]
 
-        academic_mention = f"Holding a {profile.get('degree') or 'technical degree'} with distinguished academic standing ({candidate_grades}), " if candidate_grades else ""
+        if matched_skills:
+            primary_skills = ", ".join(matched_skills[:3])
+        elif user_skills_list:
+            primary_skills = ", ".join(user_skills_list[:3])
+        elif field_of_study:
+            primary_skills = f"{field_of_study} methodology, analytical problem solving, and professional execution"
+        else:
+            primary_skills = "domain expertise and dedicated execution"
+
+        academic_mention = f"Holding a {candidate_degree} with distinguished academic standing ({candidate_grades}), " if candidate_grades else f"Holding a {candidate_degree}, "
 
         today_str = datetime.now().strftime("%B %d, %Y")
 
@@ -73,27 +85,28 @@ class ApplicationCopilot:
             f"**Subject: Application for {job_title} — {candidate_name}**\n",
             f"Dear Hiring Team at {company},\n",
             (
-                f"I am writing to express my strong interest in the **{job_title}** position at **{company}**. "
-                f"{academic_mention}and with {experience_years}+ years of focused experience in modern software engineering and technical architecture, "
-                f"I have followed {company}'s commitment to thoughtful execution and high-performance culture. "
-                f"The combination of your mission and an environment that champions deliberate, high-impact focus "
+                f"I am writing to express my enthusiastic interest in the **{job_title}** position at **{company}**. "
+                f"{academic_mention}and with {experience_years}+ years of focused experience, "
+                f"I have closely followed {company}'s commitment to quality and impact. "
+                f"The combination of your organizational vision and an environment that champions deliberate, high-impact contribution "
                 f"makes this opportunity an exceptional fit for my background."
             ),
             "",
             (
-                f"Throughout my career, I have specialized in building robust, maintainable systems and delivering tangible product value. "
+                f"Throughout my professional journey, I have specialized in delivering tangible outcomes, disciplined execution, and collaborative value. "
                 f"My core competencies directly align with your requirements in **{primary_skills}**. "
-                f"In my previous work, {candidate_bio.strip() if candidate_bio else 'I have consistently designed scalable backends and resilient automated workflows that improved operational efficiency and user outcomes.'}"
+                f"{candidate_bio.strip() if candidate_bio else f'My background in {field_of_study or candidate_title} has trained me to approach complex challenges with analytical rigor, clear communication, and adaptable problem-solving.'}"
             ),
             "",
             (
-                f"What specifically excites me about {company} is your progressive workplace design—especially your {schedule} structure "
-                + (f"and top-tier work-life balance rating ({work_life}/100). " if work_life else ". ")
-                + "I thrive in asynchronous, autonomy-driven environments where quality of output and intentional communication take precedence over friction and noise."
+                f"What specifically excites me about {company} is your progressive workplace culture"
+                + (f" and your {schedule} structure" if schedule else "")
+                + (f" with strong work-life balance ({work_life}/100)" if work_life else "")
+                + ". I thrive in autonomy-driven environments where intentional communication, accountability, and quality of output take precedence over friction and noise."
             ),
             "",
             (
-                f"I would welcome the opportunity to discuss how my technical expertise in {primary_skills} and disciplined execution "
+                f"I would welcome the opportunity to discuss how my competencies in {primary_skills} and dedication "
                 f"can help {company} achieve its next milestones for the {job_title} role. "
                 f"Thank you very much for your time and consideration."
             ),
@@ -129,7 +142,8 @@ class ApplicationCopilot:
         """Generates a tailored Statement of Purpose / Motivation Letter for an academic opportunity."""
         candidate_name = profile.get("full_name") or "Applicant"
         candidate_email = profile.get("email") or "applicant@example.com"
-        candidate_degree = profile.get("degree") or "Bachelor of Science"
+        field_of_study = profile.get("field_of_study") or ""
+        candidate_degree = profile.get("degree") or (f"Degree in {field_of_study}" if field_of_study else "University Degree")
         candidate_grades = profile.get("gpa_grades") or ""
         candidate_bio = profile.get("bio") or ""
 
@@ -140,7 +154,17 @@ class ApplicationCopilot:
 
         match_info = ProfileMatcher.match_item(profile, opp, item_type="opportunity")
         matched_skills = match_info.get("matched_skills") or []
-        skills_str = ", ".join(matched_skills[:3]) if matched_skills else "rigorous scientific methodology and modern computational tools"
+        user_skills_raw = profile.get("skills") or ""
+        user_skills_list = [s.strip() for s in user_skills_raw.split(",") if s.strip()]
+
+        if matched_skills:
+            skills_str = ", ".join(matched_skills[:3])
+        elif user_skills_list:
+            skills_str = ", ".join(user_skills_list[:3])
+        elif field_of_study:
+            skills_str = f"{field_of_study} methodologies, critical analysis, and disciplined inquiry"
+        else:
+            skills_str = "rigorous academic methodology, research analysis, and scholarly inquiry"
 
         academic_standing_phrase = (
             f"Holding a background in {candidate_degree} with distinguished academic standing ({candidate_grades}), "
@@ -164,14 +188,14 @@ class ApplicationCopilot:
             (
                 f"I am writing to formally submit my application for the prestigious **{opp_title}**. "
                 f"{academic_standing_phrase}I have long dedicated my academic trajectory "
-                f"toward addressing critical problems through structured inquiry, continuous learning, and rigorous technical execution. "
+                f"toward addressing critical problems through structured inquiry, continuous learning, and rigorous execution in {field_of_study or 'my discipline'}. "
                 f"This opportunity represents the ideal environment to further my academic development and contribute meaningfully to the program's vision."
             ),
             "",
             (
-                f"My preparation is grounded in both foundational theory and practical computational acumen. "
+                f"My preparation is grounded in both foundational theory and practical methodology. "
                 f"Through sustained work in **{skills_str}**, I have developed the ability to synthesize complex concepts into actionable solutions. "
-                f"{candidate_bio.strip() if candidate_bio else 'My academic and professional journey has been defined by curiosity, self-directed research, and active collaboration across multidisciplinary teams.'}"
+                f"{candidate_bio.strip() if candidate_bio else 'My academic and professional journey has been defined by curiosity, self-directed research, and active collaboration across multidisciplinary cohorts.'}"
             ),
             "",
             (

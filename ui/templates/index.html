@@ -530,10 +530,10 @@
         <div id="sidebar-user-capsule" class="flex items-center space-x-2.5 p-2 rounded-2xl bg-slate-100/60 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border">
           <div onclick="openProfileModal()" class="flex items-center space-x-2.5 flex-1 min-w-0 cursor-pointer" title="Edit Profile & Preferences">
             <div id="user-avatar-badge" class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
-              SA
+              --
             </div>
             <div class="min-w-0 flex-1 leading-tight">
-              <p id="user-name-display" class="text-xs font-extrabold text-slate-900 dark:text-white truncate">Samuel Aseffa</p>
+              <p id="user-name-display" class="text-xs font-extrabold text-slate-900 dark:text-white truncate">Member</p>
               <div class="flex items-center space-x-1">
                 <span id="user-persona-tag" class="text-[9px] uppercase font-black text-brand-600 dark:text-brand-400">All-in-One</span>
               </div>
@@ -708,6 +708,12 @@
               <div class="flex items-center gap-2 overflow-x-auto pb-1 max-w-full sm:flex-wrap text-xs no-scrollbar">
                 <button onclick="setFilterFlag('all')" id="flt-all" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-colors shrink-0">
                   <span id="flt-all-label">All</span> (<span id="count-flt-all">0</span>)
+                </button>
+
+                <!-- Degree & Field Relevance Filter Pill -->
+                <button onclick="toggleTailoredFilter()" id="flt-tailored" class="px-3 py-1.5 rounded-xl font-bold bg-brand-600 text-white shadow-xs transition-colors whitespace-nowrap shrink-0 flex items-center space-x-1.5 cursor-pointer text-xs" title="Filter stream to opportunities matching your degree & academic field">
+                  <span>🎯</span>
+                  <span id="flt-tailored-label">Tailored to My Field</span>
                 </button>
                 
                 <!-- Job-Specific Quick Filters Group -->
@@ -1350,6 +1356,17 @@
         </button>
       </div>
 
+      <!-- First-Time Onboarding Welcome Banner -->
+      <div id="prof-onboarding-banner" class="hidden p-3.5 rounded-2xl bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-900/60 text-xs text-brand-800 dark:text-brand-300 flex items-start space-x-3">
+        <div class="w-7 h-7 rounded-xl bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0 mt-0.5">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <span class="font-bold text-slate-900 dark:text-white">Welcome! Complete your Academic & Career Profile.</span>
+          <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">Please tell us your field of study or degree (e.g. Journalism, Accounting, Sports, Electrical Engineering, Business) so we can rank and tailor opportunities directly to your field.</p>
+        </div>
+      </div>
+
       <div class="space-y-3 text-xs">
         <div>
           <label class="font-bold text-slate-600 dark:text-slate-400">Full Name</label>
@@ -1365,27 +1382,68 @@
             <input type="number" id="prof-exp" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
           </div>
         </div>
-        <div>
-          <label class="font-bold text-slate-600 dark:text-slate-400">Headline / Current Title</label>
-          <input type="text" id="prof-title" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
+
+        <!-- Academic Discipline & Degree Major (Crucial for Multi-Field Alignment) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="font-bold text-slate-600 dark:text-slate-400">Highest Degree</label>
-            <input type="text" id="prof-degree" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+            <label class="font-bold text-slate-600 dark:text-slate-400">Academic Field / Discipline <span class="text-rose-500">*</span></label>
+            <select id="prof-field" onchange="handleFieldChange(this.value)" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-brand-500 [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-slate-900 dark:[&>option]:text-slate-100">
+              <option value="">-- Select Your Field --</option>
+              <option value="Journalism & Media">📰 Journalism, Media & Communications</option>
+              <option value="Accounting & Finance">📊 Accounting, Finance & Banking</option>
+              <option value="Business & Management">💼 Business, Marketing & Operations</option>
+              <option value="Sports Science & Athletics">⚽ Sports Science, Athletics & Kinesiology</option>
+              <option value="Electrical Engineering">⚡ Electrical & Electronics Engineering</option>
+              <option value="Mechanical Engineering">⚙️ Mechanical & Mechatronics Engineering</option>
+              <option value="Civil Engineering & Architecture">🏗️ Civil Engineering & Architecture</option>
+              <option value="Computer Science & IT">💻 Computer Science, Software & IT</option>
+              <option value="Healthcare & Medicine">🩺 Healthcare, Medicine & Nursing</option>
+              <option value="Law & Legal Studies">⚖️ Law, Legal Studies & Human Rights</option>
+              <option value="Education & Teaching">🎓 Education, Pedagogy & Teaching</option>
+              <option value="Natural & Applied Sciences">🔬 Natural Sciences, Biology & Chemistry</option>
+              <option value="General">🌐 Other / General Track</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-600 dark:text-slate-400">Degree Title / Major</label>
+            <input type="text" id="prof-degree" placeholder="e.g. BA in Journalism, BSc in Accounting" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-600 dark:text-slate-400">Headline / Current Role</label>
+            <input type="text" id="prof-title" placeholder="e.g. Investigative Reporter, Accountant" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
           </div>
           <div>
             <label class="font-bold text-slate-600 dark:text-slate-400">Academic Standing / GPA</label>
-            <input type="text" id="prof-gpa" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+            <input type="text" id="prof-gpa" placeholder="e.g. 3.8 / 4.0 or Distinction" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
           </div>
         </div>
+
+        <!-- Target Roles & Telegram Handle -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-600 dark:text-slate-400">Target Roles</label>
+            <input type="text" id="prof-roles" placeholder="e.g. Reporter, Editor, Content Specialist" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="font-bold text-slate-600 dark:text-slate-400">Personal Telegram Handle (Alerts)</label>
+            <input type="text" id="prof-telegram-handle" placeholder="e.g. @username" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
         <div>
-          <label class="font-bold text-slate-600 dark:text-slate-400">Verified Technical Skills (Comma-separated)</label>
-          <textarea id="prof-skills" rows="2" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"></textarea>
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-600 dark:text-slate-400">Verified Skills (Comma-separated)</label>
+            <span class="text-[10px] text-slate-400">Click chips below to auto-add</span>
+          </div>
+          <textarea id="prof-skills" rows="2" placeholder="e.g. News Writing, Investigative Reporting, AP Style" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"></textarea>
+          <div id="prof-skills-chips" class="mt-1"></div>
         </div>
         <div>
-          <label class="font-bold text-slate-600 dark:text-slate-400">Executive Bio</label>
-          <textarea id="prof-bio" rows="2" class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"></textarea>
+          <label class="font-bold text-slate-600 dark:text-slate-400">Professional Bio</label>
+          <textarea id="prof-bio" rows="2" placeholder="Brief background summary highlighting your qualifications..." class="w-full mt-1 bg-slate-50 dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"></textarea>
         </div>
       </div>
 
@@ -1697,12 +1755,38 @@
     let currentView = 'overview'; // 'overview', 'pipeline', 'scrapers'
     let currentViewMode = 'grid'; // 'grid', 'table'
     let currentFilterFlag = 'all'; // 'all', 'remote', 'salary', 'worklife', 'closing', 'funded'
+    let tailoredFilterActive = true; // Tailored to candidate field / degree active by default
     let currentPage = 1;
     const pageSize = 12;
     let pendingDeleteId = null;
 
     let supabaseClient = null;
     let hasSupabase = false;
+
+    function getAuthHeaders() {
+      const headers = {};
+      if (currentUser) {
+        if (currentUser.email) headers['X-User-Email'] = currentUser.email;
+        if (currentUser.id) headers['X-User-Id'] = String(currentUser.id);
+        if (currentUser.full_name) headers['X-User-Name'] = currentUser.full_name;
+      }
+      return headers;
+    }
+
+    function toggleTailoredFilter() {
+      tailoredFilterActive = !tailoredFilterActive;
+      const btn = document.getElementById('flt-tailored');
+      if (btn) {
+        if (tailoredFilterActive) {
+          btn.className = 'px-3 py-1.5 rounded-xl font-bold bg-brand-600 text-white shadow-xs transition-colors whitespace-nowrap shrink-0 flex items-center space-x-1.5 cursor-pointer';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-xl font-bold bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-brand-500 transition-colors whitespace-nowrap shrink-0 flex items-center space-x-1.5 cursor-pointer';
+        }
+      }
+      currentPage = 1;
+      renderActiveView();
+      showToast(tailoredFilterActive ? '🎯 Stream tailored to your academic field' : '🌐 Showing all opportunities across all fields');
+    }
 
     async function init() {
       // 1. Theme initialization
@@ -1733,12 +1817,13 @@
 
     async function loadData() {
       try {
+        const headers = getAuthHeaders();
         const [oppsRes, jobsRes, grantsRes, pipeRes, profRes] = await Promise.all([
-          fetch('/api/opportunities'),
-          fetch('/api/jobs'),
-          fetch('/api/grants'),
-          fetch('/api/pipeline'),
-          fetch('/api/profile')
+          fetch('/api/opportunities', { headers }),
+          fetch('/api/jobs', { headers }),
+          fetch('/api/grants', { headers }),
+          fetch('/api/pipeline', { headers }),
+          fetch('/api/profile', { headers })
         ]);
         allOpportunities = await oppsRes.json();
         allJobs = await jobsRes.json();
@@ -1749,6 +1834,15 @@
         updateCounters();
         renderActiveView();
         loadSchedulerState();
+        updateAuthUI();
+
+        // If user is authenticated and has an incomplete profile / missing degree:
+        // Automatically pop up the profile setup modal so they can calibrate their field!
+        if (currentUser && (!userProfile || !userProfile.is_profile_complete || !userProfile.degree)) {
+          setTimeout(() => {
+            openProfileModal(true);
+          }, 600);
+        }
       } catch (err) {
         console.error('Failed to load application data:', err);
       }
@@ -1804,7 +1898,7 @@
         const nameEl = document.getElementById('user-name-display');
         if (nameEl) nameEl.innerText = userProfile.full_name.split(' ')[0] || userProfile.full_name;
         const titleEl = document.getElementById('user-title-display');
-        if (titleEl) titleEl.innerText = userProfile.title || 'Candidate';
+        if (titleEl) titleEl.innerText = userProfile.field_of_study || userProfile.title || 'Candidate';
         const initials = userProfile.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
         const badgeEl = document.getElementById('user-avatar-badge');
         if (badgeEl) badgeEl.innerText = initials;
@@ -2172,10 +2266,31 @@
         });
       }
 
+      // 3b. Degree & Academic Field Relevance Filter
+      if (tailoredFilterActive) {
+        const candidateField = (userProfile?.field_of_study || '').toLowerCase();
+        if (candidateField && candidateField !== 'general') {
+          const tailored = list.filter(i => {
+            if (i.domain_match === true) return true;
+            if (i.domain_match === false) return false;
+            return (i.match?.score || 50) >= 50;
+          });
+          // If we have items aligned to field, filter strictly to them; otherwise keep stream intact
+          if (tailored.length > 0) {
+            list = tailored;
+          }
+        }
+      }
+
       // 4. Sorting
       const sortVal = document.getElementById('sort-selector').value;
       if (sortVal === 'match') {
-        list.sort((a, b) => (b.match?.score || 50) - (a.match?.score || 50));
+        list.sort((a, b) => {
+          const aD = a.domain_match === true ? 1 : (a.domain_match === false ? -1 : 0);
+          const bD = b.domain_match === true ? 1 : (b.domain_match === false ? -1 : 0);
+          if (bD !== aD) return bD - aD;
+          return (b.match?.score || 50) - (a.match?.score || 50);
+        });
       } else if (sortVal === 'deadline') {
         list.sort((a, b) => (a.deadline_date || '9999').localeCompare(b.deadline_date || '9999'));
       } else if (sortVal === 'salary') {
@@ -2353,17 +2468,28 @@
         const countryPill = item.country && item.country !== 'Global' ? `<span class="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold text-[10px]">📍 ${item.country}</span>` : '';
         const degPill = item.academic_level && item.academic_level !== 'All Levels' ? `<span class="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-[10px]">📜 ${item.academic_level}</span>` : '';
 
+        // Degree / Academic Field Alignment Pill
+        let matchPill = '';
+        if (item.domain_match === true) {
+          matchPill = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center space-x-1"><i class="fa-solid fa-check-double text-[8px]"></i><span>Field Match</span></span>`;
+        } else if (item.domain_match === false) {
+          matchPill = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 dark:bg-dark-card dark:text-slate-400">Other Field</span>`;
+        }
+
         return `
           <div class="bg-white dark:bg-dark-surface rounded-3xl border border-slate-200 dark:border-dark-border p-5 shadow-xs hover:shadow-md hover:border-brand-500/50 transition-all flex flex-col justify-between space-y-4">
             
             <div class="space-y-3">
               <!-- Header Pill row -->
               <div class="flex items-center justify-between">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${meta.bg} flex items-center space-x-1.5">
-                  <i class="fa-solid ${meta.icon} text-[9px]"></i>
-                  <span>${meta.label}</span>
-                </span>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${meta.bg} flex items-center space-x-1.5">
+                    <i class="fa-solid ${meta.icon} text-[9px]"></i>
+                    <span>${meta.label}</span>
+                  </span>
+                  ${matchPill}
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black ${item.domain_match === false ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'}">
                   ${score}% Fit
                 </span>
               </div>
@@ -2468,7 +2594,7 @@
 
     async function renderPipelineBoard() {
       try {
-        const res = await fetch('/api/pipeline');
+        const res = await fetch('/api/pipeline', { headers: getAuthHeaders() });
         pipelineItems = await res.json();
         updateCounters();
 
@@ -2528,7 +2654,10 @@
       try {
         const res = await fetch('/api/pipeline', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
           body: JSON.stringify({
             item_type: type,
             item_id: id,
@@ -2559,7 +2688,10 @@
       try {
         await fetch(`/api/pipeline/${id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
           body: JSON.stringify({ status: newStatus })
         });
         showToast('Application status updated');
@@ -2588,7 +2720,10 @@
       const id = pendingDeleteId;
       closeDeleteConfirmModal();
       try {
-        await fetch(`/api/pipeline/${id}`, { method: 'DELETE' });
+        await fetch(`/api/pipeline/${id}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
         showToast('Application removed from pipeline');
         await renderPipelineBoard();
       } catch (err) {
@@ -3014,7 +3149,10 @@
       try {
         const res = await fetch('/api/copilot/generate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
           body: JSON.stringify({
             item_type: activeCopilotItem.type,
             item_id: activeCopilotItem.id,
@@ -3060,17 +3198,119 @@
     // PROFILE MODAL
     // =========================================================================
 
-    function openProfileModal() {
-      if (userProfile) {
-        document.getElementById('prof-name').value = userProfile.full_name || '';
-        document.getElementById('prof-email').value = userProfile.email || '';
-        document.getElementById('prof-title').value = userProfile.title || '';
-        document.getElementById('prof-degree').value = userProfile.degree || '';
-        document.getElementById('prof-gpa').value = userProfile.gpa_grades || '';
-        document.getElementById('prof-exp').value = userProfile.experience_years || 0;
-        document.getElementById('prof-skills').value = userProfile.skills || '';
-        document.getElementById('prof-bio').value = userProfile.bio || '';
+    const FIELD_SKILL_PRESETS = {
+      'Journalism & Media': ['News Writing', 'Investigative Reporting', 'AP Style', 'Copy Editing', 'Media Ethics', 'Interviewing', 'Fact Checking', 'Digital Publishing', 'Audio/Podcasting', 'Data Journalism'],
+      'Accounting & Finance': ['GAAP / IFRS', 'Financial Auditing', 'Tax Preparation', 'QuickBooks', 'Excel / Financial Modeling', 'Cost Accounting', 'Accounts Reconciliation', 'Budgeting', 'Risk Management'],
+      'Business & Management': ['Market Strategy', 'Financial Analysis', 'Project Management', 'Business Analytics', 'B2B Sales', 'Operations Management', 'Stakeholder Communication', 'Agile / Scrum'],
+      'Sports Science & Athletics': ['Athletic Training', 'Sports Analytics', 'Exercise Physiology', 'Strength & Conditioning', 'Kinesiology', 'Sports Marketing', 'Injury Prevention', 'Nutrition Coaching'],
+      'Electrical Engineering': ['Circuit Design', 'PCB Layout', 'Embedded Systems', 'MATLAB', 'Microcontrollers', 'Power Systems', 'FPGA / Verilog', 'Signal Processing', 'AutoCAD Electrical'],
+      'Mechanical Engineering': ['CAD / SolidWorks', 'Thermodynamics', 'Fluid Mechanics', 'Finite Element Analysis (FEA)', 'Rapid Prototyping', 'CNC Machining', 'Robotics', 'Mechatronics'],
+      'Civil Engineering & Architecture': ['Structural Analysis', 'AutoCAD Civil 3D', 'Geotechnical Engineering', 'Project Estimating', 'Surveying', 'BIM / Revit', 'Concrete Technology', 'Site Management'],
+      'Computer Science & IT': ['Python', 'JavaScript / TypeScript', 'React', 'FastAPI', 'Node.js', 'SQL / Database Design', 'Git / CI/CD', 'Machine Learning', 'Docker', 'REST APIs'],
+      'Healthcare & Medicine': ['Clinical Assessment', 'Patient Care', 'HIPAA Compliance', 'Medical Terminology', 'EHR Systems', 'Public Health', 'Pharmacology', 'Biostatistics'],
+      'Law & Legal Studies': ['Legal Research', 'Contract Drafting', 'Statutory Analysis', 'Brief Writing', 'Civil Procedure', 'Regulatory Compliance', 'LexisNexis', 'Negotiation'],
+      'Education & Teaching': ['Curriculum Development', 'Instructional Design', 'Classroom Management', 'Educational Assessment', 'Pedagogy', 'EdTech Tools', 'Student Mentoring'],
+      'Natural & Applied Sciences': ['Experimental Design', 'Data Analysis', 'Statistical Inference', 'Scientific Writing', 'Laboratory Protocols', 'R / Python Data Science', 'Literature Review']
+    };
+
+    function renderSkillSuggestions(field) {
+      const container = document.getElementById('prof-skills-chips');
+      if (!container) return;
+      const skills = FIELD_SKILL_PRESETS[field] || [];
+      if (!skills.length) {
+        container.innerHTML = '';
+        return;
       }
+      container.innerHTML = `
+        <div class="flex flex-wrap gap-1.5 pt-1">
+          ${skills.map(s => `
+            <button type="button" onclick="appendSkill('${s}')" class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-dark-card hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-dark-hover text-slate-600 dark:text-slate-300 text-[10px] font-semibold border border-slate-200/60 dark:border-dark-border cursor-pointer transition-colors">
+              + ${s}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function appendSkill(skill) {
+      const input = document.getElementById('prof-skills');
+      if (!input) return;
+      const current = input.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (!current.includes(skill)) {
+        current.push(skill);
+        input.value = current.join(', ');
+      }
+    }
+
+    function handleFieldChange(field) {
+      renderSkillSuggestions(field);
+      const degreeInput = document.getElementById('prof-degree');
+      const titleInput = document.getElementById('prof-title');
+      const rolesInput = document.getElementById('prof-roles');
+      if (!degreeInput || !titleInput) return;
+      
+      const placeholders = {
+        'Journalism & Media': { deg: 'BA in Journalism & Mass Comm', title: 'Staff Writer / Reporter', roles: 'Journalist, Reporter, Media Producer' },
+        'Accounting & Finance': { deg: 'BSc in Accounting / ACCA', title: 'Junior Auditor / Accountant', roles: 'Accountant, Financial Analyst, Auditor' },
+        'Business & Management': { deg: 'Bachelor of Business Administration (BBA)', title: 'Operations Associate', roles: 'Business Analyst, Project Coordinator' },
+        'Sports Science & Athletics': { deg: 'BSc in Kinesiology / Sports Science', title: 'Athletic Trainer / Coach', roles: 'Fitness Coach, Sports Coordinator' },
+        'Electrical Engineering': { deg: 'BSc in Electrical Engineering', title: 'Hardware / Electrical Engineer', roles: 'Electrical Engineer, Systems Designer' },
+        'Mechanical Engineering': { deg: 'BSc in Mechanical Engineering', title: 'Design / Mechanical Engineer', roles: 'Mechanical Engineer, CAD Specialist' },
+        'Civil Engineering & Architecture': { deg: 'BSc in Civil Engineering', title: 'Site / Structural Engineer', roles: 'Civil Engineer, Construction Manager' },
+        'Computer Science & IT': { deg: 'BSc in Computer Science', title: 'Software Engineer', roles: 'Full Stack Engineer, Backend Developer' },
+        'Healthcare & Medicine': { deg: 'Bachelor of Science in Nursing / Medicine', title: 'Clinical Specialist', roles: 'Nurse, Health Specialist, Clinical Lead' },
+        'Law & Legal Studies': { deg: 'Bachelor of Laws (LL.B)', title: 'Legal Associate', roles: 'Legal Analyst, Compliance Officer' },
+        'Education & Teaching': { deg: 'Bachelor of Education (B.Ed)', title: 'Educator / Teacher', roles: 'Instructor, Academic Mentor' },
+        'Natural & Applied Sciences': { deg: 'BSc in Biology / Chemistry', title: 'Laboratory Researcher', roles: 'Research Scientist, Lab Analyst' }
+      };
+
+      const preset = placeholders[field];
+      if (preset) {
+        if (!degreeInput.value) degreeInput.placeholder = preset.deg;
+        if (!titleInput.value) titleInput.placeholder = preset.title;
+        if (rolesInput && !rolesInput.value) rolesInput.placeholder = preset.roles;
+      }
+    }
+
+    function openProfileModal(isOnboarding = false) {
+      const banner = document.getElementById('prof-onboarding-banner');
+      if (banner) {
+        if (isOnboarding || (userProfile && !userProfile.is_profile_complete)) {
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
+
+      const activeName = (userProfile && userProfile.full_name) || (currentUser && currentUser.full_name) || '';
+      const activeEmail = (userProfile && userProfile.email) || (currentUser && currentUser.email) || '';
+
+      document.getElementById('prof-name').value = activeName;
+      document.getElementById('prof-email').value = activeEmail;
+      if (currentUser && currentUser.email) {
+        document.getElementById('prof-email').readOnly = true;
+      }
+
+      document.getElementById('prof-title').value = (userProfile && userProfile.title) || '';
+      document.getElementById('prof-degree').value = (userProfile && userProfile.degree) || '';
+      document.getElementById('prof-gpa').value = (userProfile && userProfile.gpa_grades) || '';
+      document.getElementById('prof-exp').value = (userProfile && userProfile.experience_years) || 0;
+      document.getElementById('prof-skills').value = (userProfile && userProfile.skills) || '';
+      document.getElementById('prof-bio').value = (userProfile && userProfile.bio) || '';
+
+      const fieldVal = (userProfile && userProfile.field_of_study) || '';
+      const fieldSelect = document.getElementById('prof-field');
+      if (fieldSelect) {
+        fieldSelect.value = fieldVal;
+        handleFieldChange(fieldVal);
+      }
+
+      const rolesInput = document.getElementById('prof-roles');
+      if (rolesInput) rolesInput.value = (userProfile && userProfile.target_roles) || '';
+
+      const tgHandleInput = document.getElementById('prof-telegram-handle');
+      if (tgHandleInput) tgHandleInput.value = (userProfile && userProfile.telegram_handle) || '';
+
       document.getElementById('profile-modal').classList.remove('hidden');
     }
 
@@ -3085,19 +3325,25 @@
           email: document.getElementById('prof-email').value.trim(),
           title: document.getElementById('prof-title').value.trim(),
           degree: document.getElementById('prof-degree').value.trim(),
-          experience_years: parseInt(document.getElementById('prof-exp').value || '0'),
+          field_of_study: document.getElementById('prof-field').value.trim(),
+          target_roles: document.getElementById('prof-roles').value.trim(),
+          telegram_handle: document.getElementById('prof-telegram-handle').value.trim(),
+          experience_years: parseInt(document.getElementById('prof-exp').value || '0', 10),
           skills: document.getElementById('prof-skills').value.trim(),
           bio: document.getElementById('prof-bio').value.trim(),
         };
 
         const res = await fetch('/api/profile', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
           body: JSON.stringify(payload)
         });
         const updated = await res.json();
-        userProfile = updated;
-        showToast('Candidate profile updated! Recalibrating scores...');
+        userProfile = updated.profile || updated;
+        showToast('🎯 Profile calibrated! Opportunities tailored to your degree.');
         closeProfileModal();
         await loadData();
       } catch (err) {
@@ -3111,7 +3357,7 @@
 
     async function loadTelegramStatus() {
       try {
-        const res = await fetch('/api/telegram/status');
+        const res = await fetch('/api/telegram/status', { headers: getAuthHeaders() });
         const data = await res.json();
         const dot = document.getElementById('tg-header-dot');
         const modalChat = document.getElementById('tg-modal-chat');
@@ -3135,11 +3381,14 @@
       const btn = document.getElementById('tg-detect-btn');
       btn.innerText = 'Listening for message...';
       try {
-        const res = await fetch('/api/telegram/detect', { method: 'POST' });
+        const res = await fetch('/api/telegram/detect', {
+          method: 'POST',
+          headers: getAuthHeaders()
+        });
         const data = await res.json();
         if (data.success) {
           showToast('🎉 Telegram linked! Verification card sent.');
-          await fetch('/api/telegram/test', { method: 'POST' });
+          await fetch('/api/telegram/test', { method: 'POST', headers: getAuthHeaders() });
           await loadTelegramStatus();
         } else {
           alert(data.message || data.error || 'No message detected. Please send /start to @ScraperGaloreBot first.');
@@ -3153,7 +3402,10 @@
 
     async function sendTelegramTestNotification() {
       try {
-        const res = await fetch('/api/telegram/test', { method: 'POST' });
+        const res = await fetch('/api/telegram/test', {
+          method: 'POST',
+          headers: getAuthHeaders()
+        });
         const data = await res.json();
         if (data.success) showToast('📱 Verification test card delivered!');
         else alert(data.error || 'Failed to dispatch test');
@@ -3167,7 +3419,10 @@
       try {
         const res = await fetch('/api/telegram/send', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
           body: JSON.stringify({ item_type: type, item_id: id })
         });
         const data = await res.json();
@@ -3190,7 +3445,7 @@
 
     async function loadResumeStatus() {
       try {
-        const res = await fetch('/api/resume/status');
+        const res = await fetch('/api/resume/status', { headers: getAuthHeaders() });
         const data = await res.json();
 
         const badge = document.getElementById('sidebar-gpa-badge');
@@ -3961,11 +4216,16 @@
         if (guestCapsule) guestCapsule.classList.add('hidden');
         if (headerAuthBtn) headerAuthBtn.classList.add('hidden');
 
+        const displayName = (userProfile && userProfile.full_name) || currentUser.full_name || 'Member';
         const nameEl = document.getElementById('user-name-display');
         const badgeEl = document.getElementById('user-avatar-badge');
-        if (nameEl) nameEl.innerText = currentUser.full_name || 'Member';
+        const titleEl = document.getElementById('user-title-display');
+        if (nameEl) nameEl.innerText = displayName;
+        if (titleEl) {
+          titleEl.innerText = (userProfile && (userProfile.field_of_study || userProfile.title)) || (currentUser.persona === 'student' ? 'Student' : (currentUser.persona === 'job_seeker' ? 'Job Seeker' : 'Member'));
+        }
         if (badgeEl) {
-          const initials = (currentUser.full_name || 'Member').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+          const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'M';
           badgeEl.innerText = initials;
         }
       } else {

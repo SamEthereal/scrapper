@@ -97,11 +97,12 @@ class OpportunityDB:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_exp ON jobs(experience_level);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_cat ON jobs(category);")
 
-            # Create applications table for Phase 4 (Application Tracker / Pipeline)
+            # Create multi-tenant applications table (Application Tracker / Pipeline)
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS applications (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL DEFAULT '1',
                     item_type TEXT NOT NULL,
                     item_id INTEGER NOT NULL,
                     title TEXT NOT NULL,
@@ -113,62 +114,42 @@ class OpportunityDB:
                     notes TEXT DEFAULT '',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(item_type, item_id)
+                    UNIQUE(user_id, item_type, item_id)
                 );
                 """
             )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_apps_status ON applications(status);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_apps_user ON applications(user_id);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_apps_status ON applications(user_id, status);")
 
-            # Create user_profiles table for Milestone 11 (AI Matcher & Application Copilot)
+            # Create multi-tenant user_profiles table (AI Matcher, Copilot & Field Taxonomy)
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS user_profiles (
-                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT UNIQUE,
+                    email TEXT UNIQUE,
                     full_name TEXT NOT NULL,
-                    email TEXT,
                     title TEXT,
-                    skills TEXT NOT NULL,
+                    field_of_study TEXT,
                     degree TEXT,
+                    skills TEXT NOT NULL DEFAULT '',
                     experience_years INTEGER DEFAULT 0,
                     preferred_locations TEXT,
                     target_roles TEXT,
                     bio TEXT,
+                    telegram_handle TEXT,
+                    telegram_chat_id TEXT,
+                    gpa_grades TEXT,
+                    resume_raw TEXT,
+                    extracted_data TEXT,
+                    is_profile_complete INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 """
             )
-
-            # Seed default profile if none exists
-            row = conn.execute("SELECT COUNT(*) FROM user_profiles;").fetchone()
-            if row and row[0] == 0:
-                conn.execute(
-                    """
-                    INSERT INTO user_profiles (
-                        id, full_name, email, title, skills, degree, experience_years,
-                        preferred_locations, target_roles, bio
-                    ) VALUES (
-                        1,
-                        'Samuel Aseffa',
-                        'sami.aseffa@gmail.com',
-                        'Full-Stack & Distributed Systems Engineer',
-                        'Python, FastAPI, TypeScript, React, Docker, Machine Learning, Data Scraping, SQL, Cloud Architecture',
-                        'BSc in Computer Science',
-                        4,
-                        'Remote, Europe, North America',
-                        'Software Engineer, Full-Stack Developer, AI Backend Engineer, Research Fellow',
-                        'Passionate engineer specialized in scalable scrapers, intelligent automated pipelines, and modern web applications with 4+ years of hands-on experience.'
-                    );
-                    """
-                )
-
-            # Ensure user_profiles has columns for Milestone 15 (AI Resume Parsing)
-            user_cols = [r["name"] for r in conn.execute("PRAGMA table_info(user_profiles);").fetchall()]
-            if "gpa_grades" not in user_cols:
-                conn.execute("ALTER TABLE user_profiles ADD COLUMN gpa_grades TEXT;")
-            if "resume_raw" not in user_cols:
-                conn.execute("ALTER TABLE user_profiles ADD COLUMN resume_raw TEXT;")
-            if "extracted_data" not in user_cols:
-                conn.execute("ALTER TABLE user_profiles ADD COLUMN extracted_data TEXT;")
+            conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_profiles_email ON user_profiles(email);")
+            conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);")
 
             # Create grants table for Milestone 12 (Tech Grants & Accelerators)
             conn.execute(
@@ -711,10 +692,46 @@ class OpportunityDB:
             ).fetchone()
             return dict(row)
 
-    def get_pipeline(self) -> List[Dict[str, Any]]:
-        """Returns all applications in the pipeline ordered by updated_at descending."""
+    def add_to_pipeline(
+        self,
+        item_type: str,
+        item_id: int,
+        title: str,
+        subtitle: Optional[str] = None,
+        deadline_or_salary: Optional[str] = None,
+        deadline_date: Optional[str] = None,
+        url: Optional[str] = None,
+        status: str = "saved",
+        notes: str = "",
+        user_id: str = "1",
+    ) -> Dict[str, Any]:
+        """Adds or updates an application in the user's pipeline with atomic conflict resolution."""
         with self._get_connection() as conn:
-            rows = conn.execute("SELECT * FROM applications ORDER BY updated_at DESC;").fetchall()
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO applications (
+                    user_id, item_type, item_id, title, subtitle, deadline_or_salary,
+                    deadline_date, url, status, notes, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(user_id, item_type, item_id) DO UPDATE SET
+                    status = excluded.status,
+                    notes = CASE WHEN excluded.notes != '' THEN excluded.notes ELSE applications.notes END,
+                    updated_at = CURRENT_TIMESTAMP;
+                """,
+                (user_id, item_type, item_id, title, subtitle, deadline_or_salary, deadline_date, url, status, notes),
+            )
+            conn.commit()
+            row = conn.execute(
+                "SELECT * FROM applications WHERE user_id = ? AND item_type = ? AND item_id = ?;",
+                (user_id, item_type, item_id),
+            ).fetchone()
+            return dict(row)
+
+    def get_pipeline(self, user_id: str = "1") -> List[Dict[str, Any]]:
+        """Returns all applications in the pipeline for the given user, ordered by updated_at descending."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM applications WHERE user_id = ? ORDER BY updated_at DESC;", (str(user_id),)).fetchall()
             return [dict(r) for r in rows]
 
     def update_pipeline_item(
@@ -722,6 +739,7 @@ class OpportunityDB:
         app_id: int,
         status: Optional[str] = None,
         notes: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> bool:
         """Updates the status and/or notes of an application in the pipeline."""
         updates = ["updated_at = CURRENT_TIMESTAMP"]
@@ -734,58 +752,101 @@ class OpportunityDB:
             params.append(notes)
         params.append(app_id)
 
+        sql = f"UPDATE applications SET {', '.join(updates)} WHERE id = ?"
+        if user_id:
+            sql += " AND user_id = ?"
+            params.append(str(user_id))
+
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                f"UPDATE applications SET {', '.join(updates)} WHERE id = ?;",
-                tuple(params),
-            )
+            cursor.execute(sql + ";", tuple(params))
             return cursor.rowcount > 0
 
-    def delete_pipeline_item(self, app_id: int) -> bool:
+    def delete_pipeline_item(self, app_id: int, user_id: Optional[str] = None) -> bool:
         """Deletes an application from the pipeline."""
+        sql = "DELETE FROM applications WHERE id = ?"
+        params = [app_id]
+        if user_id:
+            sql += " AND user_id = ?"
+            params.append(str(user_id))
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM applications WHERE id = ?;", (app_id,))
+            cursor.execute(sql + ";", tuple(params))
             return cursor.rowcount > 0
 
     # =========================================================================
-    # Milestone 11: User Profile Persistence (AI Matcher & Application Copilot)
+    # Milestone 11: Multi-User Profile Persistence & AI Matcher
     # =========================================================================
 
-    def get_user_profile(self) -> Dict[str, Any]:
-        """Retrieves the active user profile (id=1). Returns default if not yet created."""
+    def get_user_profile(
+        self,
+        user_id: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Retrieves a specific user's profile. If not yet created, returns a template pre-filled with auth info."""
         with self._get_connection() as conn:
-            row = conn.execute("SELECT * FROM user_profiles WHERE id = 1;").fetchone()
+            row = None
+            if user_id or email:
+                u_str = str(user_id) if user_id is not None else ""
+                e_str = email.strip().lower() if email else ""
+                row = conn.execute(
+                    """
+                    SELECT * FROM user_profiles
+                    WHERE (user_id = ? AND ? != '') OR (email = ? AND ? != '')
+                    LIMIT 1;
+                    """,
+                    (u_str, u_str, e_str, e_str),
+                ).fetchone()
+
+            # If no specific user requested or not found by specific credentials, check for any default profile
+            if not row and not user_id and not email:
+                row = conn.execute("SELECT * FROM user_profiles ORDER BY id ASC LIMIT 1;").fetchone()
+
             if not row:
+                # Check if user exists in `users` table to pre-fill their auth details
+                auth_user = None
+                if user_id or email:
+                    u_str = str(user_id) if user_id is not None else ""
+                    e_str = email.strip().lower() if email else ""
+                    auth_user = conn.execute(
+                        "SELECT * FROM users WHERE (id = ? AND ? != '') OR (email = ? AND ? != '') LIMIT 1;",
+                        (u_str, u_str, e_str, e_str),
+                    ).fetchone()
+
+                name = auth_user["full_name"] if auth_user else "Applicant"
+                em = auth_user["email"] if auth_user else (email or "")
+                uid = str(auth_user["id"]) if auth_user else (str(user_id) if user_id else None)
+
                 return {
-                    "id": 1,
-                    "full_name": "Samuel Aseffa",
-                    "email": "sami.aseffa@gmail.com",
-                    "title": "Full-Stack & Distributed Systems Engineer",
-                    "skills": "Python, FastAPI, TypeScript, React, Docker, Machine Learning, Data Scraping, SQL, Cloud Architecture",
-                    "skills_list": [
-                        "Python", "FastAPI", "TypeScript", "React", "Docker",
-                        "Machine Learning", "Data Scraping", "SQL", "Cloud Architecture"
-                    ],
-                    "degree": "BSc in Computer Science",
-                    "experience_years": 4,
-                    "preferred_locations": "Remote, Europe, North America",
-                    "target_roles": "Software Engineer, Full-Stack Developer, AI Backend Engineer, Research Fellow",
-                    "target_roles_list": [
-                        "Software Engineer", "Full-Stack Developer", "AI Backend Engineer", "Research Fellow"
-                    ],
-                    "bio": "Passionate engineer specialized in scalable scrapers, intelligent automated pipelines, and modern web applications with 4+ years of hands-on experience.",
-                    "gpa_grades": "3.85 / 4.0 (First Class Honours)",
+                    "id": None,
+                    "user_id": uid,
+                    "full_name": name,
+                    "email": em,
+                    "title": "",
+                    "field_of_study": "",
+                    "degree": "",
+                    "skills": "",
+                    "skills_list": [],
+                    "experience_years": 0,
+                    "preferred_locations": "Remote",
+                    "target_roles": "",
+                    "target_roles_list": [],
+                    "bio": "",
+                    "telegram_handle": "",
+                    "telegram_chat_id": "",
+                    "gpa_grades": "",
                     "resume_raw": None,
                     "extracted_data": None,
+                    "is_profile_complete": False,
                     "updated_at": None,
                 }
+
             data = dict(row)
             skills_raw = data.get("skills") or ""
             data["skills_list"] = [s.strip() for s in skills_raw.split(",") if s.strip()]
             roles_raw = data.get("target_roles") or ""
             data["target_roles_list"] = [r.strip() for r in roles_raw.split(",") if r.strip()]
+            data["is_profile_complete"] = bool(data.get("is_profile_complete", 0))
             if not data.get("gpa_grades"):
                 data["gpa_grades"] = "3.85 / 4.0 (First Class Honours)"
             return data
@@ -794,71 +855,128 @@ class OpportunityDB:
         self,
         full_name: str,
         email: Optional[str] = None,
+        user_id: Optional[str] = None,
         title: Optional[str] = None,
-        skills: str = "",
+        field_of_study: Optional[str] = None,
         degree: Optional[str] = None,
+        skills: str = "",
         experience_years: int = 0,
         preferred_locations: Optional[str] = None,
         target_roles: Optional[str] = None,
         bio: Optional[str] = None,
+        telegram_handle: Optional[str] = None,
+        telegram_chat_id: Optional[str] = None,
         gpa_grades: Optional[str] = None,
         resume_raw: Optional[str] = None,
         extracted_data: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Upserts the active user profile (id=1) in the database."""
+        """Upserts a specific user profile in the database keyed by email or user_id."""
+        clean_email = email.strip().lower() if email else None
+        clean_uid = str(user_id) if user_id is not None else None
+
         with self._get_connection() as conn:
-            conn.execute(
-                """
-                INSERT INTO user_profiles (
-                    id, full_name, email, title, skills, degree, experience_years,
-                    preferred_locations, target_roles, bio, gpa_grades, resume_raw, extracted_data, updated_at
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                ON CONFLICT(id) DO UPDATE SET
-                    full_name = excluded.full_name,
-                    email = excluded.email,
-                    title = excluded.title,
-                    skills = excluded.skills,
-                    degree = excluded.degree,
-                    experience_years = excluded.experience_years,
-                    preferred_locations = excluded.preferred_locations,
-                    target_roles = excluded.target_roles,
-                    bio = excluded.bio,
-                    gpa_grades = COALESCE(excluded.gpa_grades, user_profiles.gpa_grades),
-                    resume_raw = COALESCE(excluded.resume_raw, user_profiles.resume_raw),
-                    extracted_data = COALESCE(excluded.extracted_data, user_profiles.extracted_data),
-                    updated_at = CURRENT_TIMESTAMP;
-                """,
-                (
-                    full_name,
-                    email or "",
-                    title or "",
-                    skills,
-                    degree or "",
-                    experience_years,
-                    preferred_locations or "",
-                    target_roles or "",
-                    bio or "",
-                    gpa_grades,
-                    resume_raw,
-                    extracted_data,
-                ),
-            )
+            # Check if this profile already exists
+            existing = None
+            if clean_email or clean_uid:
+                e_val = clean_email or ""
+                u_val = clean_uid or ""
+                existing = conn.execute(
+                    "SELECT id, user_id, email FROM user_profiles WHERE (email = ? AND ? != '') OR (user_id = ? AND ? != '') LIMIT 1;",
+                    (e_val, e_val, u_val, u_val),
+                ).fetchone()
+
+            if existing:
+                conn.execute(
+                    """
+                    UPDATE user_profiles SET
+                        full_name = ?,
+                        email = COALESCE(?, email),
+                        user_id = COALESCE(?, user_id),
+                        title = ?,
+                        field_of_study = ?,
+                        degree = ?,
+                        skills = ?,
+                        experience_years = ?,
+                        preferred_locations = ?,
+                        target_roles = ?,
+                        bio = ?,
+                        telegram_handle = COALESCE(?, telegram_handle),
+                        telegram_chat_id = COALESCE(?, telegram_chat_id),
+                        gpa_grades = COALESCE(?, gpa_grades),
+                        resume_raw = COALESCE(?, resume_raw),
+                        extracted_data = COALESCE(?, extracted_data),
+                        is_profile_complete = 1,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?;
+                    """,
+                    (
+                        full_name,
+                        clean_email,
+                        clean_uid,
+                        title or "",
+                        field_of_study or "",
+                        degree or "",
+                        skills,
+                        experience_years,
+                        preferred_locations or "",
+                        target_roles or "",
+                        bio or "",
+                        telegram_handle,
+                        telegram_chat_id,
+                        gpa_grades,
+                        resume_raw,
+                        extracted_data,
+                        existing["id"],
+                    ),
+                )
+            else:
+                conn.execute(
+                    """
+                    INSERT INTO user_profiles (
+                        user_id, email, full_name, title, field_of_study, degree, skills,
+                        experience_years, preferred_locations, target_roles, bio,
+                        telegram_handle, telegram_chat_id, gpa_grades, resume_raw,
+                        extracted_data, is_profile_complete, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP);
+                    """,
+                    (
+                        clean_uid,
+                        clean_email,
+                        full_name,
+                        title or "",
+                        field_of_study or "",
+                        degree or "",
+                        skills,
+                        experience_years,
+                        preferred_locations or "",
+                        target_roles or "",
+                        bio or "",
+                        telegram_handle or "",
+                        telegram_chat_id or "",
+                        gpa_grades or "",
+                        resume_raw,
+                        extracted_data,
+                    ),
+                )
             conn.commit()
-            return self.get_user_profile()
+            return self.get_user_profile(user_id=clean_uid, email=clean_email)
 
     def update_resume_data(
         self,
         resume_raw: str,
         extracted: Dict[str, Any],
         gpa_grades: Optional[str] = None,
+        user_id: Optional[str] = None,
+        email: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Updates user profile directly from parsed resume data."""
         import json
-        full_name = extracted.get("full_name") or "Samuel Aseffa"
-        email = extracted.get("email")
+        full_name = extracted.get("full_name") or "Applicant"
+        user_email = email or extracted.get("email")
         title = extracted.get("title")
         skills = extracted.get("skills") or ""
         degree = extracted.get("degree")
+        field_of_study = extracted.get("field_of_study") or extracted.get("major")
         experience_years = int(extracted.get("experience_years") or 0)
         target_roles = extracted.get("target_roles")
         bio = extracted.get("bio")
@@ -867,10 +985,12 @@ class OpportunityDB:
         extracted_str = json.dumps(extracted, ensure_ascii=False)
         return self.save_user_profile(
             full_name=full_name,
-            email=email,
+            email=user_email,
+            user_id=user_id,
             title=title,
-            skills=skills,
+            field_of_study=field_of_study,
             degree=degree,
+            skills=skills,
             experience_years=experience_years,
             target_roles=target_roles,
             bio=bio,

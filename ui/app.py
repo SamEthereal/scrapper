@@ -3,7 +3,7 @@
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any, List
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Response, UploadFile, File, Request, status
 from fastapi.responses import FileResponse, JSONResponse
@@ -47,6 +47,7 @@ class PipelineItemCreate(BaseModel):
     url: Optional[str] = None
     status: str = "saved"
     notes: str = ""
+    user_id: Optional[str] = None
 
 
 class PipelineItemUpdate(BaseModel):
@@ -62,13 +63,18 @@ class TelegramSendRequest(BaseModel):
 class UserProfileUpdate(BaseModel):
     full_name: str
     email: Optional[str] = None
+    user_id: Optional[str] = None
     title: Optional[str] = None
-    skills: str = ""
+    field_of_study: Optional[str] = None
     degree: Optional[str] = None
+    skills: str = ""
     experience_years: int = 0
     preferred_locations: Optional[str] = None
     target_roles: Optional[str] = None
     bio: Optional[str] = None
+    telegram_handle: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
+    gpa_grades: Optional[str] = None
 
 
 class CopilotGenerateRequest(BaseModel):
@@ -280,25 +286,75 @@ def logout_user(response: Response):
     return {"success": True, "message": "Logged out successfully"}
 
 
+def resolve_current_user(request: Request) -> Optional[Dict[str, Any]]:
+    """Resolves active user from JWT session cookie, Bearer header, or X-User headers."""
+    # 1. Native JWT token from cookie or Authorization header
+    token = extract_token_from_request(request)
+    if token:
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            try:
+                user_id = int(payload["sub"])
+                u = db.get_user_by_id(user_id)
+                if u:
+                    return u
+            except Exception:
+                pass
+            if payload.get("email"):
+                u = db.get_user_by_email(payload["email"])
+                if u:
+                    return u
+
+    # 2. X-User-Email / X-User-Id header (e.g. from Supabase frontend session or client headers)
+    user_email = request.headers.get("X-User-Email") or request.query_params.get("user_email")
+    user_id_hdr = request.headers.get("X-User-Id") or request.query_params.get("user_id")
+
+    if user_email:
+        clean_email = user_email.strip().lower()
+        u = db.get_user_by_email(clean_email)
+        if u:
+            return u
+        # User signed up via Supabase and exists in Supabase, but not yet in SQLite users table:
+        # Auto-provision them in SQLite
+        user_name = request.headers.get("X-User-Name") or clean_email.split("@")[0]
+        try:
+            created = db.create_user(
+                email=clean_email,
+                hashed_password="SUPABASE_OAUTH_USER",
+                full_name=user_name,
+                persona="all",
+            )
+            return created
+        except Exception:
+            return db.get_user_by_email(clean_email)
+
+    if user_id_hdr:
+        try:
+            u = db.get_user_by_id(int(user_id_hdr))
+            if u:
+                return u
+        except Exception:
+            pass
+
+    return None
+
+
 @app.get("/api/auth/me")
 def get_current_user(request: Request):
     """Returns the authenticated user info or unauthenticated status."""
-    token = extract_token_from_request(request)
-    if not token:
+    user = resolve_current_user(request)
+    if not user:
         return {"authenticated": False, "user": None}
-
-    payload = decode_access_token(token)
-    if not payload or "sub" not in payload:
-        return {"authenticated": False, "user": None}
-
-    try:
-        user_id = int(payload["sub"])
-        user = db.get_user_by_id(user_id)
-        if not user:
-            return {"authenticated": False, "user": None}
-        return {"authenticated": True, "user": user}
-    except Exception:
-        return {"authenticated": False, "user": None}
+    return {
+        "authenticated": True,
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "full_name": user["full_name"],
+            "persona": user.get("persona", "all"),
+            "role": user.get("role", "user"),
+        },
+    }
 
 
 @app.put("/api/auth/persona")
@@ -487,14 +543,19 @@ def get_sources():
 
 @app.get("/api/grants")
 def get_grants(
+    request: Request,
     search: Optional[str] = None,
     sort_by: str = "id",
     order: str = "desc",
+    tailored_only: bool = False,
 ):
     """Retrieves and filters tech grants and accelerators with AI match scoring."""
     grants = db.get_grants(limit=100, keyword=search)
-    profile = db.get_user_profile()
+    curr = resolve_current_user(request)
+    profile = db.get_user_profile(user_id=str(curr["id"]) if curr else None, email=curr.get("email") if curr else None)
     enriched = ProfileMatcher.enrich_items(profile, grants, item_type="grant")
+    if tailored_only:
+        enriched = [x for x in enriched if x.get("domain_match", True)]
     if sort_by == "match":
         enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=(order != "asc"))
     return enriched
@@ -512,6 +573,7 @@ def get_history():
 
 @app.get("/api/opportunities")
 def get_opportunities(
+    request: Request,
     search: Optional[str] = None,
     country: Optional[str] = None,
     level: Optional[str] = None,
@@ -520,8 +582,9 @@ def get_opportunities(
     days: int = 60,
     sort_by: str = "date",
     order: str = "desc",
+    tailored_only: bool = False,
 ):
-    """Retrieves and filters scholarship opportunities with AI match scoring."""
+    """Retrieves and filters scholarship opportunities with AI match scoring and degree alignment."""
     db_sort = sort_by if sort_by != "match" else "date"
     if closing_soon:
         items = db.get_closing_soon(days=days)
@@ -536,8 +599,11 @@ def get_opportunities(
             limit=100,
         )
 
-    profile = db.get_user_profile()
-    enriched = ProfileMatcher.enrich_items(profile, items, item_type="opportunity")
+    curr = resolve_current_user(request)
+    profile = db.get_user_profile(user_id=str(curr["id"]) if curr else None, email=curr.get("email") if curr else None)
+    enriched = ProfileMatcher.enrich_items(profile, items, item_type="opportunity", sort_by_relevance=(sort_by != "date"))
+    if tailored_only:
+        enriched = [x for x in enriched if x.get("domain_match", True)]
     if sort_by == "match":
         enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=(order != "asc"))
     return enriched
@@ -545,6 +611,7 @@ def get_opportunities(
 
 @app.get("/api/jobs")
 def get_jobs(
+    request: Request,
     search: Optional[str] = None,
     experience_level: Optional[str] = None,
     category: Optional[str] = None,
@@ -554,8 +621,9 @@ def get_jobs(
     min_score: Optional[int] = None,
     sort_by: str = "id",
     order: str = "desc",
+    tailored_only: bool = False,
 ):
-    """Retrieves and filters job listings with AI match scoring and experience level filters."""
+    """Retrieves and filters job listings with AI match scoring and domain relevance ranking."""
     db_sort = sort_by if sort_by != "match" else "id"
     jobs = db.filter_jobs(
         keyword=search,
@@ -570,44 +638,60 @@ def get_jobs(
         limit=100,
     )
 
-    profile = db.get_user_profile()
-    enriched = ProfileMatcher.enrich_items(profile, jobs, item_type="job")
+    curr = resolve_current_user(request)
+    profile = db.get_user_profile(user_id=str(curr["id"]) if curr else None, email=curr.get("email") if curr else None)
+    enriched = ProfileMatcher.enrich_items(profile, jobs, item_type="job", sort_by_relevance=(sort_by != "date"))
+    if tailored_only:
+        enriched = [x for x in enriched if x.get("domain_match", True)]
     if sort_by == "match":
         enriched.sort(key=lambda x: x.get("match", {}).get("score", 0), reverse=(order != "asc"))
     return enriched
 
 
 # =============================================================================
-# Milestone 11: User Profile & 1-Click Application Copilot Endpoints
+# Milestone 11: Multi-User Profile & 1-Click Application Copilot Endpoints
 # =============================================================================
 
 @app.get("/api/profile")
-def get_profile():
+def get_profile(request: Request):
     """Returns the current user profile, skills, and matching preferences."""
+    curr = resolve_current_user(request)
+    if curr:
+        return db.get_user_profile(user_id=str(curr["id"]), email=curr.get("email"))
     return db.get_user_profile()
 
 
 @app.post("/api/profile")
-def update_profile(profile_data: UserProfileUpdate):
-    """Updates user skills, target roles, education, and preferences."""
+def update_profile(profile_data: UserProfileUpdate, request: Request):
+    """Updates user skills, target roles, education, field of study, and preferences."""
+    curr = resolve_current_user(request)
+    user_id = profile_data.user_id or (str(curr["id"]) if curr else None)
+    email = profile_data.email or (curr.get("email") if curr else None)
+
     updated = db.save_user_profile(
         full_name=profile_data.full_name,
-        email=profile_data.email,
+        email=email,
+        user_id=user_id,
         title=profile_data.title,
-        skills=profile_data.skills,
+        field_of_study=profile_data.field_of_study,
         degree=profile_data.degree,
+        skills=profile_data.skills,
         experience_years=profile_data.experience_years,
         preferred_locations=profile_data.preferred_locations,
         target_roles=profile_data.target_roles,
         bio=profile_data.bio,
+        telegram_handle=profile_data.telegram_handle,
+        telegram_chat_id=profile_data.telegram_chat_id,
+        gpa_grades=profile_data.gpa_grades,
     )
     return {"success": True, "profile": updated}
 
 
 @app.post("/api/copilot/generate")
-def generate_application_copilot(req: CopilotGenerateRequest):
+def generate_application_copilot(req: CopilotGenerateRequest, request: Request):
     """Generates a tailored Cover Letter or Statement of Purpose for a listing."""
-    profile = db.get_user_profile()
+    curr = resolve_current_user(request)
+    profile = db.get_user_profile(user_id=str(curr["id"]) if curr else None, email=curr.get("email") if curr else None)
 
     if req.item_type == "job":
         item = db.get_job_by_id(req.item_id)
@@ -639,14 +723,18 @@ def generate_application_copilot(req: CopilotGenerateRequest):
 
 
 @app.get("/api/pipeline")
-def get_pipeline():
+def get_pipeline(request: Request):
     """Returns all tracked applications in the user's pipeline."""
-    return db.get_pipeline()
+    curr = resolve_current_user(request)
+    user_id = str(curr["id"]) if curr else "1"
+    return db.get_pipeline(user_id=user_id)
 
 
 @app.post("/api/pipeline")
-def add_to_pipeline(item: PipelineItemCreate):
+def add_to_pipeline(item: PipelineItemCreate, request: Request):
     """Adds or updates an opportunity/job in the application pipeline."""
+    curr = resolve_current_user(request)
+    user_id = item.user_id or (str(curr["id"]) if curr else "1")
     return db.add_to_pipeline(
         item_type=item.item_type,
         item_id=item.item_id,
@@ -657,22 +745,27 @@ def add_to_pipeline(item: PipelineItemCreate):
         url=item.url,
         status=item.status,
         notes=item.notes,
+        user_id=user_id,
     )
 
 
 @app.patch("/api/pipeline/{app_id}")
-def update_pipeline(app_id: int, item: PipelineItemUpdate):
+def update_pipeline(app_id: int, item: PipelineItemUpdate, request: Request):
     """Updates an application status or notes in the pipeline."""
-    success = db.update_pipeline_item(app_id, status=item.status, notes=item.notes)
+    curr = resolve_current_user(request)
+    user_id = str(curr["id"]) if curr else None
+    success = db.update_pipeline_item(app_id, status=item.status, notes=item.notes, user_id=user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Pipeline item not found")
     return {"success": True}
 
 
 @app.delete("/api/pipeline/{app_id}")
-def delete_pipeline(app_id: int):
+def delete_pipeline(app_id: int, request: Request):
     """Removes an application from the pipeline."""
-    success = db.delete_pipeline_item(app_id)
+    curr = resolve_current_user(request)
+    user_id = str(curr["id"]) if curr else None
+    success = db.delete_pipeline_item(app_id, user_id=user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Pipeline item not found")
     return {"success": True}
@@ -766,8 +859,11 @@ def test_telegram_connection():
 
 
 @app.post("/api/telegram/send")
-def send_telegram_alert(payload: TelegramSendRequest):
+def send_telegram_alert(payload: TelegramSendRequest, request: Request):
     """Sends a specific opportunity, job, or grant card directly to the user's Telegram."""
+    curr = resolve_current_user(request)
+    profile = db.get_user_profile(user_id=str(curr["id"]) if curr else None, email=curr.get("email") if curr else None)
+
     if payload.item_type == "job":
         item = db.get_job_by_id(payload.item_id)
     elif payload.item_type == "grant":
@@ -778,9 +874,9 @@ def send_telegram_alert(payload: TelegramSendRequest):
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    profile = db.get_user_profile()
     match = ProfileMatcher.match_item(profile, item, item_type=payload.item_type)
-    return telegram_dispatcher.send_opportunity_card(item, item_type=payload.item_type, match=match)
+    target_chat = profile.get("telegram_chat_id") or None
+    return telegram_dispatcher.send_opportunity_card(item, item_type=payload.item_type, match=match, chat_id=target_chat)
 
 
 # =============================================================================
@@ -1152,10 +1248,11 @@ def apply_resume_to_profile(req: ResumeApplyRequest):
 
 
 @app.get("/api/resume/recommendations")
-def get_resume_recommendations():
+def get_resume_recommendations(request: Request):
     """Generates dynamic AI recommendations across scholarships, jobs, and grants tailored to user's resume."""
     try:
-        profile = db.get_user_profile()
+        curr = resolve_current_user(request)
+        profile = db.get_user_profile(user_id=str(curr["id"]) if curr else None, email=curr.get("email") if curr else None)
         recommendations = AIResumeService.get_dynamic_recommendations(profile, db)
         return {"success": True, **recommendations}
     except Exception as e:
