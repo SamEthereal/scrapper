@@ -592,6 +592,14 @@
 
           <p class="px-3 pt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">Management & Tools</p>
 
+          <button onclick="switchView('analytics')" id="nav-item-analytics" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold">
+            <div class="flex items-center space-x-2.5">
+              <i class="fa-solid fa-chart-line text-sm text-amber-500 w-4"></i>
+              <span>System Analytics</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 font-extrabold">Admin</span>
+          </button>
+
           <button onclick="switchView('pipeline')" id="nav-item-pipeline" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all">
             <div class="flex items-center space-x-2.5">
               <i class="fa-solid fa-kanban text-sm text-sky-500 w-4"></i>
@@ -755,390 +763,40 @@
         <div id="overview-view" class="space-y-6">
 
           <!-- ================================================================= -->
-          <!-- 1. ROW 1: TODAY'S RADAR (4 KPI STAT CARDS) + LEVEL VERTICAL BARS  -->
+          <!-- 1. FOCUSED OPPORTUNITY GREETING STRIP (Clean & Non-Overwhelming)   -->
           <!-- ================================================================= -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-dark-card border border-slate-200/80 dark:border-dark-border rounded-2xl p-4 sm:px-6 shadow-xs">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#8cedd2]/15 text-emerald-600 dark:text-[#8cedd2] border border-[#8cedd2]/25">
+                  <i class="fa-solid fa-sparkles mr-1"></i>Calibrated Feed
+                </span>
+                <span id="user-field-badge" class="text-xs font-bold text-slate-500 dark:text-slate-400">Targeting Your Field</span>
+              </div>
+              <h2 id="user-greeting-title" class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-1">
+                Matched Opportunities &amp; Deadlines
+              </h2>
+            </div>
             
-            <!-- Left: Today's Executive Radar (8 cols on lg) -->
-            <div class="lg:col-span-8 flex flex-col justify-between space-y-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Today's Opportunity Radar</h2>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Real-time intelligence summary calibrated to your profile</p>
-                </div>
-                <span class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-[#8cedd2]">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#8cedd2] animate-pulse"></span>
-                  <span>Autonomous Radar</span>
-                </span>
+            <!-- Sleek Minimal Stat Badges -->
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+              <div class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-dark-surface border border-slate-200/60 dark:border-white/5 text-center">
+                <span id="user-kpi-matched" class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">0</span>
+                <p class="text-[9px] font-bold text-slate-400 uppercase">Available</p>
               </div>
-
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 pt-1">
-                <!-- KPI 1: Highlighted Amber Neon Card (Matching Dribbble $5k Sales card!) -->
-                <div class="amber-neon-card rounded-2xl p-4 bg-amber-500/5 dark:bg-dark-card flex flex-col justify-between transition-all">
-                  <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center text-xs mb-2.5">
-                    <i class="fa-solid fa-chart-simple text-sm"></i>
-                  </div>
-                  <div>
-                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-top-fit-metric">98%</div>
-                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Top Match Fit</p>
-                    <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-1 flex items-center space-x-1">
-                      <i class="fa-solid fa-arrow-trend-up text-[9px]"></i>
-                      <span id="kpi-top-fit-sub">+10% precision</span>
-                    </p>
-                  </div>
-                </div>
-
-                <!-- KPI 2: Total Indexed Listings -->
-                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
-                  <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-xs mb-2.5">
-                    <i class="fa-solid fa-bolt text-sm"></i>
-                  </div>
-                  <div>
-                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-total">500+</div>
-                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Total Indexed</p>
-                    <p class="text-[10px] font-bold text-sky-600 dark:text-sky-400 mt-1 flex items-center space-x-1">
-                      <i class="fa-solid fa-arrow-trend-up text-[9px]"></i>
-                      <span>+8% from yesterday</span>
-                    </p>
-                  </div>
-                </div>
-
-                <!-- KPI 3: Applications In Pipeline -->
-                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
-                  <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-xs mb-2.5">
-                    <i class="fa-solid fa-briefcase text-sm"></i>
-                  </div>
-                  <div>
-                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-pipeline">0</div>
-                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Pipeline Leads</p>
-                    <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 mt-1 flex items-center space-x-1">
-                      <i class="fa-solid fa-check text-[9px]"></i>
-                      <span id="kpi-radar-pipeline-sub">Active tracking</span>
-                    </p>
-                  </div>
-                </div>
-
-                <!-- KPI 4: Telegram Phone Radar / Active Nodes -->
-                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
-                  <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs mb-2.5">
-                    <i class="fa-solid fa-satellite-dish text-sm"></i>
-                  </div>
-                  <div>
-                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-nodes">4</div>
-                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Live Scrapers</p>
-                    <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center space-x-1">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Syncing feeds</span>
-                    </p>
-                  </div>
-                </div>
+              <div class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-dark-surface border border-slate-200/60 dark:border-white/5 text-center">
+                <span id="user-kpi-fit" class="text-xs sm:text-sm font-black text-amber-500">98%</span>
+                <p class="text-[9px] font-bold text-slate-400 uppercase">Top Fit</p>
               </div>
+              <div class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-dark-surface border border-slate-200/60 dark:border-white/5 text-center">
+                <span id="user-kpi-pipe" class="text-xs sm:text-sm font-black text-brand-500 dark:text-[#8cedd2]">0</span>
+                <p class="text-[9px] font-bold text-slate-400 uppercase">Pipeline</p>
+              </div>
+              <button onclick="switchView('analytics')" class="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer" title="View Full System & Ingestion Analytics">
+                <i class="fa-solid fa-chart-simple text-[10px] text-amber-500"></i>
+                <span class="text-[11px]">System Analytics</span>
+              </button>
             </div>
-
-            <!-- Right: "Level" / Field Volume Cylinder Bars (4 cols on lg) -->
-            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
-              <div class="flex items-center justify-between mb-3">
-                <div>
-                  <h3 class="text-sm font-black text-slate-900 dark:text-white">Level</h3>
-                  <p class="text-[11px] text-slate-400">Stream distribution by vertical</p>
-                </div>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">Real-Time</span>
-              </div>
-
-              <!-- Vertical Glowing Cylinders (Matching Dribbble Level Bars!) -->
-              <div class="flex items-end justify-between h-32 px-2 pt-2">
-                <div class="flex flex-col items-center space-y-1.5 flex-1">
-                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
-                    <div id="cyl-bar-tech" class="cylinder-bar cylinder-glow-mint w-full" style="height: 82%;"></div>
-                  </div>
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Tech</span>
-                </div>
-                <div class="flex flex-col items-center space-y-1.5 flex-1">
-                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
-                    <div id="cyl-bar-health" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 64%;"></div>
-                  </div>
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Med</span>
-                </div>
-                <div class="flex flex-col items-center space-y-1.5 flex-1">
-                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
-                    <div id="cyl-bar-eng" class="cylinder-bar cylinder-glow-mint w-full" style="height: 90%;"></div>
-                  </div>
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Eng</span>
-                </div>
-                <div class="flex flex-col items-center space-y-1.5 flex-1">
-                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
-                    <div id="cyl-bar-biz" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 48%;"></div>
-                  </div>
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Biz</span>
-                </div>
-                <div class="flex flex-col items-center space-y-1.5 flex-1">
-                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
-                    <div id="cyl-bar-sci" class="cylinder-bar cylinder-glow-mint w-full" style="height: 76%;"></div>
-                  </div>
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Sci</span>
-                </div>
-                <div class="flex flex-col items-center space-y-1.5 flex-1">
-                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
-                    <div id="cyl-bar-gov" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 55%;"></div>
-                  </div>
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Gov</span>
-                </div>
-              </div>
-
-              <!-- Legend -->
-              <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-dark-border text-[10px] text-slate-400 font-bold">
-                <span class="flex items-center space-x-1.5">
-                  <span class="w-2 h-2 rounded-full bg-[#8cedd2]"></span>
-                  <span>Volume</span>
-                </span>
-                <span class="flex items-center space-x-1.5">
-                  <span class="w-2 h-2 rounded-full bg-[#38bdf8]"></span>
-                  <span>Verified</span>
-                </span>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- ================================================================= -->
-          <!-- 2. ROW 2: TOP MATCHES STREAM + STREAM FULFILMENT DUAL CHART       -->
-          <!-- ================================================================= -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
-            
-            <!-- Left: Top Matched Opportunities Table with Horizontal Glowing Neon Bars (8 cols on lg) -->
-            <div class="lg:col-span-8 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h3 class="text-base font-black text-slate-900 dark:text-white">Top Calibrated Matches</h3>
-                  <p class="text-xs text-slate-400 font-medium">Ranked by algorithm precision and degree relevance</p>
-                </div>
-                <button onclick="setFilterFlag('tailored')" class="px-2.5 py-1 rounded-xl text-xs font-bold text-brand-600 dark:text-[#8cedd2] hover:bg-slate-100 dark:hover:bg-dark-card transition-colors cursor-pointer">
-                  View All &rarr;
-                </button>
-              </div>
-
-              <!-- Table with Glowing Neon Progress Bars (Matching Dribbble Top Products!) -->
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                  <thead class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-dark-border pb-2">
-                    <tr>
-                      <th class="pb-2.5 w-8">#</th>
-                      <th class="pb-2.5">Opportunity</th>
-                      <th class="pb-2.5 w-44 sm:w-60">Match Popularity</th>
-                      <th class="pb-2.5 text-right w-20">Fit</th>
-                    </tr>
-                  </thead>
-                  <tbody id="top-matched-tbody" class="divide-y divide-slate-100 dark:divide-dark-border font-medium">
-                    <!-- Dynamically injected via renderTopMatchedWidget() -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Right: Customer Fulfilment Dual-Curve Glowing Neon Chart (4 cols on lg) -->
-            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
-              <div class="flex items-center justify-between mb-2">
-                <div>
-                  <h3 class="text-sm font-black text-slate-900 dark:text-white">Customer Fulfilment</h3>
-                  <p class="text-[11px] text-slate-400">Opportunity Inflow vs Submissions</p>
-                </div>
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              </div>
-
-              <!-- Dual Curve Glowing SVG Chart (Matching Dribbble Fulfilment Chart!) -->
-              <div class="py-2">
-                <svg viewBox="0 0 300 110" class="w-full h-24 overflow-visible">
-                  <defs>
-                    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
-                      <feGaussianBlur stdDeviation="3" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                    <filter id="glow-pink" x="-20%" y="-20%" width="140%" height="140%">
-                      <feGaussianBlur stdDeviation="3" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-
-                  <line x1="10" y1="20" x2="290" y2="20" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
-                  <line x1="10" y1="55" x2="290" y2="55" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
-                  <line x1="10" y1="90" x2="290" y2="90" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
-
-                  <!-- Curve 1 (Cyan/Mint Line) -->
-                  <path d="M 15,75 C 50,40 85,85 125,50 C 165,25 205,70 245,35 C 265,20 285,30 285,30" 
-                        fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" filter="url(#glow-cyan)"/>
-                  <circle cx="125" cy="50" r="3" fill="#2dd4bf"/>
-                  <circle cx="245" cy="35" r="3" fill="#2dd4bf"/>
-                  <circle cx="285" cy="30" r="3.5" fill="#2dd4bf"/>
-
-                  <!-- Curve 2 (Pink/Mauve Line) -->
-                  <path d="M 15,92 C 50,70 85,98 125,75 C 165,55 205,90 245,60 C 265,50 285,65 285,65" 
-                        fill="none" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-pink)"/>
-                  <circle cx="125" cy="75" r="2.5" fill="#f472b6"/>
-                  <circle cx="245" cy="60" r="2.5" fill="#f472b6"/>
-                  <circle cx="285" cy="65" r="3" fill="#f472b6"/>
-                </svg>
-              </div>
-
-              <!-- Legend & Stats (Matching Dribbble $4,087 / $5,506) -->
-              <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-dark-border">
-                <div>
-                  <p class="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
-                    <span class="w-2 h-2 rounded-full bg-[#f472b6]"></span>
-                    <span>Academic Feeds</span>
-                  </p>
-                  <p class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5" id="fulfilment-academic-count">85 Active</p>
-                </div>
-                <div>
-                  <p class="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
-                    <span class="w-2 h-2 rounded-full bg-[#2dd4bf]"></span>
-                    <span>Job Listings</span>
-                  </p>
-                  <p class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5" id="fulfilment-job-count">142 Active</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- ================================================================= -->
-          <!-- 3. ROW 3: DEGREE CALIBRATION GAUGE + CRAWL VELOCITY AREA WAVE     -->
-          <!-- ================================================================= -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
-            
-            <!-- Left: Degree Calibration Semi-Circle Gauge (4 cols on lg / Matching Dribbble 80% Gauge) -->
-            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
-              <div>
-                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Calibration Index</p>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Degree Fit Alignment</h3>
-                <div class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="gauge-score-headline">94.2%</div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" id="gauge-score-sub">Top 5% candidate alignment</p>
-              </div>
-
-              <!-- Glowing Semi-Circle Radial Gauge -->
-              <div class="relative flex flex-col items-center justify-center pt-2 pb-1">
-                <svg viewBox="0 0 180 100" class="w-48 h-28 overflow-visible">
-                  <defs>
-                    <filter id="gauge-neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feGaussianBlur stdDeviation="4" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-
-                  <!-- Background semi-circle track -->
-                  <path d="M 20 85 A 70 70 0 0 1 160 85" fill="none" stroke="currentColor" stroke-opacity="0.08" stroke-width="12" stroke-linecap="round"/>
-                  
-                  <!-- Active glowing semi-circle arc (Circumference of semi-circle with r=70 is ~220) -->
-                  <path id="gauge-arc-fill" d="M 20 85 A 70 70 0 0 1 160 85" fill="none" stroke="#2dd4bf" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="44" filter="url(#gauge-neon-glow)"/>
-                </svg>
-
-                <!-- Center percentage label inside the arc -->
-                <div class="absolute bottom-1 flex flex-col items-center">
-                  <span id="gauge-center-percentage" class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">88%</span>
-                  <span class="text-[9px] font-extrabold text-[#2dd4bf] uppercase tracking-wider">Calibrated</span>
-                </div>
-              </div>
-
-              <div class="pt-2 border-t border-slate-100 dark:border-dark-border flex items-center justify-between text-[11px]">
-                <span class="text-slate-400 font-medium">Confidence Status:</span>
-                <span class="font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
-                  <i class="fa-solid fa-circle-check text-[10px]"></i>
-                  <span>High Precision</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Right: Autonomous Crawl Velocity & Insights Wave (8 cols on lg / Matching Dribbble Visitor Insights!) -->
-            <div class="lg:col-span-8 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
-              <div class="flex items-center justify-between mb-2">
-                <div>
-                  <h3 class="text-base font-black text-slate-900 dark:text-white">Visitor & Crawl Velocity</h3>
-                  <p class="text-xs text-slate-400 font-medium">Continuous crawler ingestion across global & local nodes</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center space-x-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    <span>Live Stream</span>
-                  </span>
-                </div>
-              </div>
-
-              <!-- Area Mountain Wave Chart with Glowing Amber Peak Pin (Matching Dribbble June Peak!) -->
-              <div class="py-2">
-                <svg viewBox="0 0 520 150" class="w-full h-32 overflow-visible">
-                  <defs>
-                    <linearGradient id="wave-area-gradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.35" />
-                      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.0" />
-                    </linearGradient>
-                    <filter id="wave-stroke-glow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feGaussianBlur stdDeviation="3" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-
-                  <!-- Horizontal reference scale lines -->
-                  <line x1="20" y1="20" x2="500" y2="20" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
-                  <line x1="20" y1="55" x2="500" y2="55" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
-                  <line x1="20" y1="90" x2="500" y2="90" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
-                  <line x1="20" y1="125" x2="500" y2="125" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
-
-                  <!-- Area fill -->
-                  <path d="M 20,125 
-                           L 20,118 
-                           C 40,115 60,122 80,110 
-                           C 100,98 120,105 140,85 
-                           C 160,65 180,95 200,60 
-                           C 220,35 240,45 260,18 
-                           C 280,45 300,75 320,60 
-                           C 340,45 360,50 380,80 
-                           C 400,105 420,70 440,85 
-                           C 460,95 480,90 500,80 
-                           L 500,125 Z" 
-                        fill="url(#wave-area-gradient)"/>
-
-                  <!-- Neon wave stroke -->
-                  <path d="M 20,118 
-                           C 40,115 60,122 80,110 
-                           C 100,98 120,105 140,85 
-                           C 160,65 180,95 200,60 
-                           C 220,35 240,45 260,18 
-                           C 280,45 300,75 320,60 
-                           C 340,45 360,50 380,80 
-                           C 400,105 420,70 440,85 
-                           C 460,95 480,90 500,80" 
-                        fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" filter="url(#wave-stroke-glow)"/>
-
-                  <!-- Dribbble Peak Pin Marker (Orange dot at x=260, y=18 with dashed line) -->
-                  <line x1="260" y1="18" x2="260" y2="125" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
-                  <circle cx="260" cy="18" r="5" fill="#f59e0b" filter="drop-shadow(0 0 6px #f59e0b)"/>
-                  <circle cx="260" cy="18" r="2" fill="#ffffff"/>
-                </svg>
-              </div>
-
-              <!-- X-Axis timeline labels -->
-              <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold px-3">
-                <span>00:00</span>
-                <span>04:00</span>
-                <span>08:00</span>
-                <span class="text-amber-500 font-black">12:00 (Peak)</span>
-                <span>16:00</span>
-                <span>20:00</span>
-                <span>24:00</span>
-              </div>
-            </div>
-
           </div>
           
           <!-- Top Executive Spotlight Banner (#1 Matched Recommendation) -->
@@ -1352,8 +1010,408 @@
         </div>
 
         <!-- ===================================================================== -->
-        <!-- VIEW B: KANBAN APPLICATION PIPELINE                                   -->
+        <!-- VIEW: SYSTEM & INGESTION ANALYTICS (EXECUTIVE OVERVIEW)               -->
         <!-- ===================================================================== -->
+        <div id="analytics-view" class="hidden space-y-6">
+
+          <!-- Executive Analytics Header -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-dark-surface border border-slate-200/80 dark:border-dark-border rounded-3xl p-5 sm:p-6 shadow-xs">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/25">Operations &amp; Admin</span>
+                <span class="text-xs text-slate-400 font-bold">System Intelligence Command</span>
+              </div>
+              <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-1">Platform Operations &amp; Crawl Radar</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Comprehensive overview of system ingestion rates, pipeline volume, and algorithm calibration metrics</p>
+            </div>
+            <button onclick="switchView('overview')" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-dark-card dark:hover:bg-dark-hover border border-slate-200/60 dark:border-dark-border text-slate-700 dark:text-slate-300 font-extrabold text-xs transition-colors flex items-center space-x-2 shrink-0 cursor-pointer">
+              <i class="fa-solid fa-arrow-left text-xs"></i>
+              <span>Back to Opportunities</span>
+            </button>
+          </div>
+
+          <!-- 1. ROW 1: TODAY'S RADAR (4 KPI STAT CARDS) + LEVEL VERTICAL BARS -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+            
+            <!-- Left: Today's Executive Radar (8 cols on lg) -->
+            <div class="lg:col-span-8 flex flex-col justify-between space-y-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Today's Opportunity Radar</h2>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Real-time intelligence summary calibrated across nodes</p>
+                </div>
+                <span class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-[#8cedd2]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#8cedd2] animate-pulse"></span>
+                  <span>Autonomous Radar</span>
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 pt-1">
+                <!-- KPI 1: Highlighted Amber Neon Card (Matching Dribbble $5k Sales card!) -->
+                <div class="amber-neon-card rounded-2xl p-4 bg-amber-500/5 dark:bg-dark-card flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-chart-simple text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-top-fit-metric">98%</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Top Match Fit</p>
+                    <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-arrow-trend-up text-[9px]"></i>
+                      <span id="kpi-top-fit-sub">+10% precision</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- KPI 2: Total Indexed Listings -->
+                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-bolt text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-total">500+</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Total Indexed</p>
+                    <p class="text-[10px] font-bold text-sky-600 dark:text-sky-400 mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-arrow-trend-up text-[9px]"></i>
+                      <span>+8% from yesterday</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- KPI 3: Applications In Pipeline -->
+                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-briefcase text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-pipeline">0</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Pipeline Leads</p>
+                    <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-check text-[9px]"></i>
+                      <span id="kpi-radar-pipeline-sub">Active tracking</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- KPI 4: Telegram Phone Radar / Active Nodes -->
+                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-satellite-dish text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-nodes">4</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Live Scrapers</p>
+                    <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center space-x-1">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Syncing feeds</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: "Level" / Field Volume Cylinder Bars (4 cols on lg) -->
+            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h3 class="text-sm font-black text-slate-900 dark:text-white">Level</h3>
+                  <p class="text-[11px] text-slate-400">Stream distribution by vertical</p>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">Real-Time</span>
+              </div>
+
+              <!-- Vertical Glowing Cylinders (Matching Dribbble Level Bars!) -->
+              <div class="flex items-end justify-between h-32 px-2 pt-2">
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-tech" class="cylinder-bar cylinder-glow-mint w-full" style="height: 82%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Tech</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-health" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 64%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Med</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-eng" class="cylinder-bar cylinder-glow-mint w-full" style="height: 90%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Eng</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-biz" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 48%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Biz</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-sci" class="cylinder-bar cylinder-glow-mint w-full" style="height: 76%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Sci</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-gov" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 55%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Gov</span>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-dark-border text-[10px] text-slate-400 font-bold">
+                <span class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#8cedd2]"></span>
+                  <span>Volume</span>
+                </span>
+                <span class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#38bdf8]"></span>
+                  <span>Verified</span>
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 2. ROW 2: TOP MATCHES STREAM + STREAM FULFILMENT DUAL CHART -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+            
+            <!-- Left: Top Matched Opportunities Table with Horizontal Glowing Neon Bars (8 cols on lg) -->
+            <div class="lg:col-span-8 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-black text-slate-900 dark:text-white">Top Calibrated Matches</h3>
+                  <p class="text-xs text-slate-400 font-medium">Ranked by algorithm precision and degree relevance</p>
+                </div>
+                <button onclick="switchView('overview'); setFilterFlag('tailored')" class="px-2.5 py-1 rounded-xl text-xs font-bold text-brand-600 dark:text-[#8cedd2] hover:bg-slate-100 dark:hover:bg-dark-card transition-colors cursor-pointer">
+                  View Full Stream &rarr;
+                </button>
+              </div>
+
+              <!-- Table with Glowing Neon Progress Bars (Matching Dribbble Top Products!) -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-dark-border pb-2">
+                    <tr>
+                      <th class="pb-2.5 w-8">#</th>
+                      <th class="pb-2.5">Opportunity</th>
+                      <th class="pb-2.5 w-44 sm:w-60">Match Popularity</th>
+                      <th class="pb-2.5 text-right w-20">Fit</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-matched-tbody" class="divide-y divide-slate-100 dark:divide-dark-border font-medium">
+                    <!-- Dynamically injected via renderTopMatchedWidget() -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right: Customer Fulfilment Dual-Curve Glowing Neon Chart (4 cols on lg) -->
+            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-sm font-black text-slate-900 dark:text-white">Customer Fulfilment</h3>
+                  <p class="text-[11px] text-slate-400">Opportunity Inflow vs Submissions</p>
+                </div>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+
+              <!-- Dual Curve Glowing SVG Chart (Matching Dribbble Fulfilment Chart!) -->
+              <div class="py-2">
+                <svg viewBox="0 0 300 110" class="w-full h-24 overflow-visible">
+                  <defs>
+                    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                    <filter id="glow-pink" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <line x1="10" y1="20" x2="290" y2="20" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
+                  <line x1="10" y1="55" x2="290" y2="55" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
+                  <line x1="10" y1="90" x2="290" y2="90" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
+
+                  <!-- Curve 1 (Cyan/Mint Line) -->
+                  <path d="M 15,75 C 50,40 85,85 125,50 C 165,25 205,70 245,35 C 265,20 285,30 285,30" 
+                        fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" filter="url(#glow-cyan)"/>
+                  <circle cx="125" cy="50" r="3" fill="#2dd4bf"/>
+                  <circle cx="245" cy="35" r="3" fill="#2dd4bf"/>
+                  <circle cx="285" cy="30" r="3.5" fill="#2dd4bf"/>
+
+                  <!-- Curve 2 (Pink/Mauve Line) -->
+                  <path d="M 15,92 C 50,70 85,98 125,75 C 165,55 205,90 245,60 C 265,50 285,65 285,65" 
+                        fill="none" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-pink)"/>
+                  <circle cx="125" cy="75" r="2.5" fill="#f472b6"/>
+                  <circle cx="245" cy="60" r="2.5" fill="#f472b6"/>
+                  <circle cx="285" cy="65" r="3" fill="#f472b6"/>
+                </svg>
+              </div>
+
+              <!-- Legend & Stats (Matching Dribbble $4,087 / $5,506) -->
+              <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-dark-border">
+                <div>
+                  <p class="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
+                    <span class="w-2 h-2 rounded-full bg-[#f472b6]"></span>
+                    <span>Academic Feeds</span>
+                  </p>
+                  <p class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5" id="fulfilment-academic-count">85 Active</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
+                    <span class="w-2 h-2 rounded-full bg-[#2dd4bf]"></span>
+                    <span>Job Listings</span>
+                  </p>
+                  <p class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5" id="fulfilment-job-count">142 Active</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 3. ROW 3: DEGREE CALIBRATION GAUGE + CRAWL VELOCITY AREA WAVE -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+            
+            <!-- Left: Degree Calibration Semi-Circle Gauge (4 cols on lg / Matching Dribbble 80% Gauge) -->
+            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Calibration Index</p>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">Degree Fit Alignment</h3>
+                <div class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="gauge-score-headline">94.2%</div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" id="gauge-score-sub">Top 5% candidate alignment</p>
+              </div>
+
+              <!-- Glowing Semi-Circle Radial Gauge -->
+              <div class="relative flex flex-col items-center justify-center pt-2 pb-1">
+                <svg viewBox="0 0 180 100" class="w-48 h-28 overflow-visible">
+                  <defs>
+                    <filter id="gauge-neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <!-- Background semi-circle track -->
+                  <path d="M 20 85 A 70 70 0 0 1 160 85" fill="none" stroke="currentColor" stroke-opacity="0.08" stroke-width="12" stroke-linecap="round"/>
+                  
+                  <!-- Active glowing semi-circle arc (Circumference of semi-circle with r=70 is ~220) -->
+                  <path id="gauge-arc-fill" d="M 20 85 A 70 70 0 0 1 160 85" fill="none" stroke="#2dd4bf" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="44" filter="url(#gauge-neon-glow)"/>
+                </svg>
+
+                <!-- Center percentage label inside the arc -->
+                <div class="absolute bottom-1 flex flex-col items-center">
+                  <span id="gauge-center-percentage" class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">88%</span>
+                  <span class="text-[9px] font-extrabold text-[#2dd4bf] uppercase tracking-wider">Calibrated</span>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-100 dark:border-dark-border flex items-center justify-between text-[11px]">
+                <span class="text-slate-400 font-medium">Confidence Status:</span>
+                <span class="font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+                  <i class="fa-solid fa-circle-check text-[10px]"></i>
+                  <span>High Precision</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Right: Autonomous Crawl Velocity & Insights Wave (8 cols on lg / Matching Dribbble Visitor Insights!) -->
+            <div class="lg:col-span-8 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-base font-black text-slate-900 dark:text-white">Visitor &amp; Crawl Velocity</h3>
+                  <p class="text-xs text-slate-400 font-medium">Continuous crawler ingestion across global &amp; local nodes</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center space-x-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span>Live Stream</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Area Mountain Wave Chart with Glowing Amber Peak Pin (Matching Dribbble June Peak!) -->
+              <div class="py-2">
+                <svg viewBox="0 0 520 150" class="w-full h-32 overflow-visible">
+                  <defs>
+                    <linearGradient id="wave-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.35" />
+                      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.0" />
+                    </linearGradient>
+                    <filter id="wave-stroke-glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <!-- Horizontal reference scale lines -->
+                  <line x1="20" y1="20" x2="500" y2="20" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+                  <line x1="20" y1="55" x2="500" y2="55" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+                  <line x1="20" y1="90" x2="500" y2="90" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+                  <line x1="20" y1="125" x2="500" y2="125" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+
+                  <!-- Area fill -->
+                  <path d="M 20,125 
+                           L 20,118 
+                           C 40,115 60,122 80,110 
+                           C 100,98 120,105 140,85 
+                           C 160,65 180,95 200,60 
+                           C 220,35 240,45 260,18 
+                           C 280,45 300,75 320,60 
+                           C 340,45 360,50 380,80 
+                           C 400,105 420,70 440,85 
+                           C 460,95 480,90 500,80 
+                           L 500,125 Z" 
+                        fill="url(#wave-area-gradient)"/>
+
+                  <!-- Neon wave stroke -->
+                  <path d="M 20,118 
+                           C 40,115 60,122 80,110 
+                           C 100,98 120,105 140,85 
+                           C 160,65 180,95 200,60 
+                           C 220,35 240,45 260,18 
+                           C 280,45 300,75 320,60 
+                           C 340,45 360,50 380,80 
+                           C 400,105 420,70 440,85 
+                           C 460,95 480,90 500,80" 
+                        fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" filter="url(#wave-stroke-glow)"/>
+
+                  <!-- Dribbble Peak Pin Marker (Orange dot at x=260, y=18 with dashed line) -->
+                  <line x1="260" y1="18" x2="260" y2="125" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
+                  <circle cx="260" cy="18" r="5" fill="#f59e0b" filter="drop-shadow(0 0 6px #f59e0b)"/>
+                  <circle cx="260" cy="18" r="2" fill="#ffffff"/>
+                </svg>
+              </div>
+
+              <!-- X-Axis timeline labels -->
+              <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold px-3">
+                <span>00:00</span>
+                <span>04:00</span>
+                <span>08:00</span>
+                <span class="text-amber-500 font-black">12:00 (Peak)</span>
+                <span>16:00</span>
+                <span>20:00</span>
+                <span>24:00</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
         <div id="pipeline-view" class="hidden space-y-6">
           <div class="flex items-center justify-between">
             <div>
@@ -2390,6 +2448,14 @@
       const badgePipe = document.getElementById('badge-count-pipe');
       if (badgePipe) badgePipe.innerText = pipelineItems.length;
 
+      // Update User Opportunity Greeting Strip KPIs
+      const userMatched = document.getElementById('user-kpi-matched');
+      if (userMatched) userMatched.innerText = total;
+      const userPipe = document.getElementById('user-kpi-pipe');
+      if (userPipe) userPipe.innerText = pipelineItems.length;
+      const fieldBadge = document.getElementById('user-field-badge');
+      if (fieldBadge) fieldBadge.innerText = userProfile?.field_of_study || userProfile?.title || 'Targeting Your Profile';
+
       // Update Fulfilment stats (Academic vs Jobs)
       const acadEl = document.getElementById('fulfilment-academic-count');
       if (acadEl) acadEl.innerText = `${allOpportunities.length + allGrants.length} Active`;
@@ -2407,6 +2473,8 @@
       }
       const topFitEl = document.getElementById('kpi-top-fit-metric');
       if (topFitEl) topFitEl.innerText = `${topFit}%`;
+      const userFit = document.getElementById('user-kpi-fit');
+      if (userFit) userFit.innerText = `${topFit}%`;
 
       // Update Degree Calibration Radial Gauge
       const gaugeHeadline = document.getElementById('gauge-score-headline');
@@ -2488,11 +2556,14 @@
       currentView = viewName;
       dismissMobileSidebarIfOpen();
       document.getElementById('overview-view').classList.toggle('hidden', viewName !== 'overview');
+      const analyticsView = document.getElementById('analytics-view');
+      if (analyticsView) analyticsView.classList.toggle('hidden', viewName !== 'analytics');
       document.getElementById('pipeline-view').classList.toggle('hidden', viewName !== 'pipeline');
       document.getElementById('scrapers-view').classList.toggle('hidden', viewName !== 'scrapers');
 
       const pipeBtn = document.getElementById('nav-item-pipeline');
       const scrapBtn = document.getElementById('nav-item-scrapers');
+      const analyticsBtn = document.getElementById('nav-item-analytics');
       if (pipeBtn) {
         if (viewName === 'pipeline') pipeBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all';
         else pipeBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold';
@@ -2501,9 +2572,17 @@
         if (viewName === 'scrapers') scrapBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all';
         else scrapBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold';
       }
+      if (analyticsBtn) {
+        if (viewName === 'analytics') analyticsBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all';
+        else analyticsBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold';
+      }
 
       if (viewName === 'pipeline') renderPipelineBoard();
       if (viewName === 'scrapers') renderScrapersHub();
+      if (viewName === 'analytics') {
+        updateCounters();
+        renderTopMatchedWidget(getFilteredItems());
+      }
       if (viewName === 'overview') {
         switchMainTab(activeCategory || 'all');
         renderActiveView();
