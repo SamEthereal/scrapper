@@ -46,11 +46,15 @@
               950: '#2e1065',
             },
             dark: {
-              bg: '#090d16',
-              surface: '#111827',
-              card: '#161f30',
-              border: '#1f2d42',
-              hover: '#223249',
+              bg: '#0c0f17',
+              surface: '#141824',
+              card: '#181d2a',
+              border: 'rgba(255, 255, 255, 0.07)',
+              hover: '#1f2537',
+            },
+            mint: {
+              accent: '#8cedd2',
+              hover: '#79dec2',
             }
           }
         }
@@ -80,8 +84,89 @@
     }
     html.dark select option,
     .dark select option {
-      background-color: #161f30 !important;
+      background-color: #181d2a !important;
       color: #f1f5f9 !important;
+    }
+
+    /* macOS Window Traffic Lights */
+    .traffic-dot-red {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      background-color: #ff5f56;
+      box-shadow: 0 0 6px rgba(255, 95, 86, 0.4);
+    }
+    .traffic-dot-yellow {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      background-color: #ffbd2e;
+      box-shadow: 0 0 6px rgba(255, 189, 46, 0.4);
+    }
+    .traffic-dot-green {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      background-color: #27c93f;
+      box-shadow: 0 0 6px rgba(39, 201, 63, 0.4);
+    }
+
+    /* Mint Signature Active Pill (Dribbble Style) */
+    .mint-pill-active {
+      background-color: #8cedd2 !important;
+      color: #0c1714 !important;
+      font-weight: 800 !important;
+      box-shadow: 0 0 20px rgba(140, 237, 210, 0.35) !important;
+    }
+    .mint-pill-active i,
+    .mint-pill-active span {
+      color: #0c1714 !important;
+    }
+
+    /* Highlighted Amber Neon Card */
+    .amber-neon-card {
+      border: 1px solid rgba(245, 158, 11, 0.75) !important;
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.22), inset 0 0 16px rgba(245, 158, 11, 0.05) !important;
+    }
+
+    /* Glowing Horizontal Neon Progress Bars */
+    .neon-bar-amber {
+      background: linear-gradient(90deg, #d97706, #fbbf24);
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.55);
+    }
+    .neon-bar-mint {
+      background: linear-gradient(90deg, #059669, #8cedd2);
+      box-shadow: 0 0 12px rgba(140, 237, 210, 0.55);
+    }
+    .neon-bar-cyan {
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+    }
+    .neon-bar-pink {
+      background: linear-gradient(90deg, #db2777, #f472b6);
+      box-shadow: 0 0 12px rgba(244, 114, 182, 0.55);
+    }
+
+    /* Vertical Cylinder Glowing Bars */
+    .cylinder-bar {
+      position: relative;
+      border-radius: 9999px;
+      transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cylinder-glow-mint {
+      background: linear-gradient(180deg, #8cedd2 0%, #10b981 70%, #064e3b 100%);
+      box-shadow: 0 0 16px rgba(140, 237, 210, 0.45);
+    }
+    .cylinder-glow-cyan {
+      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 70%, #0c4a6e 100%);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+    }
+    .cylinder-base {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 9999px;
+    }
+    html:not(.dark) .cylinder-base {
+      background: rgba(0, 0, 0, 0.05);
     }
 
     /* Custom scrollbar */
@@ -385,8 +470,21 @@
     <!-- ========================================================================= -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-dark-surface border-r border-slate-200 dark:border-dark-border flex flex-col justify-between shrink-0 transform -translate-x-full lg:translate-x-0 lg:static lg:w-64 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none">
       
-      <!-- Brand & Status -->
+      <!-- Top Section: macOS Traffic Lights, Brand & Status -->
       <div class="p-5 space-y-4">
+        
+        <!-- macOS Window Traffic Light Controls (Dribbble Design) -->
+        <div class="flex items-center justify-between pb-1">
+          <div class="flex items-center space-x-2">
+            <span class="traffic-dot-red" title="Close window"></span>
+            <span class="traffic-dot-yellow" title="Minimize window"></span>
+            <span class="traffic-dot-green" title="Expand window"></span>
+          </div>
+          <button onclick="toggleMobileSidebar()" class="lg:hidden w-7 h-7 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 flex items-center justify-center text-xs" aria-label="Close navigation">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-2.5 cursor-pointer" onclick="handleBrandClick()">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-fuchsia-600 text-white flex items-center justify-center font-black text-base shadow-sm">
@@ -402,9 +500,6 @@
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <button onclick="toggleMobileSidebar()" class="lg:hidden w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs" aria-label="Close navigation">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
           </div>
         </div>
 
@@ -424,12 +519,12 @@
         <nav class="space-y-1 text-xs font-semibold">
           <p class="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Opportunity Streams</p>
           
-          <button onclick="handleAllNavClick()" id="nav-item-all" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-500 font-bold transition-all">
+          <button onclick="handleAllNavClick()" id="nav-item-all" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all">
             <div class="flex items-center space-x-2.5">
               <i id="nav-item-all-icon" class="fa-solid fa-layer-group text-sm w-4"></i>
-              <span id="nav-item-all-label">All Opportunities</span>
+              <span id="nav-item-all-label">Dashboard</span>
             </div>
-            <span id="badge-count-all" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-500 font-extrabold">0</span>
+            <span id="badge-count-all" class="px-2 py-0.5 rounded-full text-[10px] bg-black/10 dark:bg-black/20 text-[#091b17] font-extrabold">0</span>
           </button>
 
           <!-- Scholarships & Fellowships Group (Interactive Subcategories) -->
@@ -491,12 +586,6 @@
             <div class="flex items-center space-x-2.5">
               <i class="fa-solid fa-rocket text-sm text-amber-500 w-4"></i>
               <span id="nav-item-grants-label">Grants & Capital</span>
-            </div>
-            <span id="badge-count-grants" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
-          </button>
-            <div class="flex items-center space-x-2.5">
-              <i class="fa-solid fa-rocket text-sm text-amber-500 w-4"></i>
-              <span>Grants & Capital</span>
             </div>
             <span id="badge-count-grants" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-dark-border text-slate-600 dark:text-slate-300 font-bold">0</span>
           </button>
@@ -568,20 +657,27 @@
       <!-- Top Workspace Bar: Search, Quick Filters & System Actions -->
       <header class="h-16 px-3 sm:px-6 bg-white dark:bg-dark-surface border-b border-slate-200 dark:border-dark-border flex items-center justify-between gap-2.5 sm:gap-4 shrink-0 z-20">
         
-        <!-- Mobile Sidebar Hamburger & Search Bar -->
+        <!-- Mobile Sidebar Hamburger, macOS Traffic Dots & Inset Search Bar -->
         <div class="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0 max-w-2xl">
           <button onclick="toggleMobileSidebar()" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200/60 dark:border-dark-border text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 hover:bg-slate-200 dark:hover:bg-dark-hover transition-colors cursor-pointer" aria-label="Open Navigation">
             <i class="fa-solid fa-bars text-sm"></i>
           </button>
 
+          <!-- macOS Window Traffic Light Controls (Workspace Shell) -->
+          <div class="hidden lg:flex items-center space-x-2 mr-2 shrink-0">
+            <span class="traffic-dot-red" title="Close window"></span>
+            <span class="traffic-dot-yellow" title="Minimize window"></span>
+            <span class="traffic-dot-green" title="Expand window"></span>
+          </div>
+
           <div class="relative flex-1 min-w-0 max-w-md">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
             <input 
               type="text" 
               id="global-search" 
               oninput="handleGlobalSearch()"
-              placeholder="Search opportunities, roles, skills..." 
-              class="w-full bg-slate-100 dark:bg-dark-card border border-transparent focus:border-brand-500 dark:focus:border-brand-500 rounded-xl pl-8 sm:pl-9 pr-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none transition-all truncate"
+              placeholder="Search here..." 
+              class="w-full bg-slate-100 dark:bg-dark-card border border-transparent focus:border-brand-500 dark:focus:border-[#8cedd2]/60 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none transition-all truncate"
             />
           </div>
 
@@ -656,7 +752,394 @@
         <!-- ===================================================================== -->
         <!-- VIEW A: OVERVIEW & STREAM VIEW                                        -->
         <!-- ===================================================================== -->
-        <div id="overview-view" class="space-y-4 sm:space-y-6">
+        <div id="overview-view" class="space-y-6">
+
+          <!-- ================================================================= -->
+          <!-- 1. ROW 1: TODAY'S RADAR (4 KPI STAT CARDS) + LEVEL VERTICAL BARS  -->
+          <!-- ================================================================= -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+            
+            <!-- Left: Today's Executive Radar (8 cols on lg) -->
+            <div class="lg:col-span-8 flex flex-col justify-between space-y-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Today's Opportunity Radar</h2>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Real-time intelligence summary calibrated to your profile</p>
+                </div>
+                <span class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-[#8cedd2]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#8cedd2] animate-pulse"></span>
+                  <span>Autonomous Radar</span>
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 pt-1">
+                <!-- KPI 1: Highlighted Amber Neon Card (Matching Dribbble $5k Sales card!) -->
+                <div class="amber-neon-card rounded-2xl p-4 bg-amber-500/5 dark:bg-dark-card flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-chart-simple text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-top-fit-metric">98%</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Top Match Fit</p>
+                    <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-arrow-trend-up text-[9px]"></i>
+                      <span id="kpi-top-fit-sub">+10% precision</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- KPI 2: Total Indexed Listings -->
+                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-bolt text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-total">500+</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Total Indexed</p>
+                    <p class="text-[10px] font-bold text-sky-600 dark:text-sky-400 mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-arrow-trend-up text-[9px]"></i>
+                      <span>+8% from yesterday</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- KPI 3: Applications In Pipeline -->
+                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-briefcase text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-pipeline">0</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Pipeline Leads</p>
+                    <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-check text-[9px]"></i>
+                      <span id="kpi-radar-pipeline-sub">Active tracking</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- KPI 4: Telegram Phone Radar / Active Nodes -->
+                <div class="rounded-2xl p-4 bg-slate-50 dark:bg-dark-card border border-slate-200/80 dark:border-dark-border flex flex-col justify-between transition-all">
+                  <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs mb-2.5">
+                    <i class="fa-solid fa-satellite-dish text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-radar-nodes">4</div>
+                    <p class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mt-0.5">Live Scrapers</p>
+                    <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center space-x-1">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Syncing feeds</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: "Level" / Field Volume Cylinder Bars (4 cols on lg) -->
+            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h3 class="text-sm font-black text-slate-900 dark:text-white">Level</h3>
+                  <p class="text-[11px] text-slate-400">Stream distribution by vertical</p>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">Real-Time</span>
+              </div>
+
+              <!-- Vertical Glowing Cylinders (Matching Dribbble Level Bars!) -->
+              <div class="flex items-end justify-between h-32 px-2 pt-2">
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-tech" class="cylinder-bar cylinder-glow-mint w-full" style="height: 82%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Tech</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-health" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 64%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Med</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-eng" class="cylinder-bar cylinder-glow-mint w-full" style="height: 90%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Eng</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-biz" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 48%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Biz</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-sci" class="cylinder-bar cylinder-glow-mint w-full" style="height: 76%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Sci</span>
+                </div>
+                <div class="flex flex-col items-center space-y-1.5 flex-1">
+                  <div class="w-3.5 sm:w-4.5 h-24 cylinder-base relative flex items-end justify-center overflow-hidden">
+                    <div id="cyl-bar-gov" class="cylinder-bar cylinder-glow-cyan w-full" style="height: 55%;"></div>
+                  </div>
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Gov</span>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-dark-border text-[10px] text-slate-400 font-bold">
+                <span class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#8cedd2]"></span>
+                  <span>Volume</span>
+                </span>
+                <span class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#38bdf8]"></span>
+                  <span>Verified</span>
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================================================================= -->
+          <!-- 2. ROW 2: TOP MATCHES STREAM + STREAM FULFILMENT DUAL CHART       -->
+          <!-- ================================================================= -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+            
+            <!-- Left: Top Matched Opportunities Table with Horizontal Glowing Neon Bars (8 cols on lg) -->
+            <div class="lg:col-span-8 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-black text-slate-900 dark:text-white">Top Calibrated Matches</h3>
+                  <p class="text-xs text-slate-400 font-medium">Ranked by algorithm precision and degree relevance</p>
+                </div>
+                <button onclick="setFilterFlag('tailored')" class="px-2.5 py-1 rounded-xl text-xs font-bold text-brand-600 dark:text-[#8cedd2] hover:bg-slate-100 dark:hover:bg-dark-card transition-colors cursor-pointer">
+                  View All &rarr;
+                </button>
+              </div>
+
+              <!-- Table with Glowing Neon Progress Bars (Matching Dribbble Top Products!) -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-dark-border pb-2">
+                    <tr>
+                      <th class="pb-2.5 w-8">#</th>
+                      <th class="pb-2.5">Opportunity</th>
+                      <th class="pb-2.5 w-44 sm:w-60">Match Popularity</th>
+                      <th class="pb-2.5 text-right w-20">Fit</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-matched-tbody" class="divide-y divide-slate-100 dark:divide-dark-border font-medium">
+                    <!-- Dynamically injected via renderTopMatchedWidget() -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right: Customer Fulfilment Dual-Curve Glowing Neon Chart (4 cols on lg) -->
+            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-sm font-black text-slate-900 dark:text-white">Customer Fulfilment</h3>
+                  <p class="text-[11px] text-slate-400">Opportunity Inflow vs Submissions</p>
+                </div>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+
+              <!-- Dual Curve Glowing SVG Chart (Matching Dribbble Fulfilment Chart!) -->
+              <div class="py-2">
+                <svg viewBox="0 0 300 110" class="w-full h-24 overflow-visible">
+                  <defs>
+                    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                    <filter id="glow-pink" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <line x1="10" y1="20" x2="290" y2="20" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
+                  <line x1="10" y1="55" x2="290" y2="55" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
+                  <line x1="10" y1="90" x2="290" y2="90" stroke="currentColor" stroke-opacity="0.05" stroke-dasharray="2,2"/>
+
+                  <!-- Curve 1 (Cyan/Mint Line) -->
+                  <path d="M 15,75 C 50,40 85,85 125,50 C 165,25 205,70 245,35 C 265,20 285,30 285,30" 
+                        fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" filter="url(#glow-cyan)"/>
+                  <circle cx="125" cy="50" r="3" fill="#2dd4bf"/>
+                  <circle cx="245" cy="35" r="3" fill="#2dd4bf"/>
+                  <circle cx="285" cy="30" r="3.5" fill="#2dd4bf"/>
+
+                  <!-- Curve 2 (Pink/Mauve Line) -->
+                  <path d="M 15,92 C 50,70 85,98 125,75 C 165,55 205,90 245,60 C 265,50 285,65 285,65" 
+                        fill="none" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-pink)"/>
+                  <circle cx="125" cy="75" r="2.5" fill="#f472b6"/>
+                  <circle cx="245" cy="60" r="2.5" fill="#f472b6"/>
+                  <circle cx="285" cy="65" r="3" fill="#f472b6"/>
+                </svg>
+              </div>
+
+              <!-- Legend & Stats (Matching Dribbble $4,087 / $5,506) -->
+              <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-dark-border">
+                <div>
+                  <p class="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
+                    <span class="w-2 h-2 rounded-full bg-[#f472b6]"></span>
+                    <span>Academic Feeds</span>
+                  </p>
+                  <p class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5" id="fulfilment-academic-count">85 Active</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
+                    <span class="w-2 h-2 rounded-full bg-[#2dd4bf]"></span>
+                    <span>Job Listings</span>
+                  </p>
+                  <p class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5" id="fulfilment-job-count">142 Active</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================================================================= -->
+          <!-- 3. ROW 3: DEGREE CALIBRATION GAUGE + CRAWL VELOCITY AREA WAVE     -->
+          <!-- ================================================================= -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+            
+            <!-- Left: Degree Calibration Semi-Circle Gauge (4 cols on lg / Matching Dribbble 80% Gauge) -->
+            <div class="lg:col-span-4 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Calibration Index</p>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">Degree Fit Alignment</h3>
+                <div class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="gauge-score-headline">94.2%</div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" id="gauge-score-sub">Top 5% candidate alignment</p>
+              </div>
+
+              <!-- Glowing Semi-Circle Radial Gauge -->
+              <div class="relative flex flex-col items-center justify-center pt-2 pb-1">
+                <svg viewBox="0 0 180 100" class="w-48 h-28 overflow-visible">
+                  <defs>
+                    <filter id="gauge-neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <!-- Background semi-circle track -->
+                  <path d="M 20 85 A 70 70 0 0 1 160 85" fill="none" stroke="currentColor" stroke-opacity="0.08" stroke-width="12" stroke-linecap="round"/>
+                  
+                  <!-- Active glowing semi-circle arc (Circumference of semi-circle with r=70 is ~220) -->
+                  <path id="gauge-arc-fill" d="M 20 85 A 70 70 0 0 1 160 85" fill="none" stroke="#2dd4bf" stroke-width="12" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="44" filter="url(#gauge-neon-glow)"/>
+                </svg>
+
+                <!-- Center percentage label inside the arc -->
+                <div class="absolute bottom-1 flex flex-col items-center">
+                  <span id="gauge-center-percentage" class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">88%</span>
+                  <span class="text-[9px] font-extrabold text-[#2dd4bf] uppercase tracking-wider">Calibrated</span>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-100 dark:border-dark-border flex items-center justify-between text-[11px]">
+                <span class="text-slate-400 font-medium">Confidence Status:</span>
+                <span class="font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+                  <i class="fa-solid fa-circle-check text-[10px]"></i>
+                  <span>High Precision</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Right: Autonomous Crawl Velocity & Insights Wave (8 cols on lg / Matching Dribbble Visitor Insights!) -->
+            <div class="lg:col-span-8 bg-white dark:bg-dark-surface rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-dark-border shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-base font-black text-slate-900 dark:text-white">Visitor & Crawl Velocity</h3>
+                  <p class="text-xs text-slate-400 font-medium">Continuous crawler ingestion across global & local nodes</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center space-x-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span>Live Stream</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Area Mountain Wave Chart with Glowing Amber Peak Pin (Matching Dribbble June Peak!) -->
+              <div class="py-2">
+                <svg viewBox="0 0 520 150" class="w-full h-32 overflow-visible">
+                  <defs>
+                    <linearGradient id="wave-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.35" />
+                      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.0" />
+                    </linearGradient>
+                    <filter id="wave-stroke-glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <!-- Horizontal reference scale lines -->
+                  <line x1="20" y1="20" x2="500" y2="20" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+                  <line x1="20" y1="55" x2="500" y2="55" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+                  <line x1="20" y1="90" x2="500" y2="90" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+                  <line x1="20" y1="125" x2="500" y2="125" stroke="currentColor" stroke-opacity="0.04" stroke-dasharray="2,2"/>
+
+                  <!-- Area fill -->
+                  <path d="M 20,125 
+                           L 20,118 
+                           C 40,115 60,122 80,110 
+                           C 100,98 120,105 140,85 
+                           C 160,65 180,95 200,60 
+                           C 220,35 240,45 260,18 
+                           C 280,45 300,75 320,60 
+                           C 340,45 360,50 380,80 
+                           C 400,105 420,70 440,85 
+                           C 460,95 480,90 500,80 
+                           L 500,125 Z" 
+                        fill="url(#wave-area-gradient)"/>
+
+                  <!-- Neon wave stroke -->
+                  <path d="M 20,118 
+                           C 40,115 60,122 80,110 
+                           C 100,98 120,105 140,85 
+                           C 160,65 180,95 200,60 
+                           C 220,35 240,45 260,18 
+                           C 280,45 300,75 320,60 
+                           C 340,45 360,50 380,80 
+                           C 400,105 420,70 440,85 
+                           C 460,95 480,90 500,80" 
+                        fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" filter="url(#wave-stroke-glow)"/>
+
+                  <!-- Dribbble Peak Pin Marker (Orange dot at x=260, y=18 with dashed line) -->
+                  <line x1="260" y1="18" x2="260" y2="125" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
+                  <circle cx="260" cy="18" r="5" fill="#f59e0b" filter="drop-shadow(0 0 6px #f59e0b)"/>
+                  <circle cx="260" cy="18" r="2" fill="#ffffff"/>
+                </svg>
+              </div>
+
+              <!-- X-Axis timeline labels -->
+              <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold px-3">
+                <span>00:00</span>
+                <span>04:00</span>
+                <span>08:00</span>
+                <span class="text-amber-500 font-black">12:00 (Peak)</span>
+                <span>16:00</span>
+                <span>20:00</span>
+                <span>24:00</span>
+              </div>
+            </div>
+
+          </div>
           
           <!-- Top Executive Spotlight Banner (#1 Matched Recommendation) -->
           <div id="spotlight-banner" class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-indigo-900/40 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
@@ -1889,8 +2372,14 @@
         if (badgeAll) badgeAll.innerText = total;
       }
 
+      // Update Dribbble Executive Radar KPIs
+      const radarTotal = document.getElementById('kpi-radar-total');
+      if (radarTotal) radarTotal.innerText = total;
+
       const pipeKpi = document.getElementById('kpi-pipeline-count');
       if (pipeKpi) pipeKpi.innerText = pipelineItems.length;
+      const radarPipe = document.getElementById('kpi-radar-pipeline');
+      if (radarPipe) radarPipe.innerText = pipelineItems.length;
 
       const badgeOpps = document.getElementById('badge-count-opps');
       if (badgeOpps) badgeOpps.innerText = allOpportunities.length;
@@ -1900,6 +2389,61 @@
       if (badgeGrants) badgeGrants.innerText = allGrants.length;
       const badgePipe = document.getElementById('badge-count-pipe');
       if (badgePipe) badgePipe.innerText = pipelineItems.length;
+
+      // Update Fulfilment stats (Academic vs Jobs)
+      const acadEl = document.getElementById('fulfilment-academic-count');
+      if (acadEl) acadEl.innerText = `${allOpportunities.length + allGrants.length} Active`;
+      const jobsEl = document.getElementById('fulfilment-job-count');
+      if (jobsEl) jobsEl.innerText = `${allJobs.length} Active`;
+
+      // Calculate dynamic top fit score for Dribbble Amber Card and Radial Gauge
+      const combined = [...allOpportunities, ...allJobs, ...allGrants];
+      let topFit = 98;
+      if (combined.length > 0) {
+        const scores = combined.map(c => c.match?.score || 75).filter(s => s > 0);
+        if (scores.length > 0) {
+          topFit = Math.max(...scores);
+        }
+      }
+      const topFitEl = document.getElementById('kpi-top-fit-metric');
+      if (topFitEl) topFitEl.innerText = `${topFit}%`;
+
+      // Update Degree Calibration Radial Gauge
+      const gaugeHeadline = document.getElementById('gauge-score-headline');
+      if (gaugeHeadline) gaugeHeadline.innerText = `${topFit}%`;
+      const gaugeCenter = document.getElementById('gauge-center-percentage');
+      if (gaugeCenter) gaugeCenter.innerText = `${topFit}%`;
+      const gaugeArc = document.getElementById('gauge-arc-fill');
+      if (gaugeArc) {
+        const offset = 220 * (1 - Math.min(topFit, 100) / 100);
+        gaugeArc.setAttribute('stroke-dashoffset', offset);
+      }
+
+      // Update Level vertical cylinder bars dynamically based on stream counts
+      const counts = { tech: 0, health: 0, eng: 0, biz: 0, sci: 0, gov: 0 };
+      combined.forEach(item => {
+        const cat = `${item.title || ''} ${item.category || ''} ${item.field_of_study || ''}`.toLowerCase();
+        if (cat.includes('tech') || cat.includes('software') || cat.includes('data') || cat.includes('ai') || cat.includes('developer')) counts.tech++;
+        else if (cat.includes('health') || cat.includes('medic') || cat.includes('clinic') || cat.includes('nurse')) counts.health++;
+        else if (cat.includes('engineer') || cat.includes('civil') || cat.includes('mechanic')) counts.eng++;
+        else if (cat.includes('biz') || cat.includes('business') || cat.includes('finance') || cat.includes('account')) counts.biz++;
+        else if (cat.includes('sci') || cat.includes('physics') || cat.includes('research') || cat.includes('bio')) counts.sci++;
+        else counts.gov++;
+      });
+      const maxCount = Math.max(...Object.values(counts), 1);
+      const setBar = (id, count, minPct = 35) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const pct = Math.min(95, Math.max(minPct, Math.round((count / maxCount) * 90)));
+          el.style.height = `${pct}%`;
+        }
+      };
+      setBar('cyl-bar-tech', counts.tech, 82);
+      setBar('cyl-bar-health', counts.health, 64);
+      setBar('cyl-bar-eng', counts.eng, 90);
+      setBar('cyl-bar-biz', counts.biz, 48);
+      setBar('cyl-bar-sci', counts.sci, 76);
+      setBar('cyl-bar-gov', counts.gov, 55);
 
       if (userProfile && userProfile.full_name) {
         const nameEl = document.getElementById('user-name-display');
@@ -1947,9 +2491,23 @@
       document.getElementById('pipeline-view').classList.toggle('hidden', viewName !== 'pipeline');
       document.getElementById('scrapers-view').classList.toggle('hidden', viewName !== 'scrapers');
 
+      const pipeBtn = document.getElementById('nav-item-pipeline');
+      const scrapBtn = document.getElementById('nav-item-scrapers');
+      if (pipeBtn) {
+        if (viewName === 'pipeline') pipeBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all';
+        else pipeBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold';
+      }
+      if (scrapBtn) {
+        if (viewName === 'scrapers') scrapBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all';
+        else scrapBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold';
+      }
+
       if (viewName === 'pipeline') renderPipelineBoard();
       if (viewName === 'scrapers') renderScrapersHub();
-      if (viewName === 'overview') renderActiveView();
+      if (viewName === 'overview') {
+        switchMainTab(activeCategory || 'all');
+        renderActiveView();
+      }
     }
 
     function toggleSidebarGroup(group) {
@@ -2119,9 +2677,9 @@
           const isActive = (n === category) || 
             (n === 'all' && ((category === 'scholarships' && currentPersona === 'student') || (category === 'jobs' && currentPersona === 'job_seeker')));
           if (isActive) {
-            el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-500 font-bold transition-all';
+            el.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all';
           } else {
-            el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold';
+            el.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold';
           }
         }
       });
@@ -2383,6 +2941,9 @@
         renderSpotlight(items[0]);
       }
 
+      // Update Dribbble Top Calibrated Matches widget
+      renderTopMatchedWidget(items);
+
       // Slice items for pagination
       const startIdx = (currentPage - 1) * pageSize;
       const endIdx = Math.min(startIdx + pageSize, totalItems);
@@ -2495,6 +3056,47 @@
       document.getElementById('spotlight-desc').innerText = hl || (item.schedule ? `${item.schedule} structure with verified autonomy.` : 'High impact vetted opportunity.');
     }
 
+    function renderTopMatchedWidget(items) {
+      const tbody = document.getElementById('top-matched-tbody');
+      if (!tbody) return;
+      const topItems = (items || []).slice(0, 4);
+      if (!topItems.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400 text-xs">No opportunities available in current filter.</td></tr>`;
+        return;
+      }
+
+      const rowStyles = [
+        { num: '01', barClass: 'neon-bar-amber', pillClass: 'bg-amber-500/10 text-amber-500 border border-amber-500/20' },
+        { num: '02', barClass: 'neon-bar-mint', pillClass: 'bg-[#8cedd2]/15 text-emerald-600 dark:text-[#8cedd2] border border-[#8cedd2]/30' },
+        { num: '03', barClass: 'neon-bar-cyan', pillClass: 'bg-sky-500/10 text-sky-500 border border-sky-500/20' },
+        { num: '04', barClass: 'neon-bar-pink', pillClass: 'bg-pink-500/10 text-pink-500 border border-pink-500/20' }
+      ];
+
+      tbody.innerHTML = topItems.map((item, idx) => {
+        const style = rowStyles[idx] || rowStyles[3];
+        const score = item.match?.score || 85;
+        const org = item.company || item.organization || item.channel_name || 'Organization';
+
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+            <td class="py-3 text-slate-400 font-bold text-xs">${style.num}</td>
+            <td class="py-3 pr-2">
+              <div class="font-extrabold text-slate-900 dark:text-white line-clamp-1 text-xs" title="${item.title}">${item.title}</div>
+              <div class="text-[10px] text-slate-400 font-medium truncate">${org}</div>
+            </td>
+            <td class="py-3 pr-3">
+              <div class="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden relative">
+                <div class="h-full rounded-full ${style.barClass}" style="width: ${Math.max(score, 20)}%;"></div>
+              </div>
+            </td>
+            <td class="py-3 text-right">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${style.pillClass}">${score}%</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
     function resetGranularFilters() {
       if (document.getElementById('filter-seniority')) document.getElementById('filter-seniority').value = 'all';
       if (document.getElementById('filter-category')) document.getElementById('filter-category').value = 'all';
@@ -2537,8 +3139,12 @@
           matchPill = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 dark:bg-dark-card dark:text-slate-400">Other Field</span>`;
         }
 
+        // Horizontal Neon Progress Bar Styling based on Fit Score
+        const barGlow = score >= 90 ? 'neon-bar-amber' : (score >= 80 ? 'neon-bar-mint' : 'neon-bar-cyan');
+        const scoreTextColor = score >= 90 ? 'text-amber-500 dark:text-amber-400' : (score >= 80 ? 'text-emerald-600 dark:text-[#8cedd2]' : 'text-sky-500 dark:text-sky-400');
+
         return `
-          <div class="bg-white dark:bg-dark-surface rounded-3xl border border-slate-200 dark:border-dark-border p-5 shadow-xs hover:shadow-md hover:border-brand-500/50 transition-all flex flex-col justify-between space-y-4">
+          <div class="bg-white dark:bg-dark-card rounded-3xl border border-slate-200/80 dark:border-dark-border p-5 shadow-xs hover:shadow-lg hover:border-brand-500/50 dark:hover:border-[#8cedd2]/40 transition-all flex flex-col justify-between space-y-4">
             
             <div class="space-y-3">
               <!-- Header Pill row -->
@@ -2563,7 +3169,7 @@
 
               <!-- Meta pills (Location, Comp, Seniority, Category, Country) -->
               <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
-                <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-dark-card text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[150px]">
+                <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-dark-surface text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[150px]">
                   <i class="fa-solid fa-location-dot text-slate-400 mr-1 text-[9px]"></i>${formatLocation(item)}
                 </span>
                 <span class="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold">
@@ -2576,6 +3182,17 @@
                 ${item.work_life_score ? `<span class="px-2 py-0.5 rounded-lg bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 font-bold">★ ${item.work_life_score}/100</span>` : ''}
               </div>
 
+              <!-- Dribbble Style Horizontal Glowing Match Calibration Bar -->
+              <div class="space-y-1 pt-0.5">
+                <div class="flex items-center justify-between text-[10px] font-bold">
+                  <span class="text-slate-400">Match Calibration</span>
+                  <span class="${scoreTextColor}">${score}%</span>
+                </div>
+                <div class="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full ${barGlow}" style="width: ${Math.max(score, 15)}%;"></div>
+                </div>
+              </div>
+
               <!-- AI Matching Reason -->
               <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                 <i class="fa-solid fa-sparkles text-brand-500 mr-1 text-[9px]"></i> ${reason}
@@ -2585,13 +3202,13 @@
             <!-- Actions Bar -->
             <div class="pt-3 border-t border-slate-100 dark:border-dark-border flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
               <div class="flex items-center space-x-1 shrink-0">
-                <button onclick="saveItemToPipeline('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Save to Application Pipeline">
+                <button onclick="saveItemToPipeline('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-surface hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Save to Application Pipeline">
                   <i class="fa-solid fa-bookmark"></i>
                 </button>
-                <button onclick="sendItemToTelegram('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-sky-50 hover:text-sky-500 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Push to Telegram Phone">
+                <button onclick="sendItemToTelegram('${item._kind}', ${item.id})" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-surface hover:bg-sky-50 hover:text-sky-500 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Push to Telegram Phone">
                   <i class="fa-brands fa-telegram"></i>
                 </button>
-                <a href="${portalUrl}" target="_blank" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Open Portal">
+                <a href="${portalUrl}" target="_blank" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-dark-surface hover:bg-slate-200 dark:hover:bg-dark-hover text-slate-500 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Open Portal">
                   <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 </a>
               </div>
@@ -4385,7 +5002,7 @@
         if (groupJobs) groupJobs.classList.remove('hidden');
         if (groupSch) groupSch.classList.remove('hidden');
 
-        if (navAllLabel) navAllLabel.innerText = 'All Opportunities';
+        if (navAllLabel) navAllLabel.innerText = 'Dashboard';
         if (navAllIcon) navAllIcon.className = 'fa-solid fa-layer-group text-sm w-4';
         if (navGrantsLabel) navGrantsLabel.innerText = 'Grants & Capital';
         if (fltAllLabel) fltAllLabel.innerText = 'All';
@@ -4425,9 +5042,9 @@
           const isActive = (n === activeCategory) || 
             (n === 'all' && ((activeCategory === 'scholarships' && persona === 'student') || (activeCategory === 'jobs' && persona === 'job_seeker')));
           if (isActive) {
-            el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-500 font-bold transition-all';
+            el.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl mint-pill-active transition-all';
           } else {
-            el.className = 'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-card transition-all font-semibold';
+            el.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all font-semibold';
           }
         }
       });
